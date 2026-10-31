@@ -18,6 +18,20 @@ Goal: research, design, and enough API to reimplement refabslab with zero Minecr
 * [ ] In-game verification on Fabric 1.21.1 (with and without Sodium/Iris) – manual, needs a client
 * [ ] Publish artifacts to a working maven (GitHub Packages) – the Heroku maven is gone
 
+## M1.5 – Entities and client APIs for the vehicle mod (branch `feature/entities-and-client-apis`)
+
+Pulled forward from M3/M4 because the vehicle mod (CebbysMods/immersive-vehicles V1) needs them.
+
+* [x] Entities: `EntityDefinition` (size, tracking, seats, typed `EntityData` with saved/synced flags, fluid tank, inventory), `EntityBehaviour` (tick, interact, attacked)
+* [x] Items: `ItemDefinition`, `ItemBehaviour#useOnBlock`, creative tabs
+* [x] `Level#blockCollisions` (single terrain query), `spawn`, item drops
+* [x] Typed client/server `Channel<T>`
+* [x] Transfer: `FluidTank` / `ItemInventory`, exposed through the Fabric Transfer API (refuel from any fluid container; `modularity:fluid_storage` / `modularity:item_storage` entity lookups)
+* [x] Client: key bindings, movement input, tick hook, camera controller, HUD layers, looping entity sounds, entity renderers with OBJ models
+* [x] Testkit: ticking, riding, save/reload, loopback channels, client simulation
+* [x] Reference: vehicle mod V1 (drivable sedan) incl. in-game smoke test
+* Not yet: menus/screens, entity data on vanilla entities, NeoForge implementation
+
 ## M2 – Second loader, second version, build tooling
 
 Goal: prove "multi loader, multi version" with the same refabslab common jar.
@@ -31,7 +45,7 @@ Goal: prove "multi loader, multi version" with the same refabslab common jar.
 
 ## M3 – Items, interaction, events, networking, config
 
-* Items (`mod.item`), tools/armor/food, creative tabs, item behaviours (use, use on block/entity)
+* Items beyond M1.5: tools/armor/food, item behaviours (use, use on entity)
 * More block hooks: use, neighbour updates, ticking, shapes, random ticks; block entities with tickers
 * Event bus: lifecycle, server/level tick, player interaction, block break/place, commands
 * Typed networking (`mod.channel(...)`) with `DataCodec`

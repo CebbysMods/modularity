@@ -52,4 +52,6 @@ public final class RefabslabMod implements ModularMod {
 4. [Milestones](docs/04-milestones.md)
 
 Status: **milestone 1** – core block API, Fabric 1.21.1 platform, refabslab ported
-([CebbysMods/refabslab](https://github.com/CebbysMods/refabslab)).
+([CebbysMods/refabslab](https://github.com/CebbysMods/refabslab)); **milestone 1.5** – entities, items,
+networking, transfer and client APIs, used by the vehicle mod
+([CebbysMods/immersive-vehicles](https://github.com/CebbysMods/immersive-vehicles)).
