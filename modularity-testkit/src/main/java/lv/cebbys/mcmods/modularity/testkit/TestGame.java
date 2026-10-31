@@ -24,6 +24,7 @@ import lv.cebbys.mcmods.modularity.api.client.HitParticles;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 import lv.cebbys.mcmods.modularity.api.data.BlockData;
+import lv.cebbys.mcmods.modularity.api.server.ServerContext;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.api.world.BlockView;
 import lv.cebbys.mcmods.modularity.api.world.Direction;
@@ -99,11 +100,16 @@ public final class TestGame implements Modularity.Runtime {
         return block;
     }
 
-    /** Runs the mod's common init and, on the client side, its client init. */
+    /**
+     * Runs the mod's common init, then its client init (side {@code CLIENT}) or its server init
+     * (side {@code SERVER}, i.e. a dedicated server).
+     */
     public TestGame load(String modId, ModularMod mod) {
-        mod.init(new TestModContext(modId));
+        mod.initCommon(new TestModContext(modId));
         if (platform.side() == Side.CLIENT) {
             mod.initClient(new TestClientContext(modId));
+        } else {
+            mod.initServer(new TestServerContext(modId));
         }
         return this;
     }
@@ -364,6 +370,13 @@ public final class TestGame implements Modularity.Runtime {
         @Override
         public void hitParticles(BlockHandle block, HitParticles particles) {
             hitParticles.put(block.id(), particles);
+        }
+    }
+
+    private record TestServerContext(String modId) implements ServerContext {
+        @Override
+        public Platform platform() {
+            return Modularity.platform();
         }
     }
 

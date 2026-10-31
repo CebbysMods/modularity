@@ -17,7 +17,7 @@ public final class ModularityFabric implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
     private static final List<LoadedMod> MODS = new ArrayList<>();
 
-    /** A mod initialized by Modularity; the same instance receives the client init. */
+    /** A mod initialized by Modularity; the same instance receives the client/server init. */
     public record LoadedMod(String modId, ModularMod mod) {
     }
 
@@ -36,7 +36,7 @@ public final class ModularityFabric implements ModInitializer {
             String modId = container.getProvider().getMetadata().getId();
             try {
                 ModularMod mod = container.getEntrypoint();
-                mod.init(new FabricModContext(modId));
+                mod.initCommon(new FabricModContext(modId));
                 MODS.add(new LoadedMod(modId, mod));
             } catch (RuntimeException e) {
                 throw new IllegalStateException("Modularity mod '" + modId + "' failed to initialize", e);

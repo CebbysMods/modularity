@@ -58,13 +58,20 @@ code without leaving the project.**
 
 ```java
 public final class MyMod implements ModularMod {
-    @Override public void init(ModContext mod) { /* content */ }
+    @Override public void initCommon(ModContext mod) { /* content */ }
     @Override public void initClient(ClientContext client) { /* rendering */ }
+    @Override public void initServer(ServerContext server) { /* dedicated server only */ }
 }
 ```
 
 Fabric: `"entrypoints": { "modularity": ["com.example.MyMod"] }`. The same instance receives
-`initClient`, so fields set in `init` are available there.
+`initClient`/`initServer`, so fields set in `initCommon` are available there.
+
+| Method | Runs on | Typical use |
+|---|---|---|
+| `initCommon` | always, first | blocks, items, data, interceptors |
+| `initClient` | physical client (also singleplayer) | models, particles, renderers, key bindings |
+| `initServer` | dedicated server only | server config, console-only features |
 
 ### Step 2 – a block
 
@@ -132,6 +139,7 @@ common module stays Minecraft-free.
 | Package | Contents |
 |---|---|
 | `api` | `ModularMod`, `ModContext`, `Platform`, `Modularity` (static runtime access) |
+| `api.server` | `ServerContext` |
 | `api.core` | `Id`, `McVersion`, `VersionRange`, `Versioned`, `Handle`, `Loader`, `Side` |
 | `api.block` | `BlockDefinition` (+Builder), `BlockHandle`, `BlockRef`, `BlockStateRef`, `BlockBehaviour`, contexts, `BlockInterceptor`, `BlockSelector`, `PlacementResult`, `BlockTag`, `BlockType`, `PushReaction`, `BlockSound` |
 | `api.block.property` | `Property` (`IntegerProperty`, `BooleanProperty`, `EnumProperty`), `VanillaProperties`, `SlabType`, `PropertyValue` |
@@ -144,7 +152,7 @@ common module stays Minecraft-free.
 
 | API | Native implementation |
 |---|---|
-| `ModularMod` discovery | Fabric entrypoint key `modularity`, run from Modularity's own `main`/`client` entrypoints |
+| `ModularMod` discovery | Fabric entrypoint key `modularity`, run from Modularity's own `main`/`client`/`server` entrypoints |
 | `mod.block` | `ModularBlock` (or `ModularEntityBlock` when data is declared) registered in `BuiltInRegistries.BLOCK`; properties added through a construction-time `ThreadLocal` |
 | `Property` | cached mapping to vanilla `IntegerProperty`/`BooleanProperty`, vanilla properties by key, portable enums as a `Property<String>` of serialized names |
 | `BlockData` | `ModularBlockEntity`: NBT under `modularity`, update packet sync, client re-mesh on receive, Fabric `RenderDataBlockEntity` snapshot |

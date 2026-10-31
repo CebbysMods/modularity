@@ -9,7 +9,8 @@
   "environment": "*",
   "entrypoints": {
     "main": ["lv.cebbys.mcmods.modularity.fabric.ModularityFabric"],
-    "client": ["lv.cebbys.mcmods.modularity.fabric.client.ModularityFabricClient"]
+    "client": ["lv.cebbys.mcmods.modularity.fabric.client.ModularityFabricClient"],
+    "server": ["lv.cebbys.mcmods.modularity.fabric.ModularityFabricServer"]
   },
   "mixins": ["modularity.mixins.json"],
   "depends": {
