@@ -4,9 +4,10 @@ on:
     inputs:
       refabslab_ref:
         description: refabslab branch to test
-        default: ccr-0c4ae7b5-wiat19
+        default: feature/modularity-port
   push:
-    branches: [ccr-0c4ae7b5-wiat19]
+    branches: [feature/milestone-1-core-api]
+  pull_request:
 
 jobs:
   smoke-fabric-1-21-1:
@@ -19,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: CebbysMods/refabslab
-          ref: ${{ inputs.refabslab_ref || 'ccr-0c4ae7b5-wiat19' }}
+          ref: ${{ inputs.refabslab_ref || 'feature/modularity-port' }}
           path: .refabslab
       - uses: actions/setup-java@v4
         with:
