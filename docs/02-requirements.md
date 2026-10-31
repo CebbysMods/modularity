@@ -15,7 +15,7 @@ with the milestone that delivers it (see [04-milestones.md](04-milestones.md)).
 | N5 | Mods don't write mixins for common needs; the platform owns a small set of generic hooks. | 1 |
 | N6 | Low overhead: portable wrappers are thin records, per-block lookups are cached, hot paths bail out early when nothing is registered. | 1 |
 | N7 | API stability: interfaces grow with default methods; implementations are never broken by additions. | all |
-| N8 | Java 17 API (oldest Java a supported MC version uses), platforms compile with the Java their MC version needs. | 1 |
+| N8 | Every jar targets the lowest Java its Minecraft versions run on: API/testkit Java 17 (MC 1.18–1.20.4), each platform the Java of its MC version (1.20.5+: 21). Configured in `gradle.properties` (`java_api_release`). | 1 |
 | N9 | One jar per (loader, MC version) for players; Modularity is bundled (jar-in-jar) so users install one file. | 1 |
 | N10 | Build tooling generates loader metadata and per-target jars from one project. | 2 |
 

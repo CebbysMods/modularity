@@ -12,14 +12,14 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
     apply plugin: 'maven-publish'
 
     java {
-        // The API targets the oldest Java any supported Minecraft version runs on.
-        toolchain { languageVersion = JavaLanguageVersion.of(21) }
+        toolchain { languageVersion = JavaLanguageVersion.of(Integer.parseInt(rootProject.java_toolchain)) }
         withSourcesJar()
         withJavadocJar()
     }
 
     tasks.withType(JavaCompile).configureEach {
-        options.release = 17
+        // Bytecode targets the lowest Java any supported Minecraft version runs on (see gradle.properties).
+        options.release = Integer.parseInt(rootProject.java_api_release)
         options.encoding = 'UTF-8'
         options.compilerArgs += ['-Xlint:all', '-Xlint:-serial']
     }
