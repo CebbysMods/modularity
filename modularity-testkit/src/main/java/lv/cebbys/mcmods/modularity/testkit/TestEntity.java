@@ -162,6 +162,22 @@ public class TestEntity implements EntityRef {
         return this;
     }
 
+    /** Copies position and synced data from {@code source} (server to client sync). */
+    void syncFrom(TestEntity source) {
+        position = source.position;
+        yaw = source.yaw;
+        source.data.forEach((key, raw) -> {
+            if (key.synced()) {
+                data.put(key, raw);
+            }
+        });
+        if (tank != null && source.tank != null) {
+            MapData tankData = new MapData();
+            source.tank.write(tankData);
+            tank.read(tankData);
+        }
+    }
+
     /** What would be written to the world save. */
     MapData save() {
         MapData out = new MapData();

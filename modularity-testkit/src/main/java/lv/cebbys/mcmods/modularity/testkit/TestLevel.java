@@ -236,6 +236,25 @@ public final class TestLevel implements Level {
         return entity;
     }
 
+    /**
+     * Mirrors {@code entity} into this client level (same uuid, position and synced data), like a
+     * client receiving it from the server. Use {@code TestGame#tick} on this level to run client ticks.
+     */
+    public TestEntity mirror(EntityRef serverEntity) {
+        if (!clientSide) {
+            throw new IllegalStateException("Only client levels mirror entities");
+        }
+        TestEntity source = (TestEntity) serverEntity;
+        TestEntity copy = entities.stream().filter(e -> e.uuid().equals(source.uuid())).findFirst()
+                .orElseGet(() -> {
+                    TestEntity created = new TestEntity(source.uuid(), source.typeId(), source.definition());
+                    addEntity(created);
+                    return created;
+                });
+        copy.syncFrom(source);
+        return copy;
+    }
+
     @Override
     public long gameTime() {
         return gameTime;
