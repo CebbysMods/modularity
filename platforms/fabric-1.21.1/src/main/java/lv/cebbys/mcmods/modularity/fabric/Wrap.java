@@ -83,4 +83,13 @@ public final class Wrap {
     public static FabricPlayer player(net.minecraft.world.entity.player.Player player) {
         return new FabricPlayer(player);
     }
+
+    public static lv.cebbys.mcmods.modularity.api.entity.EntityRef entity(net.minecraft.world.entity.Entity entity) {
+        return entity instanceof net.minecraft.world.entity.player.Player player
+                ? new FabricPlayer(player) : new lv.cebbys.mcmods.modularity.fabric.world.NativeEntityRef(entity);
+    }
+
+    public static net.minecraft.world.phys.Vec3 vec(Vec3 vec) {
+        return new net.minecraft.world.phys.Vec3(vec.x(), vec.y(), vec.z());
+    }
 }

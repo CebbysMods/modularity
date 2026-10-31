@@ -12,6 +12,11 @@ package lv.cebbys.mcmods.modularity.api.data;
  * }</pre>
  */
 public interface DataCodec<T> {
+    DataCodec<Integer> INT = of((v, out) -> out.putInt("v", v), in -> in.getInt("v"));
+    DataCodec<Boolean> BOOL = of((v, out) -> out.putBoolean("v", v), in -> in.getBoolean("v"));
+    DataCodec<Double> DOUBLE = of((v, out) -> out.putDouble("v", v), in -> in.getDouble("v"));
+    DataCodec<String> STRING = of((v, out) -> out.putString("v", v), in -> in.getString("v"));
+
     void write(T value, DataOutput out);
 
     T read(DataInput in);

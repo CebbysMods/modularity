@@ -31,6 +31,28 @@ public final class MapData implements DataOutput, DataInput {
     }
 
     @Override
+    public MapData putDouble(String key, double value) {
+        values.put(key, value);
+        return this;
+    }
+
+    @Override
+    public MapData putLong(String key, long value) {
+        values.put(key, value);
+        return this;
+    }
+
+    @Override
+    public double getDouble(String key) {
+        return ((Number) require(key)).doubleValue();
+    }
+
+    @Override
+    public long getLong(String key) {
+        return ((Number) require(key)).longValue();
+    }
+
+    @Override
     public boolean has(String key) {
         return values.containsKey(key);
     }

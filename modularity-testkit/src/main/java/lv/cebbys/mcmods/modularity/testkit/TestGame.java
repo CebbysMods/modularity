@@ -33,6 +33,35 @@ import lv.cebbys.mcmods.modularity.api.world.Player;
 import lv.cebbys.mcmods.modularity.api.world.Pos;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
 
+import lv.cebbys.mcmods.modularity.api.client.CameraController;
+import lv.cebbys.mcmods.modularity.api.client.ClientState;
+import lv.cebbys.mcmods.modularity.api.client.EntityRenderer;
+import lv.cebbys.mcmods.modularity.api.client.HudContext;
+import lv.cebbys.mcmods.modularity.api.client.HudLayer;
+import lv.cebbys.mcmods.modularity.api.client.KeyBinding;
+import lv.cebbys.mcmods.modularity.api.client.LoopingSound;
+import lv.cebbys.mcmods.modularity.api.client.ModelRef;
+import lv.cebbys.mcmods.modularity.api.client.MovementInput;
+import lv.cebbys.mcmods.modularity.api.client.RenderOutput;
+import lv.cebbys.mcmods.modularity.api.client.model.ObjModel;
+import lv.cebbys.mcmods.modularity.api.client.model.ObjParser;
+import lv.cebbys.mcmods.modularity.api.core.InteractionResult;
+import lv.cebbys.mcmods.modularity.api.data.DataCodec;
+import lv.cebbys.mcmods.modularity.api.data.MapData;
+import lv.cebbys.mcmods.modularity.api.entity.EntityContext;
+import lv.cebbys.mcmods.modularity.api.entity.EntityDefinition;
+import lv.cebbys.mcmods.modularity.api.entity.EntityHandle;
+import lv.cebbys.mcmods.modularity.api.entity.EntityRef;
+import lv.cebbys.mcmods.modularity.api.item.ItemDefinition;
+import lv.cebbys.mcmods.modularity.api.item.ItemHandle;
+import lv.cebbys.mcmods.modularity.api.item.ItemUseContext;
+import lv.cebbys.mcmods.modularity.api.network.Channel;
+import lv.cebbys.mcmods.modularity.api.sound.SoundHandle;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -59,6 +88,18 @@ public final class TestGame implements Modularity.Runtime {
     private final List<Interceptor> interceptors = new ArrayList<>();
     private final Map<Id, DynamicModel> models = new HashMap<>();
     private final Map<Id, HitParticles> hitParticles = new HashMap<>();
+    private final Map<Id, EntityHandle> entityTypes = new LinkedHashMap<>();
+    private final Map<Id, ItemHandle> items = new LinkedHashMap<>();
+    private final Map<Id, SoundHandle> sounds = new LinkedHashMap<>();
+    private final Map<Id, TestChannel<?>> channels = new LinkedHashMap<>();
+    private final Map<Id, EntityRenderer> entityRenderers = new HashMap<>();
+    private final Map<String, TestKeyBinding> keyBindings = new LinkedHashMap<>();
+    private final List<java.util.function.Consumer<ClientState>> tickHandlers = new ArrayList<>();
+    private final List<CameraController> cameraControllers = new ArrayList<>();
+    private final List<HudLayer> hudLayers = new ArrayList<>();
+    private final List<LoopingSound> playingSounds = new ArrayList<>();
+    private TestPlayer localPlayer;
+    private MovementInput movement = MovementInput.NONE;
     private final TestBlock air;
 
     private TestGame() {
@@ -291,6 +332,265 @@ public final class TestGame implements Modularity.Runtime {
         return definition == null ? BlockBehaviour.VANILLA : definition.behaviour();
     }
 
+    // ---------------------------------------------------------------- entities, items, client
+
+    public Optional<EntityHandle> entityType(Id id) {
+        return Optional.ofNullable(entityTypes.get(id));
+    }
+
+    public Optional<ItemHandle> item(Id id) {
+        return Optional.ofNullable(items.get(id));
+    }
+
+    public Optional<SoundHandle> sound(Id id) {
+        return Optional.ofNullable(sounds.get(id));
+    }
+
+    /** One server tick: every Modularity entity in {@code level} ticks once. */
+    public void tick(TestLevel level) {
+        level.gameTime++;
+        for (TestEntity entity : level.entities()) {
+            if (entity.definition() != null && !entity.isRemoved()) {
+                entity.definition().behaviour().tick(entityContext(entity));
+            }
+        }
+    }
+
+    public void tick(TestLevel level, int ticks) {
+        for (int i = 0; i < ticks; i++) {
+            tick(level);
+        }
+    }
+
+    /** A player right-clicks {@code entity}. */
+    public InteractionResult interact(TestEntity entity, TestPlayer player) {
+        return entity.definition().behaviour().interact(entityContext(entity), player);
+    }
+
+    /** {@code attacker} hits {@code entity}. */
+    public boolean attack(TestEntity entity, TestPlayer attacker, float amount) {
+        return entity.definition().behaviour().attacked(entityContext(entity), Optional.ofNullable(attacker), amount);
+    }
+
+    /** {@code player} uses the held item on the {@code face} of the block at {@code clicked}. */
+    public InteractionResult useItemOn(TestLevel level, TestPlayer player, Pos clicked, Direction face, Vec3 hit) {
+        ItemStackRef stack = player.mainHandItem();
+        ItemHandle handle = items.get(stack.itemId());
+        if (handle == null) {
+            return InteractionResult.PASS;
+        }
+        ItemUseContext ctx = new ItemUseContext() {
+            @Override
+            public Level level() {
+                return level;
+            }
+
+            @Override
+            public Optional<lv.cebbys.mcmods.modularity.api.world.Player> player() {
+                return Optional.of(player);
+            }
+
+            @Override
+            public ItemStackRef stack() {
+                return stack;
+            }
+
+            @Override
+            public Pos clickedPos() {
+                return clicked;
+            }
+
+            @Override
+            public Direction clickedFace() {
+                return face;
+            }
+
+            @Override
+            public Vec3 clickLocation() {
+                return hit;
+            }
+        };
+        return handle.definition().behaviour().useOnBlock(ctx);
+    }
+
+    /**
+     * Simulates saving the world and loading it again: returns a new level with the same blocks
+     * and entities re-created only from their saved state (unsaved data is lost, riders dismount).
+     */
+    public TestLevel saveAndReload(TestLevel level) {
+        TestLevel reloaded = new TestLevel(this, level.isClientSide());
+        level.copyBlocksTo(reloaded);
+        for (TestEntity entity : level.entities()) {
+            if (entity.definition() == null) {
+                continue;
+            }
+            TestEntity copy = new TestEntity(entity.uuid(), entity.typeId(), entity.definition());
+            copy.load(entity.save());
+            reloaded.addEntity(copy);
+        }
+        return reloaded;
+    }
+
+    private EntityContext entityContext(TestEntity entity) {
+        return () -> entity;
+    }
+
+    /** The player controlled by the simulated client (receives client messages, sends input). */
+    public void setLocalPlayer(TestPlayer player) {
+        this.localPlayer = player;
+    }
+
+    public void setMovement(MovementInput movement) {
+        this.movement = movement;
+    }
+
+    public TestKeyBinding keyBinding(String name) {
+        TestKeyBinding binding = keyBindings.get(name);
+        if (binding == null) {
+            throw new IllegalArgumentException("No key binding '" + name + "', have " + keyBindings.keySet());
+        }
+        return binding;
+    }
+
+    /** One client tick: runs client tick handlers and drops stopped sounds. */
+    public void clientTick() {
+        ClientState state = clientState();
+        tickHandlers.forEach(handler -> handler.accept(state));
+        playingSounds.removeIf(sound -> sound.isStopped() || sound.entity().isRemoved());
+    }
+
+    public List<LoopingSound> playingSounds() {
+        return List.copyOf(playingSounds);
+    }
+
+    /** Camera settings the registered controllers ask for. */
+    public Optional<CameraController.CameraSettings> camera() {
+        if (localPlayer == null) {
+            return Optional.empty();
+        }
+        for (CameraController controller : cameraControllers) {
+            var settings = controller.camera(localPlayer);
+            if (settings.isPresent()) {
+                return settings;
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** What the HUD layers draw on a {@code width x height} screen. */
+    public List<String> renderHud(int width, int height) {
+        List<String> drawn = new ArrayList<>();
+        HudContext ctx = new HudContext() {
+            @Override
+            public int width() {
+                return width;
+            }
+
+            @Override
+            public int height() {
+                return height;
+            }
+
+            @Override
+            public int textWidth(String text) {
+                return text.length() * 6;
+            }
+
+            @Override
+            public void text(String text, int x, int y, int color) {
+                drawn.add(text);
+            }
+
+            @Override
+            public void fill(int x1, int y1, int x2, int y2, int color) {
+            }
+
+            @Override
+            public ClientState client() {
+                return clientState();
+            }
+        };
+        hudLayers.forEach(layer -> layer.render(ctx));
+        return drawn;
+    }
+
+    /** Operations the entity renderer performs, e.g. {@code ["push", "rotateY 90.0", "model car/body"]}. */
+    public List<String> renderEntity(EntityRef entity, float partialTick) {
+        EntityRenderer renderer = entityRenderers.get(entity.typeId());
+        if (renderer == null) {
+            throw new IllegalStateException("No renderer for " + entity.typeId());
+        }
+        List<String> ops = new ArrayList<>();
+        renderer.render(entity, partialTick, new RenderOutput() {
+            @Override
+            public void push() {
+                ops.add("push");
+            }
+
+            @Override
+            public void pop() {
+                ops.add("pop");
+            }
+
+            @Override
+            public void translate(double x, double y, double z) {
+                ops.add("translate " + x + " " + y + " " + z);
+            }
+
+            @Override
+            public void rotateX(float degrees) {
+                ops.add("rotateX " + degrees);
+            }
+
+            @Override
+            public void rotateY(float degrees) {
+                ops.add("rotateY " + degrees);
+            }
+
+            @Override
+            public void rotateZ(float degrees) {
+                ops.add("rotateZ " + degrees);
+            }
+
+            @Override
+            public void scale(float x, float y, float z) {
+                ops.add("scale " + x + " " + y + " " + z);
+            }
+
+            @Override
+            public void model(ModelRef model, Id texture) {
+                model.model();
+                ops.add("model " + model.resource().path());
+            }
+
+            @Override
+            public void model(ModelRef model, String group, Id texture) {
+                model.model().faces(group);
+                ops.add("model " + model.resource().path() + "#" + group);
+            }
+        });
+        return ops;
+    }
+
+    private ClientState clientState() {
+        return new ClientState() {
+            @Override
+            public Optional<lv.cebbys.mcmods.modularity.api.world.Player> player() {
+                return Optional.ofNullable(localPlayer);
+            }
+
+            @Override
+            public MovementInput movement() {
+                return movement;
+            }
+
+            @Override
+            public boolean isPaused() {
+                return false;
+            }
+        };
+    }
+
     // ---------------------------------------------------------------- contexts
 
     private final class TestModContext implements ModContext {
@@ -343,6 +643,120 @@ public final class TestGame implements Modularity.Runtime {
         public void intercept(BlockSelector selector, BlockInterceptor interceptor) {
             interceptors.add(new Interceptor(selector, interceptor));
         }
+
+        @Override
+        public EntityHandle entity(String name, Consumer<EntityDefinition.Builder> spec) {
+            EntityDefinition.Builder builder = EntityDefinition.builder();
+            spec.accept(builder);
+            EntityDefinition definition = builder.build();
+            Id id = id(name);
+            EntityHandle handle = new EntityHandle() {
+                @Override
+                public Id id() {
+                    return id;
+                }
+
+                @Override
+                public EntityDefinition definition() {
+                    return definition;
+                }
+            };
+            if (entityTypes.putIfAbsent(id, handle) != null) {
+                throw new IllegalStateException("Duplicate entity " + id);
+            }
+            return handle;
+        }
+
+        @Override
+        public ItemHandle item(String name, Consumer<ItemDefinition.Builder> spec) {
+            ItemDefinition.Builder builder = ItemDefinition.builder();
+            spec.accept(builder);
+            ItemDefinition definition = builder.build();
+            Id id = id(name);
+            ItemHandle handle = new ItemHandle() {
+                @Override
+                public Id id() {
+                    return id;
+                }
+
+                @Override
+                public ItemDefinition definition() {
+                    return definition;
+                }
+
+                @Override
+                public lv.cebbys.mcmods.modularity.api.item.ItemStackRef stack(int count) {
+                    return TestItemStack.item(id, count, definition.stackSize());
+                }
+            };
+            if (items.putIfAbsent(id, handle) != null) {
+                throw new IllegalStateException("Duplicate item " + id);
+            }
+            return handle;
+        }
+
+        @Override
+        public SoundHandle sound(String name) {
+            Id id = id(name);
+            SoundHandle handle = () -> id;
+            sounds.put(id, handle);
+            return handle;
+        }
+
+        @Override
+        public <T> Channel<T> channel(String name, DataCodec<T> codec) {
+            TestChannel<T> channel = new TestChannel<>(id(name), codec);
+            if (channels.putIfAbsent(channel.id(), channel) != null) {
+                throw new IllegalStateException("Duplicate channel " + channel.id());
+            }
+            return channel;
+        }
+    }
+
+    /** Loopback channel: messages are serialized through the codec and delivered immediately. */
+    private final class TestChannel<T> implements Channel<T> {
+        private final Id id;
+        private final DataCodec<T> codec;
+        private final List<java.util.function.BiConsumer<lv.cebbys.mcmods.modularity.api.world.Player, T>> serverHandlers = new ArrayList<>();
+        private final List<Consumer<T>> clientHandlers = new ArrayList<>();
+
+        private TestChannel(Id id, DataCodec<T> codec) {
+            this.id = id;
+            this.codec = codec;
+        }
+
+        private T roundTrip(T message) {
+            MapData data = new MapData();
+            codec.write(message, data);
+            return codec.read(data);
+        }
+
+        @Override
+        public Id id() {
+            return id;
+        }
+
+        @Override
+        public void sendToServer(T message) {
+            if (localPlayer == null) {
+                throw new IllegalStateException("No local player, call TestGame#setLocalPlayer");
+            }
+            T received = roundTrip(message);
+            serverHandlers.forEach(handler -> handler.accept(localPlayer, received));
+        }
+
+        @Override
+        public void sendTo(lv.cebbys.mcmods.modularity.api.world.Player player, T message) {
+            if (player == localPlayer) {
+                T received = roundTrip(message);
+                clientHandlers.forEach(handler -> handler.accept(received));
+            }
+        }
+
+        @Override
+        public void onServer(java.util.function.BiConsumer<lv.cebbys.mcmods.modularity.api.world.Player, T> handler) {
+            serverHandlers.add(handler);
+        }
     }
 
     private final class TestClientContext implements ClientContext {
@@ -370,6 +784,121 @@ public final class TestGame implements Modularity.Runtime {
         @Override
         public void hitParticles(BlockHandle block, HitParticles particles) {
             hitParticles.put(block.id(), particles);
+        }
+
+        @Override
+        public void entityRenderer(EntityHandle type, EntityRenderer renderer) {
+            entityRenderers.put(type.id(), renderer);
+        }
+
+        @Override
+        public ModelRef objModel(Id resource) {
+            return new ModelRef() {
+                private ObjModel model;
+
+                @Override
+                public Id resource() {
+                    return resource;
+                }
+
+                @Override
+                public ObjModel model() {
+                    if (model == null) {
+                        String path = "assets/" + resource.namespace() + "/" + resource.path();
+                        var stream = TestGame.class.getClassLoader().getResourceAsStream(path);
+                        if (stream == null) {
+                            throw new IllegalStateException("Model resource not found on the classpath: " + path);
+                        }
+                        try (var reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                            model = ObjParser.parse(reader);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    }
+                    return model;
+                }
+            };
+        }
+
+        @Override
+        public KeyBinding keyBinding(String name, int defaultKey) {
+            TestKeyBinding binding = new TestKeyBinding(name, defaultKey);
+            keyBindings.put(name, binding);
+            return binding;
+        }
+
+        @Override
+        public void onTick(Consumer<ClientState> handler) {
+            tickHandlers.add(handler);
+        }
+
+        @Override
+        public <T> void onMessage(Channel<T> channel, Consumer<T> handler) {
+            ((TestChannel<T>) channel).clientHandlers.add(handler);
+        }
+
+        @Override
+        public void camera(CameraController controller) {
+            cameraControllers.add(controller);
+        }
+
+        @Override
+        public void hud(HudLayer layer) {
+            hudLayers.add(layer);
+        }
+
+        @Override
+        public void play(LoopingSound sound) {
+            playingSounds.add(sound);
+        }
+
+        @Override
+        public ClientState state() {
+            return clientState();
+        }
+    }
+
+    /** Key binding whose state tests control. */
+    public static final class TestKeyBinding implements KeyBinding {
+        private final String name;
+        private final int defaultKey;
+        private boolean down;
+        private int clicks;
+
+        TestKeyBinding(String name, int defaultKey) {
+            this.name = name;
+            this.defaultKey = defaultKey;
+        }
+
+        public int defaultKey() {
+            return defaultKey;
+        }
+
+        public void setDown(boolean down) {
+            this.down = down;
+        }
+
+        public void press() {
+            clicks++;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public boolean isDown() {
+            return down;
+        }
+
+        @Override
+        public boolean consumeClick() {
+            if (clicks > 0) {
+                clicks--;
+                return true;
+            }
+            return false;
         }
     }
 

@@ -5,7 +5,7 @@ import lv.cebbys.mcmods.modularity.api.data.DataOutput;
 import net.minecraft.nbt.CompoundTag;
 
 /** Portable data I/O backed by NBT. */
-record NbtData(CompoundTag tag) implements DataOutput, DataInput {
+public record NbtData(CompoundTag tag) implements DataOutput, DataInput {
     @Override
     public DataOutput putString(String key, String value) {
         tag.putString(key, value);
@@ -22,6 +22,28 @@ record NbtData(CompoundTag tag) implements DataOutput, DataInput {
     public DataOutput putBoolean(String key, boolean value) {
         tag.putBoolean(key, value);
         return this;
+    }
+
+    @Override
+    public DataOutput putDouble(String key, double value) {
+        tag.putDouble(key, value);
+        return this;
+    }
+
+    @Override
+    public DataOutput putLong(String key, long value) {
+        tag.putLong(key, value);
+        return this;
+    }
+
+    @Override
+    public double getDouble(String key) {
+        return tag.getDouble(key);
+    }
+
+    @Override
+    public long getLong(String key) {
+        return tag.getLong(key);
     }
 
     @Override

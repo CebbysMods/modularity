@@ -11,6 +11,10 @@ public interface DataInput {
 
     boolean getBoolean(String key);
 
+    double getDouble(String key);
+
+    long getLong(String key);
+
     default Id getId(String key) {
         return Id.parse(getString(key));
     }

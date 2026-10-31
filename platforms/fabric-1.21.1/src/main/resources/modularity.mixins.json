@@ -8,7 +8,8 @@
     "BlockStateBaseMixin"
   ],
   "client": [
-    "client.ParticleEngineMixin"
+    "client.ParticleEngineMixin",
+    "client.CameraMixin"
   ],
   "injectors": {
     "defaultRequire": 1
