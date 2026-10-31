@@ -7,6 +7,11 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
 }
 
 java {
@@ -20,6 +25,11 @@ dependencies {
     modImplementation 'net.fabricmc.fabric-api:fabric-api:0.110.0+1.21.1'
 
     modRuntimeOnly 'lv.cebbys.mcmods:modularity-fabric-1.21.1:0.1.0-SNAPSHOT'
+    // -PwithKleeSlabs: also load KleeSlabs (+ Balm) to test the refabslab integration in game.
+    if (providers.gradleProperty('withKleeSlabs').isPresent()) {
+        modRuntimeOnly 'maven.modrinth:kleeslabs:21.1.11+fabric-1.21.1'
+        modRuntimeOnly 'maven.modrinth:balm:21.0.63+fabric-1.21.1'
+    }
     def modJar = providers.gradleProperty('modJar')
     if (modJar.isPresent()) {
         modRuntimeOnly files(modJar.get())

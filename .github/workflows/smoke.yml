@@ -42,13 +42,13 @@ jobs:
           printf 'level-name=smoke\nlevel-type=minecraft\\:flat\nonline-mode=false\nspawn-protection=0\ngenerate-structures=false\nspawn-monsters=false\nspawn-animals=false\n' > $SMOKE/run/server.properties
           printf 'onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:6\nsimulationDistance:6\nfov:0.25\nskipMultiplayerWarning:true\njoinedFirstServer:true\ntutorialStep:none\nsoundCategory_master:0.0\n' > $SMOKE/run/options.txt
       - name: Dedicated server places double slabs
-        run: ./gradlew -p $SMOKE runServer -PmodJar="$MOD_JAR"
+        run: ./gradlew -p $SMOKE runServer -PmodJar="$MOD_JAR" -PwithKleeSlabs
       - name: Copy world to client saves
         run: cp -r $SMOKE/run/smoke $SMOKE/run/saves/smoke
       - name: Client renders and takes screenshots
         env:
           LIBGL_ALWAYS_SOFTWARE: "1"
-        run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew -p $SMOKE runClient -PmodJar="$MOD_JAR"
+        run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew -p $SMOKE runClient -PmodJar="$MOD_JAR" -PwithKleeSlabs
       - name: Smoke log
         if: always()
         run: grep -h "\[smoke\]\|Modularity\|ERROR\|Exception" $SMOKE/run/logs/*.log | head -200 || true
