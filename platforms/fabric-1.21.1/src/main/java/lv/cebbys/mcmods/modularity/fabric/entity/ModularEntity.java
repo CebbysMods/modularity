@@ -167,18 +167,42 @@ public class ModularEntity extends Entity {
         placeParts();
     }
 
-    boolean hurtPart(ModularPart part, DamageSource source, float amount) {
+    /**
+     * The part the player is actually looking at: vanilla aims with axis-aligned boxes, which for
+     * a rotated entity overlap; this re-checks with the oriented part boxes.
+     */
+    private ModularPart aimedPart(ModularPart fallback, Entity viewer) {
+        if (!(viewer instanceof Player player)) {
+            return fallback;
+        }
+        net.minecraft.world.phys.Vec3 eye = player.getEyePosition();
+        net.minecraft.world.phys.Vec3 look = player.getViewVector(1.0F);
+        ModularPart best = null;
+        double bestT = Double.POSITIVE_INFINITY;
+        for (ModularPart part : parts) {
+            double t = part.shape().raycast(eye, look);
+            if (!Double.isNaN(t) && t < bestT) {
+                bestT = t;
+                best = part;
+            }
+        }
+        return best != null && bestT <= player.entityInteractionRange() + 2 ? best : fallback;
+    }
+
+    boolean hurtPart(ModularPart aimed, DamageSource source, float amount) {
         if (level().isClientSide()) {
             return true;
         }
+        ModularPart part = source.getDirectEntity() == source.getEntity() ? aimedPart(aimed, source.getEntity()) : aimed;
         Optional<EntityRef> attacker = Optional.ofNullable(source.getEntity()).map(Wrap::entity);
         return definition.behaviour().attackedPart(context, attacker, amount, part.part());
     }
 
-    net.minecraft.world.InteractionResult interactPart(ModularPart part, Player player, InteractionHand hand) {
+    net.minecraft.world.InteractionResult interactPart(ModularPart aimed, Player player, InteractionHand hand) {
         if (hand != InteractionHand.MAIN_HAND) {
             return net.minecraft.world.InteractionResult.PASS;
         }
+        ModularPart part = aimedPart(aimed, player);
         return toNative(definition.behaviour().interactPart(context, Wrap.player(player), part.part()));
     }
 

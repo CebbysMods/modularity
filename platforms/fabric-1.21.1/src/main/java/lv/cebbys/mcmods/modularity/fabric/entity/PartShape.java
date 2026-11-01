@@ -43,6 +43,37 @@ public record PartShape(Vec3 center, Rotation orientation, lv.cebbys.mcmods.modu
         return Math.abs(l.x()) <= half.x() && Math.abs(l.y()) <= half.y() && Math.abs(l.z()) <= half.z();
     }
 
+    /**
+     * Distance along the ray {@code from + t·dir} (unit {@code dir}) where it enters the oriented
+     * box, or {@code NaN} when it misses.
+     */
+    public double raycast(Vec3 from, Vec3 dir) {
+        Rotation inv = orientation.inverse();
+        var o = inv.rotate(new lv.cebbys.mcmods.modularity.api.world.Vec3(from.x - center.x, from.y - center.y, from.z - center.z));
+        var d = inv.rotate(new lv.cebbys.mcmods.modularity.api.world.Vec3(dir.x, dir.y, dir.z));
+        double[] os = {o.x(), o.y(), o.z()};
+        double[] ds = {d.x(), d.y(), d.z()};
+        double[] hs = {half.x(), half.y(), half.z()};
+        double tMin = 0;
+        double tMax = Double.POSITIVE_INFINITY;
+        for (int a = 0; a < 3; a++) {
+            if (Math.abs(ds[a]) < 1e-12) {
+                if (Math.abs(os[a]) > hs[a]) {
+                    return Double.NaN;
+                }
+                continue;
+            }
+            double t1 = (-hs[a] - os[a]) / ds[a];
+            double t2 = (hs[a] - os[a]) / ds[a];
+            tMin = Math.max(tMin, Math.min(t1, t2));
+            tMax = Math.min(tMax, Math.max(t1, t2));
+            if (tMin > tMax) {
+                return Double.NaN;
+            }
+        }
+        return tMin;
+    }
+
     private static List<VoxelShape> columns(Vec3 c, Rotation q, lv.cebbys.mcmods.modularity.api.world.Vec3 h, AABB b) {
         double cellX = Math.max(CELL, b.getXsize() / MAX_COLUMNS);
         double cellZ = Math.max(CELL, b.getZsize() / MAX_COLUMNS);
