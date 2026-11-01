@@ -26,4 +26,14 @@ public interface EntityBehaviour {
     default boolean attacked(EntityContext ctx, Optional<EntityRef> attacker, float amount) {
         return false;
     }
+
+    /** A player right-clicks one part of a multipart entity. Defaults to {@link #interact}. */
+    default InteractionResult interactPart(EntityContext ctx, Player player, EntityPart part) {
+        return interact(ctx, player);
+    }
+
+    /** One part of a multipart entity is attacked. Defaults to {@link #attacked}. */
+    default boolean attackedPart(EntityContext ctx, Optional<EntityRef> attacker, float amount, EntityPart part) {
+        return attacked(ctx, attacker, amount);
+    }
 }

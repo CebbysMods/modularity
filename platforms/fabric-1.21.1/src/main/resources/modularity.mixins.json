@@ -5,7 +5,10 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BlockItemMixin",
-    "BlockStateBaseMixin"
+    "BlockStateBaseMixin",
+    "EntityAccessor",
+    "LevelMixin",
+    "ServerLevelMixin"
   ],
   "client": [
     "client.ParticleEngineMixin",

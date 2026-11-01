@@ -26,6 +26,8 @@ public final class EntityTypes {
             ResourceLocation.fromNamespaceAndPath("modularity", "item_storage"), Storage.asClass(), Void.class);
 
     private static final Map<EntityType<?>, EntityDefinition> DEFINITIONS = new ConcurrentHashMap<>();
+    /** Largest part reach of all multipart types, to widen entity queries (0 = no multipart types). */
+    private static volatile double maxPartReach;
 
     private EntityTypes() {
     }
@@ -37,6 +39,7 @@ public final class EntityTypes {
                 .updateInterval(definition.updateInterval())
                 .build(id.toString());
         DEFINITIONS.put(type, definition);
+        maxPartReach = Math.max(maxPartReach, definition.partReach());
         Registry.register(BuiltInRegistries.ENTITY_TYPE, id, type);
         if (definition.tankCapacity() > 0) {
             FLUID_STORAGE.registerForTypes((entity, ctx) -> ((ModularEntity) entity).nativeTank().storage(), type);
@@ -45,6 +48,10 @@ public final class EntityTypes {
             ITEM_STORAGE.registerForTypes((entity, ctx) -> ((ModularEntity) entity).nativeInventory().storage(), type);
         }
         return type;
+    }
+
+    public static double maxPartReach() {
+        return maxPartReach;
     }
 
     static EntityDefinition definition(EntityType<?> type) {

@@ -56,7 +56,26 @@ public class NativeEntityRef implements EntityRef {
 
     @Override
     public void setYaw(float yaw) {
-        entity.setYRot(yaw);
+        if (entity instanceof ModularEntity modular) {
+            modular.setOrientation(lv.cebbys.mcmods.modularity.api.world.Rotation.ofYaw(yaw));
+        } else {
+            entity.setYRot(yaw);
+        }
+    }
+
+    @Override
+    public lv.cebbys.mcmods.modularity.api.world.Rotation orientation() {
+        return entity instanceof ModularEntity modular ? modular.orientation()
+                : lv.cebbys.mcmods.modularity.api.world.Rotation.ofYaw(entity.getYRot());
+    }
+
+    @Override
+    public void setOrientation(lv.cebbys.mcmods.modularity.api.world.Rotation orientation) {
+        if (entity instanceof ModularEntity modular) {
+            modular.setOrientation(orientation);
+        } else {
+            entity.setYRot(orientation.yaw());
+        }
     }
 
     @Override

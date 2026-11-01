@@ -367,6 +367,22 @@ public final class TestGame implements Modularity.Runtime {
         return entity.definition().behaviour().interact(entityContext(entity), player);
     }
 
+    /** A player right-clicks the part {@code partName} of a multipart {@code entity}. */
+    public InteractionResult interactPart(TestEntity entity, TestPlayer player, String partName) {
+        return entity.definition().behaviour().interactPart(entityContext(entity), player, part(entity, partName));
+    }
+
+    /** {@code attacker} hits the part {@code partName} of a multipart {@code entity}. */
+    public boolean attackPart(TestEntity entity, TestPlayer attacker, float amount, String partName) {
+        return entity.definition().behaviour().attackedPart(entityContext(entity), Optional.ofNullable(attacker), amount,
+                part(entity, partName));
+    }
+
+    private static lv.cebbys.mcmods.modularity.api.entity.EntityPart part(TestEntity entity, String name) {
+        return entity.definition().parts().stream().filter(p -> p.name().equals(name)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(entity.typeId() + " has no part '" + name + "'"));
+    }
+
     /** {@code attacker} hits {@code entity}. */
     public boolean attack(TestEntity entity, TestPlayer attacker, float amount) {
         return entity.definition().behaviour().attacked(entityContext(entity), Optional.ofNullable(attacker), amount);
@@ -550,6 +566,11 @@ public final class TestGame implements Modularity.Runtime {
             @Override
             public void rotateZ(float degrees) {
                 ops.add("rotateZ " + degrees);
+            }
+
+            @Override
+            public void rotate(lv.cebbys.mcmods.modularity.api.world.Rotation r) {
+                ops.add("rotate " + r.x() + " " + r.y() + " " + r.z() + " " + r.w());
             }
 
             @Override

@@ -4,12 +4,15 @@ import lv.cebbys.mcmods.modularity.api.core.InteractionResult;
 import lv.cebbys.mcmods.modularity.api.entity.EntityContext;
 import lv.cebbys.mcmods.modularity.api.entity.EntityData;
 import lv.cebbys.mcmods.modularity.api.entity.EntityDefinition;
+import lv.cebbys.mcmods.modularity.api.entity.EntityPart;
 import lv.cebbys.mcmods.modularity.api.entity.EntityRef;
+import lv.cebbys.mcmods.modularity.api.world.Rotation;
 import lv.cebbys.mcmods.modularity.api.transfer.FluidTank;
 import lv.cebbys.mcmods.modularity.api.transfer.ItemInventory;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.block.NbtData;
+import lv.cebbys.mcmods.modularity.fabric.mixin.EntityAccessor;
 import lv.cebbys.mcmods.modularity.fabric.transfer.FabricFluidTank;
 import lv.cebbys.mcmods.modularity.fabric.transfer.FabricItemInventory;
 import net.minecraft.core.NonNullList;
@@ -26,8 +29,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import org.joml.Quaternionf;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -38,6 +45,8 @@ import java.util.Optional;
  */
 public class ModularEntity extends Entity {
     private static final EntityDataAccessor<CompoundTag> SYNCED = SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.COMPOUND_TAG);
+    private static final EntityDataAccessor<Quaternionf> ORIENTATION =
+            SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.QUATERNION);
     private static final String TANK_SYNC_KEY = "modularity:tank";
 
     private final EntityDefinition definition;
@@ -51,10 +60,26 @@ public class ModularEntity extends Entity {
     private double lerpY;
     private double lerpZ;
     private float lerpYaw;
+    /** Full orientation; {@code null} while only the yaw is known. */
+    private Rotation orientation;
+    private Rotation orientationO = Rotation.IDENTITY;
+    private Rotation lerpOrientation;
+    private int lerpOrientationSteps;
+    private final ModularPart[] parts;
 
     public ModularEntity(EntityType<? extends ModularEntity> type, Level level) {
         super(type, level);
         this.definition = EntityTypes.definition(type);
+        List<EntityPart> partList = definition.parts();
+        this.parts = new ModularPart[partList.size()];
+        for (int i = 0; i < parts.length; i++) {
+            parts[i] = new ModularPart(this, partList.get(i), i);
+        }
+        if (parts.length > 0) {
+            // Reserve consecutive ids for the parts, like the Ender Dragon: clients build the same
+            // parts and both sides resolve part ids from the parent id.
+            setId(EntityAccessor.modularity$counter().getAndAdd(parts.length + 1) + 1);
+        }
         this.tank = definition.tankCapacity() > 0
                 ? new FabricFluidTank(definition.tankCapacity(), definition.tankFluids(), this::syncData) : null;
         this.inventory = definition.inventorySlots() > 0 ? new FabricItemInventory(definition.inventorySlots()) : null;
@@ -64,6 +89,190 @@ public class ModularEntity extends Entity {
 
     public EntityDefinition definition() {
         return definition;
+    }
+
+    // ------------------------------------------------------------------ parts & orientation
+
+    @Override
+    public void setId(int id) {
+        super.setId(id);
+        if (parts != null) {
+            for (int i = 0; i < parts.length; i++) {
+                parts[i].setId(id + 1 + i);
+            }
+        }
+    }
+
+    public List<ModularPart> parts() {
+        return List.of(parts);
+    }
+
+    /** The part with entity id {@code id}, or {@code null}. */
+    public ModularPart partById(int id) {
+        int index = id - getId() - 1;
+        return index >= 0 && index < parts.length ? parts[index] : null;
+    }
+
+    public boolean isMultipart() {
+        return parts.length > 0;
+    }
+
+    public Rotation orientation() {
+        return orientation != null ? orientation : Rotation.ofYaw(getYRot());
+    }
+
+    /** Orientation interpolated between the last two ticks, for rendering. */
+    public Rotation orientation(float partialTick) {
+        return orientationO.slerp(orientation(), partialTick);
+    }
+
+    /** Sets the full orientation (server: synced to clients). */
+    public void setOrientation(Rotation rotation) {
+        Rotation r = rotation.normalize();
+        orientation = r;
+        super.setYRot(r.yaw());
+        if (!level().isClientSide()) {
+            entityData.set(ORIENTATION, new Quaternionf((float) r.x(), (float) r.y(), (float) r.z(), (float) r.w()));
+        }
+        placeParts();
+    }
+
+    private void placeParts() {
+        if (parts == null || parts.length == 0) {
+            return;
+        }
+        Rotation r = orientation();
+        net.minecraft.world.phys.Vec3 origin = position();
+        for (ModularPart part : parts) {
+            part.place(origin, r);
+        }
+        setBoundingBox(makeBoundingBox());
+    }
+
+    @Override
+    protected AABB makeBoundingBox() {
+        if (parts == null || parts.length == 0) {
+            return super.makeBoundingBox();
+        }
+        AABB box = null;
+        for (ModularPart part : parts) {
+            box = box == null ? part.getBoundingBox() : box.minmax(part.getBoundingBox());
+        }
+        return box;
+    }
+
+    @Override
+    public void setPos(double x, double y, double z) {
+        super.setPos(x, y, z);
+        placeParts();
+    }
+
+    boolean hurtPart(ModularPart part, DamageSource source, float amount) {
+        if (level().isClientSide()) {
+            return true;
+        }
+        Optional<EntityRef> attacker = Optional.ofNullable(source.getEntity()).map(Wrap::entity);
+        return definition.behaviour().attackedPart(context, attacker, amount, part.part());
+    }
+
+    net.minecraft.world.InteractionResult interactPart(ModularPart part, Player player, InteractionHand hand) {
+        if (hand != InteractionHand.MAIN_HAND) {
+            return net.minecraft.world.InteractionResult.PASS;
+        }
+        return toNative(definition.behaviour().interactPart(context, Wrap.player(player), part.part()));
+    }
+
+    /**
+     * Moves entities that stood on solid parts along with this entity (translation and rotation),
+     * and pushes entities out of solid parts that moved into them. Server: every entity but players;
+     * client: the local player (players move themselves).
+     */
+    private void carry(net.minecraft.world.phys.Vec3 oldPos, Rotation oldRot, List<Entity> standing) {
+        net.minecraft.world.phys.Vec3 newPos = position();
+        Rotation newRot = orientation();
+        if (!newPos.equals(oldPos) || !newRot.equals(oldRot)) {
+            Rotation delta = newRot.mul(oldRot.inverse());
+            float yawDelta = Mth.wrapDegrees(newRot.yaw() - oldRot.yaw());
+            for (Entity e : standing) {
+                net.minecraft.world.phys.Vec3 rel = e.position().subtract(oldPos);
+                var moved = delta.rotate(new Vec3(rel.x, rel.y, rel.z));
+                e.setPos(newPos.x + moved.x(), newPos.y + moved.y(), newPos.z + moved.z());
+                if (yawDelta != 0) {
+                    e.setYRot(e.getYRot() + yawDelta);
+                    e.setYHeadRot(e.getYHeadRot() + yawDelta);
+                }
+                e.setOnGround(true);
+            }
+        }
+        for (Entity e : nearbyMovable()) {
+            pushOut(e);
+        }
+    }
+
+    /** Entities this side may move: not riding, not parts, players only on their own client. */
+    private List<Entity> nearbyMovable() {
+        List<Entity> out = new ArrayList<>();
+        AABB area = getBoundingBox().inflate(0.5).expandTowards(0, 1.5, 0);
+        for (Entity e : level().getEntities(this, area, e -> !(e instanceof ModularPart) && !e.isPassenger()
+                && !e.isSpectator() && !e.noPhysics)) {
+            boolean mine = level().isClientSide()
+                    ? e instanceof Player p && p.isLocalPlayer()
+                    : !(e instanceof Player);
+            if (mine) {
+                out.add(e);
+            }
+        }
+        return out;
+    }
+
+    /** Entities whose feet rest on a solid part (checked before the parts move). */
+    private List<Entity> standingOnParts() {
+        List<Entity> out = new ArrayList<>();
+        for (Entity e : nearbyMovable()) {
+            AABB box = e.getBoundingBox();
+            AABB feet = box.move(0, -0.12, 0);
+            boolean on = false;
+            for (ModularPart part : parts) {
+                for (var column : part.collisionShapes()) {
+                    AABB c = column.bounds();
+                    if (c.intersects(feet) && box.minY >= c.maxY - 0.3) {
+                        on = true;
+                        break;
+                    }
+                }
+                if (on) {
+                    break;
+                }
+            }
+            if (on) {
+                out.add(e);
+            }
+        }
+        return out;
+    }
+
+    private void pushOut(Entity e) {
+        for (ModularPart part : parts) {
+            for (var column : part.collisionShapes()) {
+                AABB c = column.bounds();
+                AABB b = e.getBoundingBox();
+                if (!c.intersects(b)) {
+                    continue;
+                }
+                double up = c.maxY - b.minY;
+                double px = Math.min(c.maxX - b.minX, b.maxX - c.minX);
+                double pz = Math.min(c.maxZ - b.minZ, b.maxZ - c.minZ);
+                if (up <= 0.6 && up <= px && up <= pz) {
+                    e.setPos(e.getX(), e.getY() + up, e.getZ());
+                } else if (px <= pz) {
+                    double dir = (b.minX + b.maxX) / 2 < (c.minX + c.maxX) / 2 ? -1 : 1;
+                    e.setPos(e.getX() + dir * px, e.getY(), e.getZ());
+                } else {
+                    double dir = (b.minZ + b.maxZ) / 2 < (c.minZ + c.maxZ) / 2 ? -1 : 1;
+                    e.setPos(e.getX(), e.getY(), e.getZ() + dir * pz);
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------ data
@@ -109,11 +318,24 @@ public class ModularEntity extends Entity {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(SYNCED, new CompoundTag());
+        builder.define(ORIENTATION, new Quaternionf());
     }
 
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
         super.onSyncedDataUpdated(accessor);
+        if (ORIENTATION.equals(accessor) && level().isClientSide()) {
+            Quaternionf q = entityData.get(ORIENTATION);
+            Rotation target = new Rotation(q.x, q.y, q.z, q.w).normalize();
+            if (orientation == null) {
+                orientation = target;
+                orientationO = target;
+                placeParts();
+            } else {
+                lerpOrientation = target;
+                lerpOrientationSteps = 3;
+            }
+        }
         if (SYNCED.equals(accessor) && level().isClientSide()) {
             CompoundTag tag = entityData.get(SYNCED);
             for (EntityData<?> key : definition.data()) {
@@ -190,16 +412,42 @@ public class ModularEntity extends Entity {
     @Override
     public void tick() {
         lastYaw = getYRot();
+        net.minecraft.world.phys.Vec3 oldPos = position();
+        Rotation oldRot = orientation();
+        orientationO = oldRot;
+        List<Entity> standing = parts.length > 0 ? standingOnParts() : List.of();
         super.tick();
-        if (level().isClientSide() && lerpSteps > 0) {
-            double x = getX() + (lerpX - getX()) / lerpSteps;
-            double y = getY() + (lerpY - getY()) / lerpSteps;
-            double z = getZ() + (lerpZ - getZ()) / lerpSteps;
-            setYRot(getYRot() + Mth.wrapDegrees(lerpYaw - getYRot()) / lerpSteps);
-            lerpSteps--;
-            setPos(x, y, z);
+        if (level().isClientSide()) {
+            if (lerpOrientationSteps > 0) {
+                orientation = orientation().slerp(lerpOrientation, 1.0 / lerpOrientationSteps);
+                super.setYRot(orientation.yaw());
+                lerpOrientationSteps--;
+            }
+            if (lerpSteps > 0) {
+                double x = getX() + (lerpX - getX()) / lerpSteps;
+                double y = getY() + (lerpY - getY()) / lerpSteps;
+                double z = getZ() + (lerpZ - getZ()) / lerpSteps;
+                if (orientation == null) {
+                    setYRot(getYRot() + Mth.wrapDegrees(lerpYaw - getYRot()) / lerpSteps);
+                }
+                lerpSteps--;
+                setPos(x, y, z);
+            }
         }
         definition.behaviour().tick(context);
+        if (parts.length > 0) {
+            placeParts();
+            carry(oldPos, oldRot, standing);
+        }
+    }
+
+    @Override
+    public void setYRot(float yaw) {
+        super.setYRot(yaw);
+        if (orientation != null && Math.abs(Mth.wrapDegrees(orientation.yaw() - yaw)) > 1e-3) {
+            // Turned by someone else (e.g. teleport, yaw-only API): keep pitch and roll.
+            orientation = Rotation.ofYaw(yaw - orientation.yaw()).mul(orientation).normalize();
+        }
     }
 
     @Override
@@ -234,7 +482,7 @@ public class ModularEntity extends Entity {
             super.positionRider(passenger, move);
             return;
         }
-        Vec3 offset = definition.seats().get(index).rotateYaw(getYRot());
+        Vec3 offset = orientation().rotate(definition.seats().get(index));
         move.accept(passenger, getX() + offset.x(), getY() + offset.y(), getZ() + offset.z());
         // Riders turn with the vehicle.
         float delta = Mth.wrapDegrees(getYRot() - lastYaw);
@@ -251,7 +499,10 @@ public class ModularEntity extends Entity {
         if (hand != InteractionHand.MAIN_HAND) {
             return net.minecraft.world.InteractionResult.PASS;
         }
-        InteractionResult result = definition.behaviour().interact(context, Wrap.player(player));
+        return toNative(definition.behaviour().interact(context, Wrap.player(player)));
+    }
+
+    private net.minecraft.world.InteractionResult toNative(InteractionResult result) {
         return switch (result) {
             case PASS -> net.minecraft.world.InteractionResult.PASS;
             case SUCCESS -> net.minecraft.world.InteractionResult.sidedSuccess(level().isClientSide());
@@ -274,12 +525,13 @@ public class ModularEntity extends Entity {
 
     @Override
     public boolean isPickable() {
-        return !isRemoved();
+        // A multipart entity is aimed at through its parts.
+        return !isRemoved() && !isMultipart();
     }
 
     @Override
     public boolean canBeCollidedWith() {
-        return definition.solid();
+        return definition.solid() && !isMultipart();
     }
 
     @Override

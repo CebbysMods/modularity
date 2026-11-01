@@ -16,6 +16,9 @@ public interface RenderOutput {
 
     void rotateZ(float degrees);
 
+    /** Rotates by a quaternion, e.g. an entity's {@link lv.cebbys.mcmods.modularity.api.entity.EntityRef#orientation()}. */
+    void rotate(lv.cebbys.mcmods.modularity.api.world.Rotation rotation);
+
     void scale(float x, float y, float z);
 
     /** Draws the whole model with {@code texture} (e.g. {@code id("textures/entity/car.png")}). */

@@ -30,6 +30,7 @@ Pulled forward from M3/M4 because the vehicle mod (CebbysMods/immersive-vehicles
 * [x] Client: key bindings, movement input, tick hook, camera controller, HUD layers, looping entity sounds, entity renderers with OBJ models
 * [x] Testkit: ticking, riding, save/reload, loopback channels, client simulation
 * [x] Reference: vehicle mod V1 (drivable sedan) incl. in-game smoke test
+* [x] Orientation and multipart entities (vehicle refactor): `Rotation` (quaternion), `EntityRef#orientation` synced and interpolated, seats follow it, `RenderOutput#rotate`; `EntityPart` boxes per entity (Ender Dragon style part entities with consecutive ids), aimed at / hit / used per part (`EntityBehaviour#interactPart` / `#attackedPart`), solid parts collide with their rotated shape (column approximation) and carry entities standing on them
 * Not yet: menus/screens, entity data on vanilla entities, NeoForge implementation
 
 ## M2 – Second loader, second version, build tooling

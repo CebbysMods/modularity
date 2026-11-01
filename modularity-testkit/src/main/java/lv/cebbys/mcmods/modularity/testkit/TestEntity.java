@@ -9,6 +9,7 @@ import lv.cebbys.mcmods.modularity.api.transfer.FluidTank;
 import lv.cebbys.mcmods.modularity.api.transfer.ItemInventory;
 import lv.cebbys.mcmods.modularity.api.transfer.SimpleFluidTank;
 import lv.cebbys.mcmods.modularity.api.world.Level;
+import lv.cebbys.mcmods.modularity.api.world.Rotation;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class TestEntity implements EntityRef {
     TestLevel level;
     private Vec3 position = Vec3.ZERO;
     private float yaw;
+    private Rotation orientation;
     private EntityRef vehicle;
     private boolean removed;
 
@@ -84,6 +86,18 @@ public class TestEntity implements EntityRef {
     @Override
     public void setYaw(float yaw) {
         this.yaw = yaw;
+        this.orientation = null;
+    }
+
+    @Override
+    public Rotation orientation() {
+        return orientation != null ? orientation : Rotation.ofYaw(yaw);
+    }
+
+    @Override
+    public void setOrientation(Rotation orientation) {
+        this.orientation = orientation;
+        this.yaw = orientation.yaw();
     }
 
     @Override

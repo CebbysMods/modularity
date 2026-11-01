@@ -5,6 +5,7 @@ import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.transfer.FluidTank;
 import lv.cebbys.mcmods.modularity.api.transfer.ItemInventory;
 import lv.cebbys.mcmods.modularity.api.world.Level;
+import lv.cebbys.mcmods.modularity.api.world.Rotation;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
 
 import java.util.List;
@@ -49,6 +50,18 @@ public interface EntityRef extends Handle {
 
     /** Inventory declared with {@code EntityDefinition.Builder#inventory}. */
     Optional<ItemInventory> inventory();
+
+    /**
+     * Full orientation (yaw, pitch and roll). Entities without their own orientation report their
+     * yaw. Setting it also sets the yaw; setting the yaw resets pitch and roll.
+     */
+    default Rotation orientation() {
+        return Rotation.ofYaw(yaw());
+    }
+
+    default void setOrientation(Rotation orientation) {
+        setYaw(orientation.yaw());
+    }
 
     default boolean is(EntityHandle type) {
         return typeId().equals(type.id());

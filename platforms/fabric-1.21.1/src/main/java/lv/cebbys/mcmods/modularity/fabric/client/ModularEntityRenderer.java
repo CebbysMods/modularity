@@ -35,10 +35,16 @@ final class ModularEntityRenderer extends net.minecraft.client.renderer.entity.E
     @Override
     public void render(ModularEntity entity, float yaw, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light) {
         float lerpedYaw = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot());
+        var lerpedOrientation = entity.orientation(partialTick);
         var view = new NativeEntityRef(entity) {
             @Override
             public float yaw() {
                 return lerpedYaw;
+            }
+
+            @Override
+            public lv.cebbys.mcmods.modularity.api.world.Rotation orientation() {
+                return lerpedOrientation;
             }
         };
         poseStack.pushPose();
@@ -81,6 +87,11 @@ final class ModularEntityRenderer extends net.minecraft.client.renderer.entity.E
         @Override
         public void rotateZ(float degrees) {
             pose.mulPose(Axis.ZP.rotationDegrees(degrees));
+        }
+
+        @Override
+        public void rotate(lv.cebbys.mcmods.modularity.api.world.Rotation r) {
+            pose.mulPose(new org.joml.Quaternionf((float) r.x(), (float) r.y(), (float) r.z(), (float) r.w()));
         }
 
         @Override

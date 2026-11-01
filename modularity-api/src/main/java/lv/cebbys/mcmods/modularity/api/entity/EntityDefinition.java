@@ -34,6 +34,7 @@ public final class EntityDefinition {
     private final Set<Id> tankFluids;
     private final int inventorySlots;
     private final boolean solid;
+    private final List<EntityPart> parts;
     private final EntityBehaviour behaviour;
 
     private EntityDefinition(Builder b) {
@@ -47,6 +48,7 @@ public final class EntityDefinition {
         this.tankFluids = Set.copyOf(b.tankFluids);
         this.inventorySlots = b.inventorySlots;
         this.solid = b.solid;
+        this.parts = List.copyOf(b.parts);
         this.behaviour = b.behaviour;
     }
 
@@ -72,7 +74,7 @@ public final class EntityDefinition {
         return updateInterval;
     }
 
-    /** Seat offsets in entity-local space (+z forward, +x left), rotated by the entity yaw. */
+    /** Seat offsets in entity-local space (+z forward, +x left), rotated by the entity orientation. */
     public List<Vec3> seats() {
         return seats;
     }
@@ -101,6 +103,23 @@ public final class EntityDefinition {
         return solid;
     }
 
+    /**
+     * Parts of a multipart entity, empty for a plain entity. When there are parts, they replace the
+     * entity's own box for aiming, hitting and collision.
+     */
+    public List<EntityPart> parts() {
+        return parts;
+    }
+
+    public boolean isMultipart() {
+        return !parts.isEmpty();
+    }
+
+    /** Furthest any part reaches from the entity origin (0 without parts). */
+    public double partReach() {
+        return parts.stream().mapToDouble(EntityPart::reach).max().orElse(0);
+    }
+
     public EntityBehaviour behaviour() {
         return behaviour;
     }
@@ -116,6 +135,7 @@ public final class EntityDefinition {
         private final Set<Id> tankFluids = new LinkedHashSet<>();
         private int inventorySlots;
         private boolean solid;
+        private final List<EntityPart> parts = new ArrayList<>();
         private EntityBehaviour behaviour = EntityBehaviour.NONE;
 
         private Builder() {
@@ -170,6 +190,22 @@ public final class EntityDefinition {
 
         public Builder solid() {
             this.solid = true;
+            return this;
+        }
+
+        /** Maximum number of parts of one entity. */
+        public static final int MAX_PARTS = 32;
+
+        /** Adds a part (see {@link EntityPart}); names must be unique. */
+        public Builder part(EntityPart part) {
+            Objects.requireNonNull(part, "part");
+            if (parts.stream().anyMatch(p -> p.name().equals(part.name()))) {
+                throw new IllegalArgumentException("Duplicate part '" + part.name() + "'");
+            }
+            if (parts.size() >= MAX_PARTS) {
+                throw new IllegalArgumentException("At most " + MAX_PARTS + " parts per entity");
+            }
+            parts.add(part);
             return this;
         }
 
