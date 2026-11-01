@@ -86,9 +86,17 @@ public abstract class LevelMixin implements EntityGetter {
         if (entities.isEmpty()) {
             return List.of();
         }
+        // Players move on their own client, which collides with the parts as it sees them. The
+        // server's copy of a moving entity is a few ticks ahead of what the client shows, so
+        // checking player movement against it would reject valid moves ("moved wrongly") and
+        // leave players stuck on or in vehicles.
+        boolean serverPlayer = entity instanceof net.minecraft.server.level.ServerPlayer;
         ImmutableList.Builder<VoxelShape> shapes = ImmutableList.builderWithExpectedSize(entities.size());
         for (Entity other : entities) {
             if (other instanceof ModularPart part) {
+                if (serverPlayer) {
+                    continue;
+                }
                 if (entity != null && part.parent().hasPassenger(entity)) {
                     continue;
                 }

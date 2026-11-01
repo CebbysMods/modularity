@@ -226,6 +226,9 @@ public class ModularEntity extends Entity {
                     e.setYHeadRot(e.getYHeadRot() + yawDelta);
                 }
                 e.setOnGround(true);
+                // Moving with the vehicle is not falling.
+                e.setDeltaMovement(e.getDeltaMovement().x, Math.max(0, e.getDeltaMovement().y), e.getDeltaMovement().z);
+                e.resetFallDistance();
             }
         }
         for (Entity e : nearbyMovable()) {
@@ -253,13 +256,17 @@ public class ModularEntity extends Entity {
     private List<Entity> standingOnParts() {
         List<Entity> out = new ArrayList<>();
         for (Entity e : nearbyMovable()) {
+            if (e.getDeltaMovement().y > 0.08) {
+                continue; // jumping off
+            }
             AABB box = e.getBoundingBox();
-            AABB feet = box.move(0, -0.12, 0);
+            // Generous reach below the feet: the vehicle may drop faster than gravity (bumps).
+            AABB feet = box.move(0, -0.35, 0);
             boolean on = false;
             for (ModularPart part : parts) {
                 for (var column : part.collisionShapes()) {
                     AABB c = column.bounds();
-                    if (c.intersects(feet) && box.minY >= c.maxY - 0.3) {
+                    if (c.intersects(feet) && box.minY >= c.maxY - 0.3 && box.minY <= c.maxY + 0.35) {
                         on = true;
                         break;
                     }
