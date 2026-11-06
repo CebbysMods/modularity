@@ -51,15 +51,24 @@ public record PartShape(Vec3 center, Rotation orientation, lv.cebbys.mcmods.modu
         Rotation inv = orientation.inverse();
         var o = inv.rotate(new lv.cebbys.mcmods.modularity.api.world.Vec3(from.x - center.x, from.y - center.y, from.z - center.z));
         var d = inv.rotate(new lv.cebbys.mcmods.modularity.api.world.Vec3(dir.x, dir.y, dir.z));
+        double[] t = slab(o, d, half, 0, 1e-12);
+        return t == null ? Double.NaN : t[0];
+    }
+
+    /**
+     * Line {@code o + t·d} against the box {@code ±h} (box space), from {@code tMin} on: {tEnter, tExit}, or null
+     * when it misses. Axes with {@code |d| < eps} count as parallel.
+     */
+    private static double[] slab(lv.cebbys.mcmods.modularity.api.world.Vec3 o, lv.cebbys.mcmods.modularity.api.world.Vec3 d,
+                                 lv.cebbys.mcmods.modularity.api.world.Vec3 h, double tMin, double eps) {
         double[] os = {o.x(), o.y(), o.z()};
         double[] ds = {d.x(), d.y(), d.z()};
-        double[] hs = {half.x(), half.y(), half.z()};
-        double tMin = 0;
+        double[] hs = {h.x(), h.y(), h.z()};
         double tMax = Double.POSITIVE_INFINITY;
         for (int a = 0; a < 3; a++) {
-            if (Math.abs(ds[a]) < 1e-12) {
+            if (Math.abs(ds[a]) < eps) {
                 if (Math.abs(os[a]) > hs[a]) {
-                    return Double.NaN;
+                    return null;
                 }
                 continue;
             }
@@ -68,10 +77,10 @@ public record PartShape(Vec3 center, Rotation orientation, lv.cebbys.mcmods.modu
             tMin = Math.max(tMin, Math.min(t1, t2));
             tMax = Math.min(tMax, Math.max(t1, t2));
             if (tMin > tMax) {
-                return Double.NaN;
+                return null;
             }
         }
-        return tMin;
+        return new double[]{tMin, tMax};
     }
 
     private static List<VoxelShape> columns(Vec3 c, Rotation q, lv.cebbys.mcmods.modularity.api.world.Vec3 h, AABB b) {
@@ -90,25 +99,9 @@ public record PartShape(Vec3 center, Rotation orientation, lv.cebbys.mcmods.modu
                 double z1 = Math.min(b.maxZ, z0 + cellZ);
                 // Vertical line through the cell centre, in box space.
                 var o = inv.rotate(new lv.cebbys.mcmods.modularity.api.world.Vec3((x0 + x1) / 2 - c.x, 0, (z0 + z1) / 2 - c.z));
-                double tMin = Double.NEGATIVE_INFINITY;
-                double tMax = Double.POSITIVE_INFINITY;
-                boolean miss = false;
-                double[] os = {o.x(), o.y(), o.z()};
-                double[] ds = {dir.x(), dir.y(), dir.z()};
-                double[] hs = {h.x(), h.y(), h.z()};
-                for (int a = 0; a < 3 && !miss; a++) {
-                    if (Math.abs(ds[a]) < 1e-9) {
-                        miss = Math.abs(os[a]) > hs[a];
-                        continue;
-                    }
-                    double t1 = (-hs[a] - os[a]) / ds[a];
-                    double t2 = (hs[a] - os[a]) / ds[a];
-                    tMin = Math.max(tMin, Math.min(t1, t2));
-                    tMax = Math.min(tMax, Math.max(t1, t2));
-                    miss = tMin > tMax;
-                }
-                if (!miss && tMax - tMin > 1e-4) {
-                    out.add(Shapes.create(x0, c.y + tMin, z0, x1, c.y + tMax, z1));
+                double[] t = slab(o, dir, h, Double.NEGATIVE_INFINITY, 1e-9);
+                if (t != null && t[1] - t[0] > 1e-4) {
+                    out.add(Shapes.create(x0, c.y + t[0], z0, x1, c.y + t[1], z1));
                 }
             }
         }
