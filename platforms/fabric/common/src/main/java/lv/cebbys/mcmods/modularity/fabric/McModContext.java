@@ -10,17 +10,13 @@ import lv.cebbys.mcmods.modularity.api.block.BlockSelector;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.fabric.block.Interceptors;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularBlock;
-import lv.cebbys.mcmods.modularity.fabric.block.ModularBlockEntity;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularEntityBlock;
-import lv.cebbys.mcmods.modularity.fabric.compat.CreativeTabs;
 import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.fabric.loader.LoaderHooks;
+import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
 import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import lv.cebbys.mcmods.modularity.api.data.DataCodec;
 import lv.cebbys.mcmods.modularity.api.entity.EntityDefinition;
@@ -33,7 +29,7 @@ import lv.cebbys.mcmods.modularity.api.network.Channel;
 import lv.cebbys.mcmods.modularity.api.sound.SoundHandle;
 import lv.cebbys.mcmods.modularity.fabric.entity.EntityTypes;
 import lv.cebbys.mcmods.modularity.fabric.item.ModularItem;
-import lv.cebbys.mcmods.modularity.fabric.network.FabricChannel;
+import lv.cebbys.mcmods.modularity.fabric.network.McChannel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
@@ -41,11 +37,12 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-final class FabricModContext implements ModContext {
+/** The {@link ModContext} of one mod, the same on every loader; loader work goes through {@link Loaders#hooks()}. */
+final class McModContext implements ModContext {
     private final String modId;
     private final System.Logger logger;
 
-    FabricModContext(String modId) {
+    McModContext(String modId) {
         this.modId = modId;
         this.logger = System.getLogger(modId);
     }
@@ -69,17 +66,13 @@ final class FabricModContext implements ModContext {
     public BlockHandle block(String name, Consumer<BlockDefinition.Builder> spec) {
         BlockDefinition definition = build(BlockDefinition.builder(), spec, BlockDefinition.Builder::build);
         Id id = id(name);
-        var location = Ids.rl(id);
-
-        ModularBlock block = Registry.register(BuiltInRegistries.BLOCK, location, ModularBlock.create(id, definition));
+        LoaderHooks hooks = Loaders.hooks();
+        ModularBlock block = hooks.register(BuiltInRegistries.BLOCK, id, ModularBlock.create(id, definition));
         if (block instanceof ModularEntityBlock entityBlock) {
-            BlockEntityType<ModularBlockEntity> type = FabricBlockEntityTypeBuilder
-                    .<ModularBlockEntity>create((pos, state) -> (ModularBlockEntity) entityBlock.newBlockEntity(pos, state), entityBlock)
-                    .build();
-            entityBlock.bindType(Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, location, type));
+            entityBlock.bindType(hooks.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, hooks.blockEntityType(entityBlock)));
         }
         if (definition.hasItem()) {
-            Registry.register(BuiltInRegistries.ITEM, location, new BlockItem(block, RegistryCompat.itemProperties(id)));
+            hooks.register(BuiltInRegistries.ITEM, id, new BlockItem(block, RegistryCompat.itemProperties(id)));
         }
         return new RegisteredBlock(id, definition, Wrap.block(block));
     }
@@ -101,9 +94,9 @@ final class FabricModContext implements ModContext {
     public ItemHandle item(String name, Consumer<ItemDefinition.Builder> spec) {
         ItemDefinition definition = build(ItemDefinition.builder(), spec, ItemDefinition.Builder::build);
         Id id = id(name);
-        ModularItem item = Registry.register(BuiltInRegistries.ITEM, Ids.rl(id), new ModularItem(id, definition));
+        ModularItem item = Loaders.hooks().register(BuiltInRegistries.ITEM, id, new ModularItem(id, definition));
         if (definition.creativeTab() != null) {
-            CreativeTabs.add(tab(definition.creativeTab()), item);
+            Loaders.hooks().addToCreativeTab(tab(definition.creativeTab()), item);
         }
         return new RegisteredItem(id, definition, item);
     }
@@ -144,13 +137,12 @@ final class FabricModContext implements ModContext {
     @Override
     public SoundHandle sound(String name) {
         Id id = id(name);
-        var location = Ids.rl(id);
-        Registry.register(BuiltInRegistries.SOUND_EVENT, location, SoundEvent.createVariableRangeEvent(location));
+        Loaders.hooks().register(BuiltInRegistries.SOUND_EVENT, id, SoundEvent.createVariableRangeEvent(Ids.rl(id)));
         return () -> id;
     }
 
     @Override
     public <T> Channel<T> channel(String name, DataCodec<T> codec) {
-        return new FabricChannel<>(id(name), codec);
+        return new McChannel<>(id(name), codec);
     }
 }

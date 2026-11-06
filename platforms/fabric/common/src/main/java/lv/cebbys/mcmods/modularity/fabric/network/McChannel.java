@@ -7,8 +7,7 @@ import lv.cebbys.mcmods.modularity.api.world.Player;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.block.NbtData;
 import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
-import lv.cebbys.mcmods.modularity.fabric.compat.Payloads;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,7 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.function.BiConsumer;
 
 /** A typed channel: one custom payload type per direction, the message body is NBT via the codec. */
-public final class FabricChannel<T> implements Channel<T> {
+public final class McChannel<T> implements Channel<T> {
     private final Id id;
     private final DataCodec<T> codec;
     private final CustomPacketPayload.Type<Payload> type;
@@ -31,14 +30,14 @@ public final class FabricChannel<T> implements Channel<T> {
         }
     }
 
-    public FabricChannel(Id id, DataCodec<T> codec) {
+    public McChannel(Id id, DataCodec<T> codec) {
         this.id = id;
         this.codec = codec;
         this.type = new CustomPacketPayload.Type<>(Ids.rl(id));
         StreamCodec<FriendlyByteBuf, Payload> streamCodec = StreamCodec.of(
                 (buf, payload) -> buf.writeNbt(payload.body()),
                 buf -> new Payload(type, buf.readNbt()));
-        Payloads.registerPlay(type, streamCodec);
+        Loaders.hooks().registerPayload(type, streamCodec);
     }
 
     public CustomPacketPayload.Type<Payload> type() {
@@ -60,35 +59,16 @@ public final class FabricChannel<T> implements Channel<T> {
 
     @Override
     public void sendToServer(T message) {
-        ClientSender.send(encode(message));
+        Loaders.client().sendToServer(encode(message));
     }
 
     @Override
     public void sendTo(Player player, T message) {
-        ServerPlayNetworking.send(player.unwrap(ServerPlayer.class), encode(message));
+        Loaders.hooks().sendToPlayer(player.unwrap(ServerPlayer.class), encode(message));
     }
 
     @Override
     public void onServer(BiConsumer<Player, T> handler) {
-        ServerPlayNetworking.registerGlobalReceiver(type, (payload, context) ->
-                handler.accept(Wrap.player(context.player()), decode(payload)));
-    }
-
-    /** Indirection so dedicated servers never load client networking classes. */
-    public static final class ClientSender {
-        private static volatile java.util.function.Consumer<CustomPacketPayload> sender = payload -> {
-            throw new IllegalStateException("sendToServer is only available on the client");
-        };
-
-        private ClientSender() {
-        }
-
-        public static void install(java.util.function.Consumer<CustomPacketPayload> clientSender) {
-            sender = clientSender;
-        }
-
-        static void send(CustomPacketPayload payload) {
-            sender.accept(payload);
-        }
+        Loaders.hooks().onServerPayload(type, (player, payload) -> handler.accept(Wrap.player(player), decode(payload)));
     }
 }

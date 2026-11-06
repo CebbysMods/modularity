@@ -2,10 +2,8 @@ package lv.cebbys.mcmods.modularity.fabric.entity;
 
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.entity.EntityDefinition;
-import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -29,7 +27,7 @@ public final class EntityTypes {
                 .updateInterval(definition.updateInterval()), id);
         DEFINITIONS.put(type, definition);
         maxPartReach = Math.max(maxPartReach, definition.partReach());
-        Registry.register(BuiltInRegistries.ENTITY_TYPE, Ids.rl(id), type);
+        Loaders.hooks().register(BuiltInRegistries.ENTITY_TYPE, id, type);
         Loaders.storage().exposeEntityStorages(type, definition);
         return type;
     }

@@ -1,6 +1,5 @@
 package lv.cebbys.mcmods.modularity.fabric;
 
-import lv.cebbys.mcmods.modularity.api.ModContext;
 import lv.cebbys.mcmods.modularity.api.ModularMod;
 import lv.cebbys.mcmods.modularity.api.Modularity;
 import lv.cebbys.mcmods.modularity.fabric.loader.LoaderInfo;
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /** Initializes the Modularity mods; the loader's entrypoint installs the seams ({@link Loaders}) first. */
 public final class ModularityCore {
@@ -31,7 +29,7 @@ public final class ModularityCore {
     }
 
     /** Installs the runtime and runs {@code initCommon} of every mod with a Modularity entrypoint. */
-    public static void initCommon(String loaderName, Function<String, ModContext> contexts) {
+    public static void initCommon(String loaderName) {
         Modularity.install(McRuntime.INSTANCE);
         List<LoaderInfo.ModEntry> entries = Loaders.info().modularMods();
         LOGGER.info("Modularity {} on {}, Minecraft {}: initializing {} mod(s)",
@@ -40,7 +38,7 @@ public final class ModularityCore {
         for (LoaderInfo.ModEntry entry : entries) {
             run(entry.modId(), "to initialize", () -> {
                 ModularMod mod = entry.mod().get();
-                mod.initCommon(contexts.apply(entry.modId()));
+                mod.initCommon(new McModContext(entry.modId()));
                 MODS.add(new LoadedMod(entry.modId(), mod));
             });
         }

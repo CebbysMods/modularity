@@ -7,20 +7,23 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 
 /**
- * Drops the cached OBJ models when client resources reload. 1.21.11: registered with Fabric's resource loader v1.
+ * Runs an action (dropping cached OBJ models) when client resources reload. 1.21.11: registered with Fabric's resource loader v1.
  * 26.1: {@code registerReloadListener}.
  */
 final class ObjModelReloadListener implements ResourceManagerReloadListener {
-    private ObjModelReloadListener() {
+    private final Runnable action;
+
+    private ObjModelReloadListener(Runnable action) {
+        this.action = action;
     }
 
-    static void register() {
+    static void register(Runnable action) {
         ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloadListener(Ids.of("modularity", "obj_models"),
-                new ObjModelReloadListener());
+                new ObjModelReloadListener(action));
     }
 
     @Override
     public void onResourceManagerReload(ResourceManager manager) {
-        FabricModelRef.clearAll();
+        action.run();
     }
 }
