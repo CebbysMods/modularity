@@ -26,11 +26,10 @@ include 'modularity-testkit'
 include 'utilities:mvd:mvd-core'
 include 'utilities:mpd:mpd-core'
 
-// Platform implementations need Minecraft and loader mavens.
-// Skip them with -Pmodularity.platforms=none (e.g. in offline environments).
+// Fabric platforms come from gradle/platforms.toml (settings plugin above); the utility wrappers need the
+// same mavens. Skip all of them with -Pmodularity.platforms=none (e.g. in offline environments).
 def platforms = providers.gradleProperty('modularity.platforms').getOrElse('all')
 if (platforms != 'none') {
     include 'utilities:mvd:mvd-fabric'
     include 'utilities:mpd:mpd-fabric'
-    include 'platforms:fabric-21.1'
 }

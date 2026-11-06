@@ -5,7 +5,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.file.Directory;
 import org.gradle.api.plugins.BasePluginExtension;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.publish.PublishingExtension;
@@ -70,14 +69,16 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
                     t.getTableFile().set(tableFile);
                     t.getPlatform().set(name);
                     t.getModVersion().set(project.provider(() -> project.getVersion().toString()));
-                    t.getJavaDir().set(assemble.flatMap(a -> a.getOutputDir().dir("java")));
+                    t.dependsOn(assemble);
+                    t.getJavaDir().set(project.getLayout().getBuildDirectory().dir("layered/main/java"));
                     t.getOutputDir().set(project.getLayout().getBuildDirectory().dir("generated/modularity"));
                 });
 
         SourceSet main = project.getExtensions().getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         main.getJava().setSrcDirs(List.of(layered(project, assemble, "java")));
         main.getResources().setSrcDirs(List.of(layered(project, assemble, "resources")));
-        main.getResources().srcDir(metadata.flatMap(GenerateModMetadataTask::getOutputDir));
+        main.getResources().srcDir(project.files(project.getLayout().getBuildDirectory().dir("generated/modularity"))
+                .builtBy(metadata));
 
         // Dependencies.
         LoomGradleExtensionAPI loom = project.getExtensions().getByType(LoomGradleExtensionAPI.class);
@@ -121,7 +122,7 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
     }
 
     private static Object layered(Project project, TaskProvider<AssembleLayersTask> assemble, String dir) {
-        return project.files(assemble.flatMap(a -> a.getOutputDir().map((Directory d) -> d.dir(dir))))
-                .builtBy(assemble);
+        // Fixed paths (Loom reads source dirs while configuring, before task outputs may be queried).
+        return project.files(project.getLayout().getBuildDirectory().dir("layered/main/" + dir)).builtBy(assemble);
     }
 }

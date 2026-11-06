@@ -34,7 +34,6 @@ minecraft = "1.21.1"
 fabric-api = "0.116.17+1.21.1"
 java = 21
 modmenu = "11.0.5"
-enabled = false
 
 [[platform]]
 name = "21.2"

@@ -49,10 +49,5 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
 if (findProject(':utilities:mvd:mvd-fabric') != null) {
     modularity.extraJars.addAll(':utilities:mvd:mvd-fabric:remapJar', ':utilities:mpd:mpd-fabric:remapJar')
 }
-// Hand-written 21.1 platform until it moves into platforms/fabric (step 4 of docs/07).
-if (findProject(':platforms:fabric-21.1')?.projectDir?.name == 'fabric-21.1') {
-    modularity.extraJars.add(':platforms:fabric-21.1:remapJar')
-}
-
 // buildAll also runs the plugin unit tests (layer ordering, override and duplicate checks, table, metadata).
 tasks.named('buildAll') { dependsOn gradle.includedBuild('build-logic').task(':test') }

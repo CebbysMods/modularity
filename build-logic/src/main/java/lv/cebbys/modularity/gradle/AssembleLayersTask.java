@@ -6,7 +6,9 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
@@ -26,9 +28,18 @@ import java.util.stream.Collectors;
 public abstract class AssembleLayersTask extends DefaultTask {
 
     /** Layer root, e.g. {@code platforms/fabric} (holds common, changes, versions). */
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Internal
     public abstract DirectoryProperty getBaseDir();
+
+    /** The layer sources only (not the platform projects' build or run folders). */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getLayerSources() {
+        String version = McVersion.parse(getMinecraft().get()).shortName();
+        String sub = getSourceSet().get();
+        return getBaseDir().getAsFileTree().matching(f -> f.include("common/" + sub + "/**", "changes/*/" + sub + "/**",
+                "versions/" + version + "/" + sub + "/**"));
+    }
 
     @Input
     public abstract Property<String> getMinecraft();

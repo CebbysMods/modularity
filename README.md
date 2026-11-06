@@ -34,12 +34,14 @@ public final class RefabslabMod implements ModularMod {
 |---|---|---|
 | `modularity-api` | The API (Java 17) | no |
 | `modularity-testkit` | In-memory game to unit test mods | no |
-| `platforms/fabric-21.1` | Fabric 1.21.1 implementation | yes |
+| `platforms/fabric` | Fabric implementation, one jar per Minecraft version (`gradle/platforms.toml`), layered: `common`, `changes/<range>`, `versions/<version>` ([docs/07](docs/07-multi-version-build.md)) | yes |
+| `build-logic` | Gradle plugins `lv.cebbys.modularity*` that build the platforms | no |
 
 ## Building
 
 ```sh
-./gradlew build                                  # everything (needs Fabric/Mojang mavens)
+./gradlew buildAll collectJars                   # everything; mod jars in build/libs-all/ (needs Fabric/Mojang mavens)
+./gradlew build -Pmodularity.platforms=21.1,26.3 # only these platforms
 ./gradlew build -Pmodularity.platforms=none      # API + testkit only (Maven Central only)
 ./gradlew publishToMavenLocal                    # for mods built against a local Modularity
 ```

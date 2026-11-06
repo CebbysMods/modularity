@@ -140,4 +140,6 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Mixin config `compatibilityLevel` JAVA_21 for every platform | The mixins use no newer language features; one value every shipped Mixin knows. |
 | Mixins listed from `@Mixin` classes in the assembled sources, `client.*` under `client` | A version layer can add or remove a mixin without editing a config. |
 | Mixin names sorted as strings | Windows sorts paths case-insensitively; the generated config must be identical on every OS. |
+| 21.1 move verified by jar diff | Every class in the 21.1 jar is byte-identical before and after the move; only `fabric.mod.json` (exact `minecraft`, `fabricloader >=0.20.1`) and the order of two client mixins changed. |
+| `assembleLayers` inputs are only `*/src/<set>/**` of the layers | `versions/<v>` is also the project dir; its `build/` and `run/` must not be inputs. |
 | mvd/mpd compiled against 1.21.1 | They use no Minecraft classes; the oldest target gives one jar for all. |
