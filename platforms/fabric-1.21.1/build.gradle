@@ -36,8 +36,9 @@ dependencies {
 
     api project(':modularity-api')
     // Separate mods, not nested: Modularity declares them in fabric.mod.json "depends".
-    modImplementation project(path: ':utilities:mvd:mvd-fabric', configuration: 'namedElements')
-    modImplementation project(path: ':utilities:mpd:mpd-fabric', configuration: 'namedElements')
+    // Plain implementation: same build, already named, so Loom must not remap (and cache) them.
+    implementation project(path: ':utilities:mvd:mvd-fabric', configuration: 'namedElements')
+    implementation project(path: ':utilities:mpd:mpd-fabric', configuration: 'namedElements')
     // Development only (runClient): lists the loaded mods. Not a dependency of the published jar.
     modLocalRuntime 'com.terraformersmc:modmenu:11.0.5'
     include project(':modularity-api')
