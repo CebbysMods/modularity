@@ -51,7 +51,7 @@ Goal: one Fabric platform jar per Minecraft version from 1.21.1 to the latest st
 from layered code by our own Gradle plugin ([07](07-multi-version-build.md)).
 
 * [x] Design doc and version table
-* [ ] Build upgrade: Loom 1.19 (remap + non-remap plugins), Gradle 9.8, Gradle on JDK 25
+* [x] Build upgrade: Loom 1.19 (remap + non-remap plugins), Gradle 9.8, Gradle on JDK 25
 * [ ] Plugin `lv.cebbys.modularity` in `build-logic/`: version table, one project per platform, layered sources, override checks, generated `fabric.mod.json` and mixin config, `buildAll`/`collectJars`/`smokeAll`
 * [ ] `platforms/fabric-21.1` moved into `platforms/fabric/common` + `versions/21.1`
 * [ ] Ports 21.2 … 21.11, 26.1 … 26.3, one version at a time

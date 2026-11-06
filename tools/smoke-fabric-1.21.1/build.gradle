@@ -1,7 +1,7 @@
 // In-game smoke test: runs a dedicated server and a client with Modularity + a mod under test
 // (-PmodJar=path/to/mod.jar), places content and takes screenshots. See .github/workflows/smoke.yml.
 plugins {
-    id 'fabric-loom' version '1.10-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom-remap' version '1.19.3'
 }
 
 repositories {
@@ -21,8 +21,8 @@ java {
 dependencies {
     minecraft 'com.mojang:minecraft:1.21.1'
     mappings loom.officialMojangMappings()
-    modImplementation 'net.fabricmc:fabric-loader:0.16.9'
-    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.110.0+1.21.1'
+    modImplementation 'net.fabricmc:fabric-loader:0.20.1'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.17+1.21.1'
 
     modRuntimeOnly 'lv.cebbys.mcmods:modularity-fabric-21.1:0.1.0-SNAPSHOT'
     // Utility mods Modularity depends on; separate mods, see docs/06-utility-mods.md.

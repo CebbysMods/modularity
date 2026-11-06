@@ -1,3 +1,10 @@
+plugins {
+    // Loaded once here so every project (platforms, utilities, build-logic plugins) shares one Loom.
+    // remap: obfuscated Minecraft (1.21.x); plain: unobfuscated Minecraft (26.1+).
+    id 'net.fabricmc.fabric-loom-remap' version '1.19.3' apply false
+    id 'net.fabricmc.fabric-loom' version '1.19.3' apply false
+}
+
 // utilities/ (mvd, mpd) configure themselves, so they can later move to their own repositories.
 configure(subprojects.findAll { !it.path.startsWith(':utilities') }) {
     group = rootProject.group

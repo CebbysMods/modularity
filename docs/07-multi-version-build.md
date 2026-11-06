@@ -129,4 +129,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Additions allowed, only removals must point at an existing file | On disk an override and an addition look the same; requiring every file to exist below would forbid new classes in newer versions. |
 | Identical copies fail the build | Enforces "only the changes" mechanically. |
 | Project dir = `platforms/fabric/versions/<version>` | The only per-version folder; created by the settings plugin if missing. |
+| Loom loaded once in the root `plugins {}` (`apply false`), subprojects apply it without a version | One Loom classloader for the whole build; separate versions per project break Loom's shared services. |
+| Utility folders pass their `gradle.properties` values to subprojects explicitly | Gradle 9 deprecates the implicit lookup in parent projects (an error in Gradle 10). |
+| Smoke server without refabslab locally | The refabslab jar is only built in CI (`-PmodJar`); locally the slab placement lines report FAIL by design, the mod loading checks are what counts. |
 | mvd/mpd compiled against 1.21.1 | They use no Minecraft classes; the oldest target gives one jar for all. |
