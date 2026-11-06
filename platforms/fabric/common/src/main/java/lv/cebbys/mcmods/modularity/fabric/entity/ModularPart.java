@@ -79,8 +79,8 @@ public final class ModularPart extends BaseEntity {
     }
 
     @Override
-    protected AABB makeBoundingBox() {
-        return shape != null ? shape.bounds() : super.makeBoundingBox();
+    protected AABB boundingBox(AABB vanilla) {
+        return shape != null ? shape.bounds() : vanilla;
     }
 
     @Override

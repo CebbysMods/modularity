@@ -152,9 +152,9 @@ public class ModularEntity extends BaseEntity {
     }
 
     @Override
-    protected AABB makeBoundingBox() {
+    protected AABB boundingBox(AABB vanilla) {
         if (parts == null || parts.length == 0) {
-            return super.makeBoundingBox();
+            return vanilla;
         }
         AABB box = null;
         for (ModularPart part : parts) {
