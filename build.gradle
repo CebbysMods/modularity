@@ -47,7 +47,9 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
 
 // collectJars (lv.cebbys.modularity.root) copies every platform jar plus these to build/libs-all/.
 if (findProject(':utilities:mvd:mvd-fabric') != null) {
-    modularity.extraJars.addAll(':utilities:mvd:mvd-fabric:remapJar', ':utilities:mpd:mpd-fabric:remapJar')
+    modularity.extraJars.addAll(':utilities:mvd:mvd-fabric:remapJar', ':utilities:mpd:mpd-fabric:remapJar',
+            ':utilities:mvd:mvd-neoforge:jar', ':utilities:mpd:mpd-neoforge:jar',
+            ':utilities:mvd:mvd-forge:jar', ':utilities:mpd:mpd-forge:jar')
 }
 // buildAll also runs the plugin unit tests (layer ordering, override and duplicate checks, table, metadata).
 tasks.named('buildAll') { dependsOn gradle.includedBuild('build-logic').task(':test') }

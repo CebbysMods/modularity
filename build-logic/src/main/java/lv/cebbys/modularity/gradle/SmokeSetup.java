@@ -33,15 +33,20 @@ final class SmokeSetup {
     }
 
     /**
-     * The loader's two game runs, in {@code build/smoke/run}, registering the tasks {@code runSmokeServer} and
-     * {@code runSmokeClient}; the client opens the world {@code smoke} ({@code --quickPlaySingleplayer}).
+     * The loader's two game runs, in {@code build/smoke/run}; the client opens the world {@code smoke}
+     * ({@code --quickPlaySingleplayer}).
      */
     interface Runs {
         /**
          * @param guestMods jar for the system property {@code modularity.guestMods}, or {@code null}
+         * @return names of the server and the client run task
          */
-        void register(Project project, PlatformTable.Platform platform, SourceSet main, SourceSet smoke,
-                      String guestMods);
+        RunTasks register(Project project, PlatformTable.Platform platform, SourceSet main, SourceSet smoke,
+                          String guestMods);
+    }
+
+    record RunTasks(String server, String client) {
+        static final RunTasks SMOKE = new RunTasks("runSmokeServer", "runSmokeClient");
     }
 
     /**
@@ -75,6 +80,7 @@ final class SmokeSetup {
                 r.getGenerateRunConfig().set(false);
                 r.getProgramArguments().addAll(CLIENT_ARGS);
             });
+            return RunTasks.SMOKE;
         };
     }
 
@@ -121,7 +127,7 @@ final class SmokeSetup {
         String guestMods = new File(project.getLayout().getBuildDirectory().get().getAsFile(), "smoke/" + SmokeCheck.GUEST + ".jar").getAbsolutePath();
 
         String userDir = new File(project.getProjectDir(), RUN_DIR).getAbsolutePath();
-        gameRuns.register(project, platform, main, smoke, guests ? guestMods : null);
+        RunTasks runTasks = gameRuns.register(project, platform, main, smoke, guests ? guestMods : null);
 
         // Own port per platform as well, in case a server of another platform is still shutting down.
         int port = 25600 + Math.floorMod(platform.id().hashCode(), 300);
@@ -132,7 +138,7 @@ final class SmokeSetup {
         });
         var runs = project.getGradle().getSharedServices().registerIfAbsent(SmokeRunService.NAME, SmokeRunService.class,
                 spec -> spec.getMaxParallelUsages().set(1));
-        project.getTasks().named("runSmokeServer", t -> {
+        project.getTasks().matching(t -> t.getName().equals(runTasks.server())).configureEach(t -> {
             t.dependsOn(prepare, guestJar);
             t.usesService(runs);
         });
@@ -141,7 +147,7 @@ final class SmokeSetup {
         var server = project.getTasks().register("smokeServer", SmokeCheckTask.class, t -> {
             t.setGroup("verification");
             t.setDescription("Dedicated server smoke test of " + platform.id());
-            t.dependsOn("runSmokeServer");
+            t.dependsOn(runTasks.server());
             t.getLog().set(new File(userDir, "logs/latest.log"));
             t.getMinecraft().set(mc);
             t.getSide().set(SmokeCheck.Side.SERVER);
@@ -157,7 +163,7 @@ final class SmokeSetup {
             t.from(new File(userDir, "smoke"));
             t.into(new File(userDir, "saves/smoke"));
         });
-        project.getTasks().named("runSmokeClient", t -> {
+        project.getTasks().matching(t -> t.getName().equals(runTasks.client())).configureEach(t -> {
             t.usesService(runs);
             t.dependsOn(copyWorld, guestJar);
             t.doFirst(x -> writeOptions(Path.of(userDir)));
@@ -165,7 +171,7 @@ final class SmokeSetup {
         var client = project.getTasks().register("smokeClient", SmokeCheckTask.class, t -> {
             t.setGroup("verification");
             t.setDescription("Client smoke test of " + platform.id());
-            t.dependsOn("runSmokeClient");
+            t.dependsOn(runTasks.client());
             t.getLog().set(new File(userDir, "logs/latest.log"));
             t.getMinecraft().set(mc);
             t.getSide().set(SmokeCheck.Side.CLIENT);

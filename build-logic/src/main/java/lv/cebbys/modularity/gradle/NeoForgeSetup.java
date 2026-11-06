@@ -59,6 +59,7 @@ final class NeoForgeSetup {
                     r.systemProperty("modularity.guestMods", guestMods);
                 }
             });
+            return SmokeSetup.RunTasks.SMOKE;
         });
     }
 

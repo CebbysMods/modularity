@@ -165,6 +165,12 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | `[mod] mods` lists the Fabric modules; NeoForge and Forge use their `-neoforge` / `-forge` sibling | The separate mods are the same mods per loader. |
 | Smoke mods layered like the platforms (`tools/smoke/minecraft` + the loader's root) | The screenshot code is plain Minecraft code and its version changes apply to every loader. |
 | NeoForge smoke source set: own configurations extending `main`'s, plus `addModdingDependenciesTo` | ModDevGradle adds its dev launcher to the source set's configurations; a plain file class path misses it. |
+| Forge runs named `server` / `client`, smoke tasks `runSmokeServer` / `runSmokeClient` | ForgeGradle 7 fills a run from Forge's run configuration of the same name and registers one task per source set (`run<SourceSet><Name>`) with that source set's class path; a run's `classpath` option replaces the launcher's own class path. |
+| Forge: resources compiled into the classes folder (`main`, `smoke`) | Forge's development discovery takes each class path folder as a mod file; `mods.toml` must sit next to the classes. |
+| Forge jar-in-jar written by the plugin (`META-INF/jarjar` + `metadata.json`, same format as ModDevGradle) | ForgeGradle 7 has no jarJar; Forge 52 reads that format (`JarInJarDependencyLocator`). Loading the nested API from a production jar is still to be checked in a real Forge install. |
+| `pack.mcmeta` (pack format 34) in the Forge layer, smoke mod and utility mods | Forge 1.21.1 warns for mods without it; the value is the one of Forge's own 1.21.1 MDK. |
+| NeoForge/Forge utility mods: the bundled core is not also a runtime dependency | Both load mods as Java modules; the core's package may come from one module only (Forge refused the split package). |
+| Forge smoke "nested" check by jar path (`META-INF/jarjar/`) | Forge's mod file API names no parent file (NeoForge's does). |
 | `build-logic` compiled for Java 25 | Loom 1.19.3 is published as Java 25 bytecode, so plugins depending on it must be too. |
 | Mixin config `compatibilityLevel` JAVA_21 for every platform | The mixins use no newer language features; one value every shipped Mixin knows. |
 | Mixins listed from `@Mixin` classes in the assembled sources, `client.*` under `client` | A version layer can add or remove a mixin without editing a config. |

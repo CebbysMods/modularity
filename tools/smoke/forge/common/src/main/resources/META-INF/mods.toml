@@ -1,0 +1,16 @@
+modLoader="javafml"
+loaderVersion="[52,)"
+license="MIT"
+
+[[mods]]
+modId="modularity_smoke"
+version="1.0.0"
+displayName="Modularity platform smoke test"
+description="Platform smoke test (docs/07, 7.6)."
+
+[[dependencies.modularity_smoke]]
+modId="modularity"
+mandatory=true
+versionRange="[0,)"
+ordering="AFTER"
+side="BOTH"

@@ -33,10 +33,10 @@ repositories {
 }
 
 configurations {
-    // mvd-core is packed into this jar, so the mod is a single file (as in mvd-fabric).
+    // mvd-core is packed into this jar, so the mod is a single file (as in mvd-fabric). Not a runtime dependency
+    // as well: NeoForge and Forge load mods as Java modules, and the core's package must come from one module only.
     bundle
     compileOnly.extendsFrom bundle
-    runtimeOnly.extendsFrom bundle
 }
 
 dependencies {

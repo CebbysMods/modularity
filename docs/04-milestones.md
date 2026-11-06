@@ -58,6 +58,10 @@ from layered code by our own Gradle plugin ([07](07-multi-version-build.md)).
 * [x] mvd and mpd: one jar each for every version (`minecraft >=1.21.1`, built against 1.21.1, verified on 1.21.1 … 26.3)
 * [x] Smoke tests per platform (server for all, client for 21.1, 21.6, 21.11, 26.1, 26.3)
 * [x] Guest mods ([08](08-guest-mods.md)): one jar with `modularity.mod.json` and no loader metadata becomes a Fabric mod at startup; smoke-tested on every platform
+* [x] Loaders in the build: platforms `<loader>-<version>`, layer root stacks (`platforms/minecraft` + loader); Quilt 1.21.1 (the Fabric jar on Quilt Loader), NeoForge 1.21.1 (ModDevGradle), Forge 1.21.1 (ForgeGradle 7): Modularity, mvd and mpd load, server and client smoke pass
+* [ ] Shared `platforms/minecraft` layer: plain Minecraft code moved out of `platforms/fabric`
+* [ ] NeoForge and Forge 1.21.1 runtime: refabslab's feature set, then the rest of the API
+* [ ] Guest mods on Quilt, NeoForge and Forge
 
 ## M2b – Second loader and build tooling for mods
 
