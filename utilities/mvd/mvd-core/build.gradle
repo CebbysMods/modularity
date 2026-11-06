@@ -13,7 +13,7 @@ java {
 tasks.withType(JavaCompile).configureEach {
     options.release = Integer.parseInt(project.property('java_release'))
     options.encoding = 'UTF-8'
-    options.compilerArgs += ['-Xlint:all']
+    options.compilerArgs += ['-Xlint:all', '-Xlint:-serial']
 }
 
 dependencies {
