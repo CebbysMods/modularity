@@ -37,10 +37,8 @@ public record FabricBlockStateRef(BlockState state) implements BlockStateRef {
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> BlockStateRef with(Property<T> property, T value) {
-        var nativeProperty = (net.minecraft.world.level.block.state.properties.Property) Props.toNative(property);
-        return Wrap.state(state.setValue(nativeProperty, (Comparable) Props.toNativeValue(property, value)));
+        return Wrap.state(Props.with(state, property, value));
     }
 
     @Override

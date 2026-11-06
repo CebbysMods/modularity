@@ -36,7 +36,7 @@ public class ModularBlock extends Block {
         this.definition = definition;
         BlockState state = stateDefinition.any();
         for (Map.Entry<Property<?>, Object> entry : definition.properties().entrySet()) {
-            state = withValue(state, entry.getKey(), entry.getValue());
+            state = Props.with(state, entry.getKey(), entry.getValue());
         }
         registerDefaultState(state);
     }
@@ -52,12 +52,6 @@ public class ModularBlock extends Block {
 
     public BlockDefinition definition() {
         return definition;
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static BlockState withValue(BlockState state, Property<?> property, Object value) {
-        var nativeProperty = (net.minecraft.world.level.block.state.properties.Property) Props.toNative(property);
-        return state.setValue(nativeProperty, (Comparable) Props.toNativeValue(property, value));
     }
 
     private static BlockBehaviour.Properties properties(Id id, BlockDefinition definition) {

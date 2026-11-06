@@ -192,6 +192,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Remap tasks limited to 2 at a time (`RemapService`), daemon heap 4 GB | A cold `buildAll` of 11 obfuscated versions in parallel ran out of heap; the limit keeps the build parallel elsewhere. |
 | 26.2 part ids reserved from `ServerLevel`'s counter, only on the server | The counter moved from `Entity` to `ServerLevel` (which skips ids in use); client entities take their id from the spawn packet. |
 | One icon for every loader: `[mod] icon` in `platforms.toml`, copied to `assets/<id>/icon.png` | Generated with the metadata, so Fabric (`icon`) and NeoForge/Forge (`logoFile`) point at the same file in every jar; the 256×256 source is `images/modularity.png`. |
+| Shared helpers instead of copies in the 1.21.1 base (`GameCompat.result`, `NbtData.encode/decode/writeAll/readAll`, `ModularityFabric.forEachMod`, handle records, `PartShape.slab`, `Props.with`) | Each copy existed once per caller; one helper is one place to fix and one place for the later shared Minecraft layer. Tolerances and error texts kept, so no behaviour change. |
 
 ## 7.9 Port log
 

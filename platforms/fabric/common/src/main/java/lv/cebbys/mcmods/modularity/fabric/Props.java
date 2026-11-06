@@ -51,6 +51,14 @@ public final class Props {
         throw new IllegalArgumentException("Unsupported property " + property);
     }
 
+    /** {@code state} with the portable {@code property} set to the portable {@code value}. */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static net.minecraft.world.level.block.state.BlockState with(net.minecraft.world.level.block.state.BlockState state,
+                                                                        Property<?> property, Object value) {
+        var nativeProperty = (net.minecraft.world.level.block.state.properties.Property) toNative(property);
+        return state.setValue(nativeProperty, (Comparable) toNativeValue(property, value));
+    }
+
     /** Portable value to native value. */
     public static Comparable<?> toNativeValue(Property<?> property, Object value) {
         if (value instanceof PropertyValue named) {
