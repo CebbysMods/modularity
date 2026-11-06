@@ -39,7 +39,7 @@ Version and platform detection as two separate mods next to Modularity ([06](06-
 
 * [x] Gradle skeleton under `utilities/`
 * [x] mvd (`VersionDetector`), clean copy and refactor of minecraft-version-loader
-* [ ] mpd (`PlatformDetector`)
+* [x] mpd (`PlatformDetector`)
 * [ ] Fabric 1.21.1 wrappers, Modularity depends on both, `FabricRuntime` uses them
 * [ ] Smoke test: 3 separate mods in game
 
