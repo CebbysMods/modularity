@@ -111,7 +111,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
         @Override
         @SuppressWarnings("unchecked")
         public void entityRenderer(EntityHandle type, EntityRenderer renderer) {
-            var nativeType = (EntityType<ModularEntity>) BuiltInRegistries.ENTITY_TYPE.get(Wrap.rl(type.id()));
+            var nativeType = (EntityType<ModularEntity>) BuiltInRegistries.ENTITY_TYPE.getOptional(Wrap.rl(type.id())).orElseThrow();
             EntityRendererRegistry.register(nativeType, ctx -> new ModularEntityRenderer(ctx, renderer));
         }
 

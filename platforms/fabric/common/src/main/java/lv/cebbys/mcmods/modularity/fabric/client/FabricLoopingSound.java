@@ -12,7 +12,7 @@ final class FabricLoopingSound extends AbstractTickableSoundInstance {
     private final LoopingSound sound;
 
     FabricLoopingSound(LoopingSound sound) {
-        super(BuiltInRegistries.SOUND_EVENT.get(Wrap.rl(sound.sound().id())), SoundSource.NEUTRAL, RandomSource.create());
+        super(BuiltInRegistries.SOUND_EVENT.getOptional(Wrap.rl(sound.sound().id())).orElseThrow(), SoundSource.NEUTRAL, RandomSource.create());
         this.sound = sound;
         this.looping = true;
         this.delay = 0;

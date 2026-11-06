@@ -1,5 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.entity;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.BaseEntity;
+import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.api.core.InteractionResult;
 import lv.cebbys.mcmods.modularity.api.entity.EntityContext;
 import lv.cebbys.mcmods.modularity.api.entity.EntityData;
@@ -43,7 +45,7 @@ import java.util.Optional;
  * mirrored to clients through one compound tracked data entry, saved data is written under
  * {@code "modularity"}. Movement is server authoritative and interpolated on clients.
  */
-public class ModularEntity extends Entity {
+public class ModularEntity extends BaseEntity {
     private static final EntityDataAccessor<CompoundTag> SYNCED = SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Quaternionf> ORIENTATION =
             SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.QUATERNION);
@@ -536,17 +538,14 @@ public class ModularEntity extends Entity {
     private net.minecraft.world.InteractionResult toNative(InteractionResult result) {
         return switch (result) {
             case PASS -> net.minecraft.world.InteractionResult.PASS;
-            case SUCCESS -> net.minecraft.world.InteractionResult.sidedSuccess(level().isClientSide());
+            case SUCCESS -> GameCompat.success(level().isClientSide());
             case CONSUME -> net.minecraft.world.InteractionResult.CONSUME;
             case FAIL -> net.minecraft.world.InteractionResult.FAIL;
         };
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
-        if (isInvulnerableTo(source)) {
-            return false;
-        }
+    protected boolean onHurt(DamageSource source, float amount) {
         if (level().isClientSide()) {
             return true;
         }

@@ -1,5 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import lv.cebbys.mcmods.modularity.api.ModContext;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.block.BlockDefinition;
@@ -69,15 +71,15 @@ final class FabricModContext implements ModContext {
         Id id = id(name);
         var location = Wrap.rl(id);
 
-        ModularBlock block = Registry.register(BuiltInRegistries.BLOCK, location, ModularBlock.create(definition));
+        ModularBlock block = Registry.register(BuiltInRegistries.BLOCK, location, ModularBlock.create(location, definition));
         if (block instanceof ModularEntityBlock entityBlock) {
-            BlockEntityType<ModularBlockEntity> type = BlockEntityType.Builder
-                    .<ModularBlockEntity>of((pos, state) -> (ModularBlockEntity) entityBlock.newBlockEntity(pos, state), entityBlock)
-                    .build(null);
+            BlockEntityType<ModularBlockEntity> type = FabricBlockEntityTypeBuilder
+                    .<ModularBlockEntity>create((pos, state) -> (ModularBlockEntity) entityBlock.newBlockEntity(pos, state), entityBlock)
+                    .build();
             entityBlock.bindType(Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, location, type));
         }
         if (definition.hasItem()) {
-            Registry.register(BuiltInRegistries.ITEM, location, new BlockItem(block, new Item.Properties()));
+            Registry.register(BuiltInRegistries.ITEM, location, new BlockItem(block, RegistryCompat.itemProperties(location)));
         }
         BlockRef ref = Wrap.block(block);
         return new BlockHandle() {
@@ -129,7 +131,7 @@ final class FabricModContext implements ModContext {
         spec.accept(builder);
         ItemDefinition definition = builder.build();
         Id id = id(name);
-        ModularItem item = Registry.register(BuiltInRegistries.ITEM, Wrap.rl(id), new ModularItem(definition));
+        ModularItem item = Registry.register(BuiltInRegistries.ITEM, Wrap.rl(id), new ModularItem(Wrap.rl(id), definition));
         if (definition.creativeTab() != null) {
             ItemGroupEvents.modifyEntriesEvent(tab(definition.creativeTab())).register(entries -> entries.accept(item));
         }

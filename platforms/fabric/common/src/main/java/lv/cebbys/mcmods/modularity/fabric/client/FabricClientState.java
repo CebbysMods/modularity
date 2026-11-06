@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.ClientCompat;
 import lv.cebbys.mcmods.modularity.api.client.ClientState;
 import lv.cebbys.mcmods.modularity.api.client.MovementInput;
 import lv.cebbys.mcmods.modularity.api.world.Player;
@@ -23,8 +24,7 @@ final class FabricClientState implements ClientState {
         if (player == null) {
             return MovementInput.NONE;
         }
-        var input = player.input;
-        return new MovementInput(input.up, input.down, input.left, input.right, input.jumping, input.shiftKeyDown);
+        return ClientCompat.movement(player);
     }
 
     @Override

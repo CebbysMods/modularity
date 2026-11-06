@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.entity;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import lv.cebbys.mcmods.modularity.api.entity.EntityDefinition;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -33,11 +34,10 @@ public final class EntityTypes {
     }
 
     public static EntityType<ModularEntity> register(ResourceLocation id, EntityDefinition definition) {
-        EntityType<ModularEntity> type = EntityType.Builder.<ModularEntity>of(ModularEntity::new, MobCategory.MISC)
+        EntityType<ModularEntity> type = RegistryCompat.build(EntityType.Builder.<ModularEntity>of(ModularEntity::new, MobCategory.MISC)
                 .sized(definition.width(), definition.height())
                 .clientTrackingRange(Math.max(1, definition.trackingRange() / 16))
-                .updateInterval(definition.updateInterval())
-                .build(id.toString());
+                .updateInterval(definition.updateInterval()), id);
         DEFINITIONS.put(type, definition);
         maxPartReach = Math.max(maxPartReach, definition.partReach());
         Registry.register(BuiltInRegistries.ENTITY_TYPE, id, type);

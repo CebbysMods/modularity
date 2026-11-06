@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.api.block.BlockContext;
 import lv.cebbys.mcmods.modularity.api.block.BlockStateRef;
 import lv.cebbys.mcmods.modularity.api.block.BreakContext;
@@ -17,7 +18,6 @@ import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.world.NativeBlockView;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -143,7 +143,7 @@ public final class Contexts {
             // Same as Block#spawnDestroyParticles: break particles and sound of that state.
             nativeLevel.levelEvent(player, 2001, Wrap.pos(pos()), Block.getId(nativeState));
             if (nativeState.is(BlockTags.GUARDED_BY_PIGLINS)) {
-                PiglinAi.angerNearbyPiglins(player, false);
+                GameCompat.angerNearbyPiglins(nativeLevel, player);
             }
         }
     }

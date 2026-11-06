@@ -1,5 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
+import net.minecraft.resources.ResourceLocation;
 import lv.cebbys.mcmods.modularity.api.block.BlockDefinition;
 import lv.cebbys.mcmods.modularity.api.block.property.Property;
 import lv.cebbys.mcmods.modularity.fabric.Props;
@@ -28,8 +30,8 @@ public class ModularBlock extends Block {
 
     private final BlockDefinition definition;
 
-    protected ModularBlock(BlockDefinition definition) {
-        super(properties(definition));
+    protected ModularBlock(ResourceLocation id, BlockDefinition definition) {
+        super(properties(id, definition));
         this.definition = definition;
         BlockState state = stateDefinition.any();
         for (Map.Entry<Property<?>, Object> entry : definition.properties().entrySet()) {
@@ -38,10 +40,10 @@ public class ModularBlock extends Block {
         registerDefaultState(state);
     }
 
-    public static ModularBlock create(BlockDefinition definition) {
+    public static ModularBlock create(ResourceLocation id, BlockDefinition definition) {
         CONSTRUCTING.set(definition);
         try {
-            return definition.data().isEmpty() ? new ModularBlock(definition) : new ModularEntityBlock(definition);
+            return definition.data().isEmpty() ? new ModularBlock(id, definition) : new ModularEntityBlock(id, definition);
         } finally {
             CONSTRUCTING.remove();
         }
@@ -57,8 +59,8 @@ public class ModularBlock extends Block {
         return state.setValue(nativeProperty, (Comparable) Props.toNativeValue(property, value));
     }
 
-    private static BlockBehaviour.Properties properties(BlockDefinition definition) {
-        var properties = BlockBehaviour.Properties.of()
+    private static BlockBehaviour.Properties properties(ResourceLocation id, BlockDefinition definition) {
+        var properties = RegistryCompat.blockProperties(id)
                 .strength(definition.hardness(), definition.resistance())
                 .sound(sound(definition))
                 .pushReaction(PushReaction.valueOf(definition.pushReaction().name()));

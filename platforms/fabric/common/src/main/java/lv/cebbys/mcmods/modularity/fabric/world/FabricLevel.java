@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.world;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import lv.cebbys.mcmods.modularity.api.block.BlockStateRef;
 import lv.cebbys.mcmods.modularity.api.data.BlockData;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
@@ -79,8 +80,9 @@ public final class FabricLevel extends NativeBlockView implements Level {
         if (level.isClientSide()) {
             throw new IllegalStateException("Entities are spawned on the server");
         }
-        var nativeType = BuiltInRegistries.ENTITY_TYPE.get(Wrap.rl(type.id()));
-        var entity = nativeType.create(level);
+        var nativeType = BuiltInRegistries.ENTITY_TYPE.getOptional(Wrap.rl(type.id()))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown entity type " + type.id()));
+        var entity = RegistryCompat.create(nativeType, level);
         if (entity == null) {
             throw new IllegalStateException("Could not create " + type.id());
         }

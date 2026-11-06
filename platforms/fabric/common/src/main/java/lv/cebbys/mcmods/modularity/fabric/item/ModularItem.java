@@ -1,5 +1,8 @@
 package lv.cebbys.mcmods.modularity.fabric.item;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
+import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
+import net.minecraft.resources.ResourceLocation;
 import lv.cebbys.mcmods.modularity.api.item.ItemDefinition;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.api.item.ItemUseContext;
@@ -19,8 +22,8 @@ import java.util.Optional;
 public class ModularItem extends Item {
     private final ItemDefinition definition;
 
-    public ModularItem(ItemDefinition definition) {
-        super(new Item.Properties().stacksTo(definition.stackSize()));
+    public ModularItem(ResourceLocation id, ItemDefinition definition) {
+        super(RegistryCompat.itemProperties(id).stacksTo(definition.stackSize()));
         this.definition = definition;
     }
 
@@ -59,7 +62,7 @@ public class ModularItem extends Item {
         };
         return switch (definition.behaviour().useOnBlock(portable)) {
             case PASS -> super.useOn(context);
-            case SUCCESS -> InteractionResult.sidedSuccess(context.getLevel().isClientSide());
+            case SUCCESS -> GameCompat.success(context.getLevel().isClientSide());
             case CONSUME -> InteractionResult.CONSUME;
             case FAIL -> InteractionResult.FAIL;
         };

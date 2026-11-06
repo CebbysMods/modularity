@@ -83,7 +83,7 @@ public final class FabricFluidTank implements FluidTank {
 
     @Override
     public long fill(Id fluid, long millibuckets, boolean simulate) {
-        Fluid nativeFluid = BuiltInRegistries.FLUID.get(Wrap.rl(fluid));
+        Fluid nativeFluid = BuiltInRegistries.FLUID.getOptional(Wrap.rl(fluid)).orElse(Fluids.EMPTY);
         if (nativeFluid == Fluids.EMPTY || millibuckets <= 0) {
             return 0;
         }
@@ -121,7 +121,7 @@ public final class FabricFluidTank implements FluidTank {
 
     public void load(CompoundTag tag) {
         if (tag.contains("fluid")) {
-            Fluid fluid = BuiltInRegistries.FLUID.get(net.minecraft.resources.ResourceLocation.parse(tag.getString("fluid")));
+            Fluid fluid = BuiltInRegistries.FLUID.getOptional(net.minecraft.resources.ResourceLocation.parse(tag.getString("fluid"))).orElse(Fluids.EMPTY);
             storage.variant = FluidVariant.of(fluid);
             storage.amount = tag.getLong("amount");
         } else {
