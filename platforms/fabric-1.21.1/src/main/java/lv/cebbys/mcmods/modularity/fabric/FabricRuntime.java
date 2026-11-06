@@ -1,13 +1,16 @@
 package lv.cebbys.mcmods.modularity.fabric;
 
 import lv.cebbys.mcmods.modularity.api.Modularity;
-import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.block.BlockRef;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.api.core.McVersion;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
+import lv.cebbys.mcmods.mpd.Platform;
+import lv.cebbys.mcmods.mpd.PlatformDetector;
+import lv.cebbys.mcmods.mvd.DetectedVersion;
+import lv.cebbys.mcmods.mvd.VersionDetector;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,17 +18,18 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
 
-final class FabricRuntime implements Modularity.Runtime, Platform {
+final class FabricRuntime implements Modularity.Runtime, lv.cebbys.mcmods.modularity.api.Platform {
     static final FabricRuntime INSTANCE = new FabricRuntime();
 
-    private final McVersion version = McVersion.parse(FabricLoader.getInstance().getModContainer("minecraft")
-            .orElseThrow().getMetadata().getVersion().getFriendlyString());
+    // Version and loader come from the mvd and mpd utility mods (docs/06-utility-mods.md).
+    private final McVersion version = toMcVersion(VersionDetector.detect());
+    private final Loader loader = toLoader(PlatformDetector.detect().platform());
 
     private FabricRuntime() {
     }
 
     @Override
-    public Platform platform() {
+    public lv.cebbys.mcmods.modularity.api.Platform platform() {
         return this;
     }
 
@@ -41,7 +45,7 @@ final class FabricRuntime implements Modularity.Runtime, Platform {
 
     @Override
     public Loader loader() {
-        return Loader.FABRIC;
+        return loader;
     }
 
     @Override
@@ -68,5 +72,19 @@ final class FabricRuntime implements Modularity.Runtime, Platform {
     @Override
     public boolean isDevelopment() {
         return FabricLoader.getInstance().isDevelopmentEnvironment();
+    }
+
+    static McVersion toMcVersion(DetectedVersion version) {
+        return McVersion.of(version.major(), version.minor(), version.patch());
+    }
+
+    static Loader toLoader(Platform platform) {
+        return switch (platform) {
+            case FABRIC -> Loader.FABRIC;
+            case QUILT -> Loader.QUILT;
+            case NEOFORGE -> Loader.NEOFORGE;
+            case FORGE -> Loader.FORGE;
+            case UNKNOWN -> throw new IllegalStateException("Minecraft Platform Detector found no known mod loader");
+        };
     }
 }
