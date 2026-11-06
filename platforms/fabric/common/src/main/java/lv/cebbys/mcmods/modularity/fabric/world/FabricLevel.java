@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.world;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.EntityCompat;
 import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import lv.cebbys.mcmods.modularity.api.block.BlockStateRef;
 import lv.cebbys.mcmods.modularity.api.data.BlockData;
@@ -86,7 +87,7 @@ public final class FabricLevel extends NativeBlockView implements Level {
         if (entity == null) {
             throw new IllegalStateException("Could not create " + type.id());
         }
-        entity.moveTo(position.x(), position.y(), position.z(), yaw, 0.0F);
+        EntityCompat.place(entity, position.x(), position.y(), position.z(), yaw, 0.0F);
         level.addFreshEntity(entity);
         return Wrap.entity(entity);
     }
