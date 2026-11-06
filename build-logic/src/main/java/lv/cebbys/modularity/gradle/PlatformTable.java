@@ -16,7 +16,7 @@ public record PlatformTable(Mod mod, List<Platform> platforms) {
 
     /** One Fabric platform: one Minecraft version, one jar. */
     public record Platform(String name, McVersion minecraft, String loader, String fabricApi, int java,
-                           String modmenu, boolean enabled) {
+                           String modmenu, boolean enabled, boolean smokeClient) {
 
         /** Project path, e.g. {@code :platforms:fabric-21.1}. */
         public String projectPath() {
@@ -79,7 +79,8 @@ public record PlatformTable(Mod mod, List<Platform> platforms) {
             }
             platforms.add(new Platform(name, minecraft, (String) loader, str(p, "fabric-api", "platform " + name),
                     (Integer) require(p, "java", "platform " + name), (String) p.get("modmenu"),
-                    (Boolean) p.getOrDefault("enabled", true)));
+                    (Boolean) p.getOrDefault("enabled", true),
+                    (Boolean) p.getOrDefault("smoke-client", false)));
         }
         platforms.sort((a, b) -> a.minecraft().compareTo(b.minecraft()));
         return new PlatformTable(m, List.copyOf(platforms));

@@ -1,0 +1,38 @@
+package lv.cebbys.mcmods.modularity.smoke;
+
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
+
+/**
+ * Platform smoke test (docs/07-multi-version-build.md, 7.6). Logs whether modularity, mvd and mpd are loaded as
+ * separate top-level mods; on a dedicated server it stops the server after a few ticks. The plugin's
+ * {@code smokeServer} / {@code smokeClient} tasks check these lines and the mvd/mpd detection lines.
+ */
+public final class SmokeMod implements ModInitializer {
+    static final Logger LOGGER = LoggerFactory.getLogger("modularity-smoke");
+    private static final int SERVER_TICKS = 40;
+
+    private int ticks;
+
+    @Override
+    public void onInitialize() {
+        for (String id : new String[]{"modularity", "mvd", "mpd"}) {
+            Optional<ModContainer> container = FabricLoader.getInstance().getModContainer(id);
+            LOGGER.info("[smoke] mod {}: loaded={} version={} nested={}", id, container.isPresent(),
+                    container.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("-"),
+                    container.flatMap(ModContainer::getContainingMod).map(c -> c.getMetadata().getId()).orElse("no"));
+        }
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (server.isDedicatedServer() && ++ticks == SERVER_TICKS) {
+                LOGGER.info("[smoke] server ticked {} times, stopping", SERVER_TICKS);
+                server.halt(false);
+            }
+        });
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "modularity_smoke",
+  "version": "1.0.0",
+  "name": "Modularity platform smoke test",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["lv.cebbys.mcmods.modularity.smoke.SmokeMod"],
+    "client": ["lv.cebbys.mcmods.modularity.smoke.SmokeClient"]
+  },
+  "depends": { "fabricloader": "*", "fabric-api": "*", "modularity": "*", "minecraft": "*" }
+}

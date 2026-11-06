@@ -109,6 +109,8 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
             deps.add(platform.remap() ? "modLocalRuntime" : "localRuntime", "com.terraformersmc:modmenu:" + platform.modmenu());
         }
 
+        SmokeSetup.apply(project, platform, loom, main);
+
         project.getExtensions().getByType(PublishingExtension.class).getPublications()
                 .create("maven", MavenPublication.class, pub -> {
                     pub.setArtifactId(archivesName);

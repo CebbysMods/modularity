@@ -1,6 +1,7 @@
 # Platforms built by the lv.cebbys.modularity plugins (build-logic/, docs/07-multi-version-build.md).
 # Values from meta.fabricmc.net and maven.fabricmc.net (newest Fabric API build per exact version) and
 # Mojang's version manifest (Java), checked 2026-11-06. Never guess them: re-check when adding a version.
+# smoke-client = true: smokeAll also runs the client smoke test (docs/07, 7.6).
 # enabled = false: not ported yet (still selectable with -Pmodularity.platforms=<name>).
 
 [defaults]
@@ -30,6 +31,7 @@ mpd = ">=1.0.0"
 
 [[platform]]
 name = "21.1"
+smoke-client = true
 minecraft = "1.21.1"
 fabric-api = "0.116.17+1.21.1"
 java = 21
@@ -65,6 +67,7 @@ enabled = false
 
 [[platform]]
 name = "21.6"
+smoke-client = true
 minecraft = "1.21.6"
 fabric-api = "0.128.2+1.21.6"
 java = 21
@@ -100,6 +103,7 @@ enabled = false
 
 [[platform]]
 name = "21.11"
+smoke-client = true
 minecraft = "1.21.11"
 fabric-api = "0.141.6+1.21.11"
 java = 21
@@ -107,6 +111,7 @@ enabled = false
 
 [[platform]]
 name = "26.1"
+smoke-client = true
 minecraft = "26.1"
 fabric-api = "0.145.1+26.1"
 java = 25
@@ -135,6 +140,7 @@ enabled = false
 
 [[platform]]
 name = "26.3"
+smoke-client = true
 minecraft = "26.3"
 fabric-api = "0.165.2+26.3"
 java = 25
