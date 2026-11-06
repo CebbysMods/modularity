@@ -45,16 +45,26 @@ Version and platform detection as two separate mods next to Modularity ([06](06-
 * [x] Docs updated to what was built
 * Not yet: backports to older Minecraft versions, NeoForge/Forge wrappers, own repositories
 
-## M2 – Second loader, second version, build tooling
+## M2 – Multi-version Fabric (branch `feature/multi-version-fabric`)
 
-Goal: prove "multi loader, multi version" with the same refabslab common jar.
+Goal: one Fabric platform jar per Minecraft version from 1.21.1 to the latest stable (26.3), built
+from layered code by our own Gradle plugin ([07](07-multi-version-build.md)).
 
-* `platforms/neoforge-1.21.1` (block entity `ModelData` for render data, `DeferredRegister` behind `BlockHandle`, generated `@Mod` adapter)
-* `platforms/fabric-1.20.1` (Java 17, older model API) → extract shared code into `platforms/common-*`
-* Gradle plugin `lv.cebbys.modularity`: declares targets (`fabric("1.21.1")`, `neoforge("1.21.1")`), generates `fabric.mod.json`/`neoforge.mods.toml`, builds one jar per target, runs testkit tests once
+* [x] Design doc and version table
+* [ ] Build upgrade: Loom 1.19 (remap + non-remap plugins), Gradle 9.8, Gradle on JDK 25
+* [ ] Plugin `lv.cebbys.modularity` in `build-logic/`: version table, one project per platform, layered sources, override checks, generated `fabric.mod.json` and mixin config, `buildAll`/`collectJars`/`smokeAll`
+* [ ] `platforms/fabric-21.1` moved into `platforms/fabric/common` + `versions/21.1`
+* [ ] Ports 21.2 … 21.11, 26.1 … 26.3, one version at a time
+* [ ] mvd and mpd: one jar each for every version
+* [ ] Smoke tests per platform (server for all, client for 21.1, 21.6, 21.11, 26.1, 26.3)
+
+## M2b – Second loader and build tooling for mods
+
+* `platforms/neoforge/…` with the same layering (block entity `ModelData` for render data, `DeferredRegister` behind `BlockHandle`, generated `@Mod` adapter); Forge and Quilt later
+* Plugin `lv.cebbys.modularity` for mods built on Modularity: declares targets, generates `fabric.mod.json`/`neoforge.mods.toml`, builds one jar per target, runs testkit tests once
 * Per-target optional native source sets + `Versioned` wiring
 * Version-aware resources (e.g. `tags/blocks` → `tags/block` rename in 1.21)
-* Reference: refabslab on 3 targets from one source
+* Reference: refabslab on several targets from one source
 
 ## M3 – Items, interaction, events, networking, config
 
