@@ -71,12 +71,19 @@ final class SmokeSetup {
             r.getProgramArguments().addAll("--quickPlaySingleplayer", "smoke", "--width", "854", "--height", "480");
         });
 
+        // Own port per platform as well, in case a server of another platform is still shutting down.
+        int port = 25600 + Math.floorMod(platform.minecraft().hashCode(), 300);
         var prepare = project.getTasks().register("prepareSmokeServer", t -> {
             t.setGroup("verification");
             t.setDescription("Fresh run dir for the smoke server: eula, flat world settings");
-            t.doLast(x -> prepareServer(Path.of(userDir)));
+            t.doLast(x -> prepareServer(Path.of(userDir), port));
         });
-        project.getTasks().named("runSmokeServer", t -> t.dependsOn(prepare));
+        var runs = project.getGradle().getSharedServices().registerIfAbsent(SmokeRunService.NAME, SmokeRunService.class,
+                spec -> spec.getMaxParallelUsages().set(1));
+        project.getTasks().named("runSmokeServer", t -> {
+            t.dependsOn(prepare);
+            t.usesService(runs);
+        });
 
         String mc = platform.minecraft().toString();
         var server = project.getTasks().register("smokeServer", SmokeCheckTask.class, t -> {
@@ -97,6 +104,7 @@ final class SmokeSetup {
             t.into(new File(userDir, "saves/smoke"));
         });
         project.getTasks().named("runSmokeClient", t -> {
+            t.usesService(runs);
             t.dependsOn(copyWorld);
             t.doFirst(x -> writeOptions(Path.of(userDir)));
         });
@@ -121,7 +129,7 @@ final class SmokeSetup {
         });
     }
 
-    private static void prepareServer(Path dir) {
+    private static void prepareServer(Path dir, int port) {
         try {
             for (String sub : List.of("smoke", "saves", "logs")) {
                 delete(dir.resolve(sub));
@@ -130,7 +138,7 @@ final class SmokeSetup {
             Files.writeString(dir.resolve("eula.txt"), "eula=true\n");
             Files.writeString(dir.resolve("server.properties"), String.join("\n",
                     "level-name=smoke", "level-type=minecraft\\:flat", "online-mode=false", "spawn-protection=0",
-                    "generate-structures=false", "spawn-monsters=false", "spawn-animals=false", "server-port=25599",
+                    "generate-structures=false", "spawn-monsters=false", "spawn-animals=false", "server-port=" + port,
                     "") );
         } catch (IOException e) {
             throw new UncheckedIOException(e);
