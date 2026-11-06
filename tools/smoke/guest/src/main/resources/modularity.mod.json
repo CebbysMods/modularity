@@ -1,0 +1,10 @@
+{
+  "id": "smoke_guest",
+  "version": "1.0.0",
+  "name": "Modularity smoke guest",
+  "description": "Guest mod of the platform smoke tests: no loader metadata, only modularity.mod.json.",
+  "license": "MIT",
+  "entrypoints": ["lv.cebbys.mcmods.modularity.smoke.guest.SmokeGuest"],
+  "minecraft": ">=1.21.1",
+  "modularity": "*"
+}

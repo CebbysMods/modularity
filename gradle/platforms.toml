@@ -24,6 +24,8 @@ mods = [":utilities:mvd:mvd-fabric", ":utilities:mpd:mpd-fabric"]
 main = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabric"]
 client = ["lv.cebbys.mcmods.modularity.fabric.client.ModularityFabricClient"]
 server = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabricServer"]
+# Guest mods (modularity.mod.json only) become Fabric mods before the game starts.
+preLaunch = ["lv.cebbys.mcmods.modularity.fabric.guest.GuestMods"]
 
 [mod.depends]
 mvd = ">=4.0.0"

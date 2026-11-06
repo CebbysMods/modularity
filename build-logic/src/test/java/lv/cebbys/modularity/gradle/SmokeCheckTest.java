@@ -14,6 +14,8 @@ class SmokeCheckTest {
             [17:39:33] [main/INFO] (modularity-smoke) [smoke] mod mvd: loaded=true version=4.0.0 nested=no
             [17:39:33] [main/INFO] (modularity-smoke) [smoke] mod mpd: loaded=true version=1.0.0 nested=no
             [17:39:33] [main/INFO] (mpd) [mpd] Detected platform FABRIC 0.20.1, SERVER (development) (source: fabric-loader)
+            [17:39:33] [main/INFO] (modularity) [modularity] Loaded guest mod smoke_guest 1.0.0 from guest.jar
+            [17:39:34] [Server thread/INFO] (modularity-smoke) [smoke] guest mod smoke_guest: loaded=true initialized=true
             [17:39:35] [Server thread/INFO] (modularity-smoke) [smoke] server ticked 40 times, stopping
             """;
 
@@ -21,7 +23,14 @@ class SmokeCheckTest {
     void serverLogPasses() {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG, "1.21.10", SmokeCheck.Side.SERVER);
         assertTrue(r.ok(), r.problems().toString());
-        assertEquals(6, r.lines().size());
+        assertEquals(8, r.lines().size());
+    }
+
+    @Test
+    void guestNotInitializedFails() {
+        SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG.replace("initialized=true", "initialized=false"), "1.21.10",
+                SmokeCheck.Side.SERVER);
+        assertFalse(r.ok());
     }
 
     @Test

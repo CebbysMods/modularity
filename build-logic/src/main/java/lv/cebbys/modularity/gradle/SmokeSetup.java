@@ -7,6 +7,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.bundling.Jar;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -54,8 +56,26 @@ final class SmokeSetup {
         loom.getMods().register("modularity", m -> m.sourceSet(main));
         loom.getMods().register("modularity_smoke", m -> m.sourceSet(smoke));
 
+        // Guest mod: Modularity API only, a modularity.mod.json and no loader metadata, so one jar for every
+        // platform. Not on the run class path: Modularity must find it (modularity.guestMods) and load it itself.
+        SourceSet guest = sourceSets.create("smokeGuest");
+        guest.getJava().setSrcDirs(List.of(new File(project.getRootDir(), SMOKE_ROOT + "/guest/src/main/java")));
+        guest.getResources().setSrcDirs(List.of(new File(project.getRootDir(), SMOKE_ROOT + "/guest/src/main/resources")));
+        project.getDependencies().add(guest.getCompileOnlyConfigurationName(),
+                project.getDependencies().project(Map.of("path", ":modularity-api")));
+        TaskProvider<Jar> guestJar = project.getTasks().register("smokeGuestJar", Jar.class, t -> {
+            t.setGroup("verification");
+            t.setDescription("Jar of the smoke guest mod (modularity.mod.json only)");
+            t.from(guest.getOutput());
+            t.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("smoke"));
+            t.getArchiveFileName().set(SmokeCheck.GUEST + ".jar");
+        });
+        String guestMods = "-Dmodularity.guestMods="
+                + new File(project.getLayout().getBuildDirectory().get().getAsFile(), "smoke/" + SmokeCheck.GUEST + ".jar").getAbsolutePath();
+
         String userDir = new File(project.getProjectDir(), RUN_DIR).getAbsolutePath();
         loom.getRuns().register("smokeServer", r -> {
+            r.vmArg(guestMods);
             r.server();
             r.getDisplayName().set("Smoke server " + platform.name());
             r.getSourceSet().set(smoke.getName());
@@ -63,6 +83,7 @@ final class SmokeSetup {
             r.getGenerateRunConfig().set(false);
         });
         loom.getRuns().register("smokeClient", r -> {
+            r.vmArg(guestMods);
             r.client();
             r.getDisplayName().set("Smoke client " + platform.name());
             r.getSourceSet().set(smoke.getName());
@@ -81,7 +102,7 @@ final class SmokeSetup {
         var runs = project.getGradle().getSharedServices().registerIfAbsent(SmokeRunService.NAME, SmokeRunService.class,
                 spec -> spec.getMaxParallelUsages().set(1));
         project.getTasks().named("runSmokeServer", t -> {
-            t.dependsOn(prepare);
+            t.dependsOn(prepare, guestJar);
             t.usesService(runs);
         });
 
@@ -105,7 +126,7 @@ final class SmokeSetup {
         });
         project.getTasks().named("runSmokeClient", t -> {
             t.usesService(runs);
-            t.dependsOn(copyWorld);
+            t.dependsOn(copyWorld, guestJar);
             t.doFirst(x -> writeOptions(Path.of(userDir)));
         });
         var client = project.getTasks().register("smokeClient", SmokeCheckTask.class, t -> {

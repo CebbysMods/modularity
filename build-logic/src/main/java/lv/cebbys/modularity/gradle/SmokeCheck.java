@@ -19,6 +19,9 @@ public final class SmokeCheck {
     private SmokeCheck() {
     }
 
+    /** Id of the smoke guest mod ({@code tools/smoke/guest}). */
+    public static final String GUEST = "smoke_guest";
+
     public static Result check(String log, String minecraft, Side side) {
         List<String> expectations = new ArrayList<>();
         for (String mod : List.of("modularity", "mvd", "mpd")) {
@@ -26,6 +29,9 @@ public final class SmokeCheck {
         }
         expectations.add("\\[mvd\\] Detected version " + Pattern.quote(minecraft) + " \\(");
         expectations.add("\\[mpd\\] Detected platform FABRIC \\S+, " + side + "\\b");
+        // A guest mod (modularity.mod.json only) was turned into a Fabric mod and its entrypoint ran.
+        expectations.add("\\[modularity\\] Loaded guest mod " + GUEST + " ");
+        expectations.add("\\[smoke\\] guest mod " + GUEST + ": loaded=true initialized=true");
         if (side == Side.SERVER) {
             expectations.add("\\[smoke\\] server ticked \\d+ times, stopping");
         } else {
