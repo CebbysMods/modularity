@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.entity;
 
 import lv.cebbys.mcmods.modularity.fabric.compat.InterpolatedEntity;
+import lv.cebbys.mcmods.modularity.fabric.compat.Inventories;
 import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.api.core.InteractionResult;
@@ -24,7 +25,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -384,8 +384,7 @@ public class ModularEntity extends InterpolatedEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        CompoundTag stored = Nbt.compound(tag, "modularity");
+    protected void loadData(CompoundTag stored) {
         for (EntityData<?> key : definition.data()) {
             if (key.saved() && stored.contains(key.id().toString())) {
                 values.put(key, key.codec().read(new NbtData(Nbt.compound(stored, key.id().toString()))));
@@ -396,7 +395,7 @@ public class ModularEntity extends InterpolatedEntity {
         }
         if (inventory != null) {
             NonNullList<ItemStack> items = NonNullList.withSize(inventory.size(), ItemStack.EMPTY);
-            ContainerHelper.loadAllItems(Nbt.compound(stored, "inventory"), items, registryAccess());
+            Inventories.load(Nbt.compound(stored, "inventory"), items, registryAccess());
             for (int i = 0; i < items.size(); i++) {
                 inventory.container().setItem(i, items.get(i));
             }
@@ -405,7 +404,7 @@ public class ModularEntity extends InterpolatedEntity {
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
+    protected CompoundTag saveData() {
         CompoundTag stored = new CompoundTag();
         values.forEach((key, value) -> {
             if (key.saved()) {
@@ -420,9 +419,9 @@ public class ModularEntity extends InterpolatedEntity {
             for (int i = 0; i < items.size(); i++) {
                 items.set(i, inventory.container().getItem(i));
             }
-            stored.put("inventory", ContainerHelper.saveAllItems(new CompoundTag(), items, registryAccess()));
+            stored.put("inventory", Inventories.save(items, registryAccess()));
         }
-        tag.put("modularity", stored);
+        return stored;
     }
 
     public Optional<FluidTank> fluidTank() {
@@ -561,7 +560,7 @@ public class ModularEntity extends InterpolatedEntity {
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    protected boolean isSolid() {
         return definition.solid() && !isMultipart();
     }
 

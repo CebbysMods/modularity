@@ -5,7 +5,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
 /** Entity base: maps the bounding box computation to {@link #boundingBox}. */
-public abstract class BoundsEntity extends DamageEntity {
+public abstract class BoundsEntity extends SolidEntity {
 
     protected BoundsEntity(EntityType<?> type, Level level) {
         super(type, level);

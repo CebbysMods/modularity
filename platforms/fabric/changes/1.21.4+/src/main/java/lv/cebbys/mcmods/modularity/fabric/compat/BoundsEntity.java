@@ -6,7 +6,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /** Entity base: maps the bounding box computation to {@link #boundingBox}. 1.21.4: the box is made for a position. */
-public abstract class BoundsEntity extends DamageEntity {
+public abstract class BoundsEntity extends SolidEntity {
 
     protected BoundsEntity(EntityType<?> type, Level level) {
         super(type, level);

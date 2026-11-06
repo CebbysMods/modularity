@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
 import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
+import lv.cebbys.mcmods.modularity.fabric.compat.SavedBlockEntity;
 import lv.cebbys.mcmods.modularity.api.data.BlockData;
 import net.fabricmc.fabric.api.blockview.v2.RenderDataBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -11,7 +12,6 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -23,8 +23,7 @@ import java.util.Optional;
  * Stores the portable {@link BlockData} of a block: persisted as NBT, synced to clients and exposed
  * as Fabric render data so models can read it while chunks are meshed (vanilla, Sodium, Iris).
  */
-public class ModularBlockEntity extends BlockEntity implements RenderDataBlockEntity {
-    private static final String TAG = "modularity";
+public class ModularBlockEntity extends SavedBlockEntity implements RenderDataBlockEntity {
 
     private final Map<BlockData<?>, Object> values = new LinkedHashMap<>();
     private volatile Map<BlockData<?>, Object> renderData = Map.of();
@@ -65,9 +64,7 @@ public class ModularBlockEntity extends BlockEntity implements RenderDataBlockEn
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        CompoundTag stored = Nbt.compound(tag, TAG);
+    protected void loadData(CompoundTag stored) {
         for (BlockData<?> key : declared()) {
             String id = key.id().toString();
             if (stored.contains(id)) {
@@ -82,11 +79,10 @@ public class ModularBlockEntity extends BlockEntity implements RenderDataBlockEn
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected CompoundTag saveData() {
         CompoundTag stored = new CompoundTag();
         values.forEach((key, value) -> stored.put(key.id().toString(), write(key, value)));
-        tag.put(TAG, stored);
+        return stored;
     }
 
     private static <T> CompoundTag write(BlockData<T> key, Object value) {

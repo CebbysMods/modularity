@@ -3,7 +3,6 @@ package lv.cebbys.mcmods.modularity.fabric.entity;
 import lv.cebbys.mcmods.modularity.fabric.compat.BoundsEntity;
 import lv.cebbys.mcmods.modularity.api.entity.EntityPart;
 import lv.cebbys.mcmods.modularity.api.world.Rotation;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerEntity;
@@ -97,14 +96,6 @@ public final class ModularPart extends BoundsEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-    }
-
-    @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-    }
-
-    @Override
     public boolean shouldBeSaved() {
         return false;
     }
@@ -115,7 +106,7 @@ public final class ModularPart extends BoundsEntity {
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    protected boolean isSolid() {
         return part.solid() && !parent.isRemoved();
     }
 
