@@ -1,8 +1,8 @@
 package lv.cebbys.mcmods.modularity.fabric.compat;
 
+import lv.cebbys.mcmods.modularity.api.core.Id;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -16,17 +16,17 @@ public final class RegistryCompat {
     }
 
     /** Block properties of the block that will be registered as {@code id}. */
-    public static BlockBehaviour.Properties blockProperties(ResourceLocation id) {
-        return BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, id));
+    public static BlockBehaviour.Properties blockProperties(Id id) {
+        return BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, Ids.rl(id)));
     }
 
     /** Item properties of the item that will be registered as {@code id}. */
-    public static Item.Properties itemProperties(ResourceLocation id) {
-        return new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id));
+    public static Item.Properties itemProperties(Id id) {
+        return new Item.Properties().setId(ResourceKey.create(Registries.ITEM, Ids.rl(id)));
     }
 
-    public static <T extends Entity> EntityType<T> build(EntityType.Builder<T> builder, ResourceLocation id) {
-        return builder.build(ResourceKey.create(Registries.ENTITY_TYPE, id));
+    public static <T extends Entity> EntityType<T> build(EntityType.Builder<T> builder, Id id) {
+        return builder.build(ResourceKey.create(Registries.ENTITY_TYPE, Ids.rl(id)));
     }
 
     /** A new entity of {@code type}, as spawned by a mod (not a spawner, egg or command). */

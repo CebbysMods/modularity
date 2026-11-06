@@ -1,7 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.compat;
 
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +18,7 @@ public final class KeyMappings {
     /** An (unregistered) key mapping with translation key {@code key.<modId>.<name>}. */
     public static KeyMapping create(String modId, String name, int defaultKey) {
         KeyMapping.Category category = CATEGORIES.computeIfAbsent(modId,
-                id -> KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(id, "keys")));
+                id -> KeyMapping.Category.register(Ids.of(id, "keys")));
         return new KeyMapping("key." + modId + "." + name, defaultKey, category);
     }
 }

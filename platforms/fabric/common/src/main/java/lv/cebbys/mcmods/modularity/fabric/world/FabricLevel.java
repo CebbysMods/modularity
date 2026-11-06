@@ -1,18 +1,19 @@
 package lv.cebbys.mcmods.modularity.fabric.world;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.EntityCompat;
-import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import lv.cebbys.mcmods.modularity.api.block.BlockStateRef;
 import lv.cebbys.mcmods.modularity.api.data.BlockData;
-import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
-import lv.cebbys.mcmods.modularity.api.world.Level;
-import lv.cebbys.mcmods.modularity.api.world.Pos;
-import lv.cebbys.mcmods.modularity.fabric.Wrap;
-import lv.cebbys.mcmods.modularity.fabric.block.ModularBlockEntity;
 import lv.cebbys.mcmods.modularity.api.entity.EntityHandle;
 import lv.cebbys.mcmods.modularity.api.entity.EntityRef;
+import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.api.world.Aabb;
+import lv.cebbys.mcmods.modularity.api.world.Level;
+import lv.cebbys.mcmods.modularity.api.world.Pos;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
+import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.block.ModularBlockEntity;
+import lv.cebbys.mcmods.modularity.fabric.compat.EntityCompat;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.block.Block;
@@ -81,7 +82,7 @@ public final class FabricLevel extends NativeBlockView implements Level {
         if (level.isClientSide()) {
             throw new IllegalStateException("Entities are spawned on the server");
         }
-        var nativeType = BuiltInRegistries.ENTITY_TYPE.getOptional(Wrap.rl(type.id()))
+        var nativeType = BuiltInRegistries.ENTITY_TYPE.getOptional(Ids.rl(type.id()))
                 .orElseThrow(() -> new IllegalArgumentException("Unknown entity type " + type.id()));
         var entity = RegistryCompat.create(nativeType, level);
         if (entity == null) {

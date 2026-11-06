@@ -8,6 +8,7 @@ import lv.cebbys.mcmods.modularity.api.transfer.ItemInventory;
 import lv.cebbys.mcmods.modularity.api.world.Level;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import lv.cebbys.mcmods.modularity.fabric.entity.ModularEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
@@ -31,7 +32,7 @@ public class NativeEntityRef implements EntityRef {
 
     @Override
     public Id typeId() {
-        return Wrap.id(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+        return Ids.id(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
     }
 
     @Override

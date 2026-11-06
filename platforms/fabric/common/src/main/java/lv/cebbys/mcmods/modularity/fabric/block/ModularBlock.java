@@ -1,11 +1,11 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
-import net.minecraft.resources.ResourceLocation;
 import lv.cebbys.mcmods.modularity.api.block.BlockDefinition;
 import lv.cebbys.mcmods.modularity.api.block.property.Property;
+import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.fabric.Props;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +30,7 @@ public class ModularBlock extends Block {
 
     private final BlockDefinition definition;
 
-    protected ModularBlock(ResourceLocation id, BlockDefinition definition) {
+    protected ModularBlock(Id id, BlockDefinition definition) {
         super(properties(id, definition));
         this.definition = definition;
         BlockState state = stateDefinition.any();
@@ -40,7 +40,7 @@ public class ModularBlock extends Block {
         registerDefaultState(state);
     }
 
-    public static ModularBlock create(ResourceLocation id, BlockDefinition definition) {
+    public static ModularBlock create(Id id, BlockDefinition definition) {
         CONSTRUCTING.set(definition);
         try {
             return definition.data().isEmpty() ? new ModularBlock(id, definition) : new ModularEntityBlock(id, definition);
@@ -59,7 +59,7 @@ public class ModularBlock extends Block {
         return state.setValue(nativeProperty, (Comparable) Props.toNativeValue(property, value));
     }
 
-    private static BlockBehaviour.Properties properties(ResourceLocation id, BlockDefinition definition) {
+    private static BlockBehaviour.Properties properties(Id id, BlockDefinition definition) {
         var properties = RegistryCompat.blockProperties(id)
                 .strength(definition.hardness(), definition.resistance())
                 .sound(sound(definition))

@@ -4,6 +4,7 @@ import lv.cebbys.mcmods.modularity.api.block.BlockRef;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +24,7 @@ public record FabricItemStack(ItemStack stack) implements ItemStackRef {
 
     @Override
     public Id itemId() {
-        return Wrap.id(BuiltInRegistries.ITEM.getKey(stack.getItem()));
+        return Ids.id(BuiltInRegistries.ITEM.getKey(stack.getItem()));
     }
 
     @Override

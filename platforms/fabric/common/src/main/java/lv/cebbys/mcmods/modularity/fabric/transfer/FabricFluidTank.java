@@ -1,9 +1,9 @@
 package lv.cebbys.mcmods.modularity.fabric.transfer;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.transfer.FluidTank;
-import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
@@ -59,7 +59,7 @@ public final class FabricFluidTank implements FluidTank {
     }
 
     private static Id id(Fluid fluid) {
-        return Wrap.id(BuiltInRegistries.FLUID.getKey(fluid));
+        return Ids.id(BuiltInRegistries.FLUID.getKey(fluid));
     }
 
     @Override
@@ -84,7 +84,7 @@ public final class FabricFluidTank implements FluidTank {
 
     @Override
     public long fill(Id fluid, long millibuckets, boolean simulate) {
-        Fluid nativeFluid = BuiltInRegistries.FLUID.getOptional(Wrap.rl(fluid)).orElse(Fluids.EMPTY);
+        Fluid nativeFluid = BuiltInRegistries.FLUID.getOptional(Ids.rl(fluid)).orElse(Fluids.EMPTY);
         if (nativeFluid == Fluids.EMPTY || millibuckets <= 0) {
             return 0;
         }
@@ -122,7 +122,7 @@ public final class FabricFluidTank implements FluidTank {
 
     public void load(CompoundTag tag) {
         if (tag.contains("fluid")) {
-            Fluid fluid = BuiltInRegistries.FLUID.getOptional(net.minecraft.resources.ResourceLocation.parse(Nbt.getString(tag, "fluid"))).orElse(Fluids.EMPTY);
+            Fluid fluid = BuiltInRegistries.FLUID.getOptional(Ids.parse(Nbt.getString(tag, "fluid"))).orElse(Fluids.EMPTY);
             storage.variant = FluidVariant.of(fluid);
             storage.amount = Nbt.getLong(tag, "amount");
         } else {

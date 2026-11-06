@@ -1,7 +1,5 @@
 package lv.cebbys.mcmods.modularity.fabric;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import lv.cebbys.mcmods.modularity.api.ModContext;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.block.BlockDefinition;
@@ -14,6 +12,9 @@ import lv.cebbys.mcmods.modularity.fabric.block.Interceptors;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularBlock;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularBlockEntity;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularEntityBlock;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
@@ -69,9 +70,9 @@ final class FabricModContext implements ModContext {
         spec.accept(builder);
         BlockDefinition definition = builder.build();
         Id id = id(name);
-        var location = Wrap.rl(id);
+        var location = Ids.rl(id);
 
-        ModularBlock block = Registry.register(BuiltInRegistries.BLOCK, location, ModularBlock.create(location, definition));
+        ModularBlock block = Registry.register(BuiltInRegistries.BLOCK, location, ModularBlock.create(id, definition));
         if (block instanceof ModularEntityBlock entityBlock) {
             BlockEntityType<ModularBlockEntity> type = FabricBlockEntityTypeBuilder
                     .<ModularBlockEntity>create((pos, state) -> (ModularBlockEntity) entityBlock.newBlockEntity(pos, state), entityBlock)
@@ -79,7 +80,7 @@ final class FabricModContext implements ModContext {
             entityBlock.bindType(Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, location, type));
         }
         if (definition.hasItem()) {
-            Registry.register(BuiltInRegistries.ITEM, location, new BlockItem(block, RegistryCompat.itemProperties(location)));
+            Registry.register(BuiltInRegistries.ITEM, location, new BlockItem(block, RegistryCompat.itemProperties(id)));
         }
         BlockRef ref = Wrap.block(block);
         return new BlockHandle() {
@@ -111,7 +112,7 @@ final class FabricModContext implements ModContext {
         spec.accept(builder);
         EntityDefinition definition = builder.build();
         Id id = id(name);
-        EntityTypes.register(Wrap.rl(id), definition);
+        EntityTypes.register(id, definition);
         return new EntityHandle() {
             @Override
             public Id id() {
@@ -131,7 +132,7 @@ final class FabricModContext implements ModContext {
         spec.accept(builder);
         ItemDefinition definition = builder.build();
         Id id = id(name);
-        ModularItem item = Registry.register(BuiltInRegistries.ITEM, Wrap.rl(id), new ModularItem(Wrap.rl(id), definition));
+        ModularItem item = Registry.register(BuiltInRegistries.ITEM, Ids.rl(id), new ModularItem(id, definition));
         if (definition.creativeTab() != null) {
             ItemGroupEvents.modifyEntriesEvent(tab(definition.creativeTab())).register(entries -> entries.accept(item));
         }
@@ -171,7 +172,7 @@ final class FabricModContext implements ModContext {
     @Override
     public SoundHandle sound(String name) {
         Id id = id(name);
-        var location = Wrap.rl(id);
+        var location = Ids.rl(id);
         Registry.register(BuiltInRegistries.SOUND_EVENT, location, SoundEvent.createVariableRangeEvent(location));
         return () -> id;
     }

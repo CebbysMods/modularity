@@ -4,7 +4,7 @@ import lv.cebbys.mcmods.modularity.api.client.ModelRef;
 import lv.cebbys.mcmods.modularity.api.client.model.ObjModel;
 import lv.cebbys.mcmods.modularity.api.client.model.ObjParser;
 import lv.cebbys.mcmods.modularity.api.core.Id;
-import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import net.minecraft.client.Minecraft;
 
 import java.io.IOException;
@@ -40,7 +40,7 @@ final class FabricModelRef implements ModelRef {
     public ObjModel model() {
         ObjModel current = model;
         if (current == null) {
-            var found = Minecraft.getInstance().getResourceManager().getResource(Wrap.rl(resource))
+            var found = Minecraft.getInstance().getResourceManager().getResource(Ids.rl(resource))
                     .orElseThrow(() -> new IllegalStateException("Model not found in resources: " + resource));
             try (var reader = found.openAsReader()) {
                 current = ObjParser.parse(reader);

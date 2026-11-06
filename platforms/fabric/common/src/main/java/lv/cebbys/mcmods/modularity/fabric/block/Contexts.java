@@ -1,6 +1,5 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.api.block.BlockContext;
 import lv.cebbys.mcmods.modularity.api.block.BlockStateRef;
 import lv.cebbys.mcmods.modularity.api.block.BreakContext;
@@ -15,6 +14,7 @@ import lv.cebbys.mcmods.modularity.api.world.Player;
 import lv.cebbys.mcmods.modularity.api.world.Pos;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.fabric.world.NativeBlockView;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;

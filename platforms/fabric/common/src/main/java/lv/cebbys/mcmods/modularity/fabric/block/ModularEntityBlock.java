@@ -1,7 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
-import net.minecraft.resources.ResourceLocation;
 import lv.cebbys.mcmods.modularity.api.block.BlockDefinition;
+import lv.cebbys.mcmods.modularity.api.core.Id;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class ModularEntityBlock extends ModularBlock implements EntityBlock {
     private BlockEntityType<ModularBlockEntity> type;
 
-    protected ModularEntityBlock(ResourceLocation id, BlockDefinition definition) {
+    protected ModularEntityBlock(Id id, BlockDefinition definition) {
         super(id, definition);
     }
 

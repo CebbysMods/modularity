@@ -1,8 +1,8 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.api.data.DataInput;
 import lv.cebbys.mcmods.modularity.api.data.DataOutput;
+import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import net.minecraft.nbt.CompoundTag;
 
 /** Portable data I/O backed by NBT. */

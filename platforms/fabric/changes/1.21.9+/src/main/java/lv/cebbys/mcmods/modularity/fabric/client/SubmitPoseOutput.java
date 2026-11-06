@@ -3,7 +3,7 @@ package lv.cebbys.mcmods.modularity.fabric.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import lv.cebbys.mcmods.modularity.api.client.model.ObjModel;
 import lv.cebbys.mcmods.modularity.api.core.Id;
-import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 
@@ -20,7 +20,7 @@ final class SubmitPoseOutput extends PoseOutput {
 
     @Override
     protected void draw(Id texture, List<ObjModel.Face> faces) {
-        collector.submitCustomGeometry(pose, RenderType.entityCutoutNoCull(Wrap.rl(texture)),
+        collector.submitCustomGeometry(pose, RenderType.entityCutoutNoCull(Ids.rl(texture)),
                 (last, consumer) -> emit(consumer, last, faces, light));
     }
 }

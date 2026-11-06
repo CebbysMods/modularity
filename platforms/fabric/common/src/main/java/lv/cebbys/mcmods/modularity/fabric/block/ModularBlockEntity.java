@@ -1,8 +1,8 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
+import lv.cebbys.mcmods.modularity.api.data.BlockData;
 import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.fabric.compat.SavedBlockEntity;
-import lv.cebbys.mcmods.modularity.api.data.BlockData;
 import net.fabricmc.fabric.api.blockview.v2.RenderDataBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;

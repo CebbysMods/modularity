@@ -6,6 +6,7 @@ import lv.cebbys.mcmods.modularity.api.block.BlockType;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BasePressurePlateBlock;
@@ -24,7 +25,7 @@ import net.minecraft.world.level.block.WallBlock;
 public record FabricBlockRef(Block block) implements BlockRef {
     @Override
     public Id id() {
-        return Wrap.id(BuiltInRegistries.BLOCK.getKey(block));
+        return Ids.id(BuiltInRegistries.BLOCK.getKey(block));
     }
 
     @Override

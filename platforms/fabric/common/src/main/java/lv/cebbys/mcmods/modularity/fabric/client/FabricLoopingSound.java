@@ -1,7 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
 import lv.cebbys.mcmods.modularity.api.client.LoopingSound;
-import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundSource;
@@ -12,7 +12,7 @@ final class FabricLoopingSound extends AbstractTickableSoundInstance {
     private final LoopingSound sound;
 
     FabricLoopingSound(LoopingSound sound) {
-        super(BuiltInRegistries.SOUND_EVENT.getOptional(Wrap.rl(sound.sound().id())).orElseThrow(), SoundSource.NEUTRAL, RandomSource.create());
+        super(BuiltInRegistries.SOUND_EVENT.getOptional(Ids.rl(sound.sound().id())).orElseThrow(), SoundSource.NEUTRAL, RandomSource.create());
         this.sound = sound;
         this.looping = true;
         this.delay = 0;

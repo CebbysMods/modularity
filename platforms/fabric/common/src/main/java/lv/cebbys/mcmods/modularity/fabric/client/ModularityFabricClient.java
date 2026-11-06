@@ -1,6 +1,5 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.KeyMappings;
 import lv.cebbys.mcmods.modularity.api.Modularity;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.block.BlockHandle;
@@ -19,6 +18,8 @@ import lv.cebbys.mcmods.modularity.api.entity.EntityHandle;
 import lv.cebbys.mcmods.modularity.api.network.Channel;
 import lv.cebbys.mcmods.modularity.fabric.ModularityFabric;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.fabric.compat.KeyMappings;
 import lv.cebbys.mcmods.modularity.fabric.entity.ModularEntity;
 import lv.cebbys.mcmods.modularity.fabric.network.FabricChannel;
 import net.fabricmc.api.ClientModInitializer;
@@ -28,14 +29,9 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.EntityType;
 
 import java.util.ArrayList;
@@ -80,17 +76,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
             var ctx = new FabricHudContext(graphics, minecraft);
             HUD_LAYERS.forEach(layer -> layer.render(ctx));
         });
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-            @Override
-            public ResourceLocation getFabricId() {
-                return ResourceLocation.fromNamespaceAndPath("modularity", "obj_models");
-            }
-
-            @Override
-            public void onResourceManagerReload(ResourceManager manager) {
-                FabricModelRef.clearAll();
-            }
-        });
+        ObjModelReloadListener.register();
     }
 
     private record Context(String modId) implements ClientContext {
@@ -112,7 +98,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
         @Override
         @SuppressWarnings("unchecked")
         public void entityRenderer(EntityHandle type, EntityRenderer renderer) {
-            var nativeType = (EntityType<ModularEntity>) BuiltInRegistries.ENTITY_TYPE.getOptional(Wrap.rl(type.id())).orElseThrow();
+            var nativeType = (EntityType<ModularEntity>) BuiltInRegistries.ENTITY_TYPE.getOptional(Ids.rl(type.id())).orElseThrow();
             EntityRendererRegistry.register(nativeType, ctx -> new ModularEntityRenderer(ctx, renderer));
         }
 

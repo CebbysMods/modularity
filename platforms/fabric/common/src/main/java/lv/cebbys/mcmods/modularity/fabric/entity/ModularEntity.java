@@ -1,29 +1,28 @@
 package lv.cebbys.mcmods.modularity.fabric.entity;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.InterpolatedEntity;
-import lv.cebbys.mcmods.modularity.fabric.compat.Inventories;
-import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
-import lv.cebbys.mcmods.modularity.fabric.compat.SyncedData;
-import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.api.core.InteractionResult;
 import lv.cebbys.mcmods.modularity.api.entity.EntityContext;
 import lv.cebbys.mcmods.modularity.api.entity.EntityData;
 import lv.cebbys.mcmods.modularity.api.entity.EntityDefinition;
 import lv.cebbys.mcmods.modularity.api.entity.EntityPart;
 import lv.cebbys.mcmods.modularity.api.entity.EntityRef;
-import lv.cebbys.mcmods.modularity.api.world.Rotation;
 import lv.cebbys.mcmods.modularity.api.transfer.FluidTank;
 import lv.cebbys.mcmods.modularity.api.transfer.ItemInventory;
+import lv.cebbys.mcmods.modularity.api.world.Rotation;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.block.NbtData;
+import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
+import lv.cebbys.mcmods.modularity.fabric.compat.InterpolatedEntity;
+import lv.cebbys.mcmods.modularity.fabric.compat.Inventories;
+import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
+import lv.cebbys.mcmods.modularity.fabric.compat.SyncedData;
 import lv.cebbys.mcmods.modularity.fabric.mixin.EntityAccessor;
 import lv.cebbys.mcmods.modularity.fabric.transfer.FabricFluidTank;
 import lv.cebbys.mcmods.modularity.fabric.transfer.FabricItemInventory;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -50,7 +49,7 @@ import java.util.Optional;
 public class ModularEntity extends InterpolatedEntity {
     private static final EntityDataAccessor<CompoundTag> SYNCED = SynchedEntityData.defineId(ModularEntity.class, SyncedData.COMPOUND);
     private static final EntityDataAccessor<Quaternionf> ORIENTATION =
-            SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.QUATERNION);
+            SynchedEntityData.defineId(ModularEntity.class, SyncedData.QUATERNION);
     private static final String TANK_SYNC_KEY = "modularity:tank";
 
     private final EntityDefinition definition;

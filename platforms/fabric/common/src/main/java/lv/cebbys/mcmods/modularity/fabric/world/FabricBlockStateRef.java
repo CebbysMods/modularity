@@ -8,6 +8,7 @@ import lv.cebbys.mcmods.modularity.api.world.BlockView;
 import lv.cebbys.mcmods.modularity.api.world.Pos;
 import lv.cebbys.mcmods.modularity.fabric.Props;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.BlockGetter;
@@ -54,7 +55,7 @@ public record FabricBlockStateRef(BlockState state) implements BlockStateRef {
 
     @Override
     public boolean is(BlockTag tag) {
-        return state.is(TAGS.computeIfAbsent(tag, t -> TagKey.create(Registries.BLOCK, Wrap.rl(t.id()))));
+        return state.is(TAGS.computeIfAbsent(tag, t -> TagKey.create(Registries.BLOCK, Ids.rl(t.id()))));
     }
 
     @Override

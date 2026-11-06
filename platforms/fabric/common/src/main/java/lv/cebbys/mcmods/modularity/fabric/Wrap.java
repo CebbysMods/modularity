@@ -6,14 +6,12 @@ import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.api.world.Direction;
 import lv.cebbys.mcmods.modularity.api.world.Pos;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
-import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.fabric.world.FabricBlockRef;
 import lv.cebbys.mcmods.modularity.fabric.world.FabricBlockStateRef;
 import lv.cebbys.mcmods.modularity.fabric.world.FabricItemStack;
 import lv.cebbys.mcmods.modularity.fabric.world.FabricLevel;
 import lv.cebbys.mcmods.modularity.fabric.world.FabricPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -22,14 +20,6 @@ import net.minecraft.world.level.block.state.BlockState;
 /** Conversions between native Minecraft objects and portable Modularity handles. */
 public final class Wrap {
     private Wrap() {
-    }
-
-    public static ResourceLocation rl(Id id) {
-        return ResourceLocation.fromNamespaceAndPath(id.namespace(), id.path());
-    }
-
-    public static Id id(ResourceLocation location) {
-        return Id.of(location.getNamespace(), location.getPath());
     }
 
     public static BlockPos pos(Pos pos) {

@@ -7,6 +7,7 @@ import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.api.core.McVersion;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import lv.cebbys.mcmods.mpd.Platform;
 import lv.cebbys.mcmods.mpd.PlatformDetector;
 import lv.cebbys.mcmods.mvd.DetectedVersion;
@@ -35,7 +36,7 @@ final class FabricRuntime implements Modularity.Runtime, lv.cebbys.mcmods.modula
 
     @Override
     public Optional<BlockRef> block(Id id) {
-        return BuiltInRegistries.BLOCK.getOptional(Wrap.rl(id)).map(Wrap::block);
+        return BuiltInRegistries.BLOCK.getOptional(Ids.rl(id)).map(Wrap::block);
     }
 
     @Override

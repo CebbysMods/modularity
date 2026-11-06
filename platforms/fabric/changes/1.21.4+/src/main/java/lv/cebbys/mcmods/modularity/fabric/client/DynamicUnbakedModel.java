@@ -1,7 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
 import lv.cebbys.mcmods.modularity.api.client.DynamicModel;
-import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import net.minecraft.client.renderer.block.model.UnbakedBlockStateModel;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
@@ -24,7 +24,7 @@ final class DynamicUnbakedModel implements UnbakedBlockStateModel {
 
     @Override
     public BakedModel bake(ModelBaker baker) {
-        var particle = baker.sprites().get(new Material(TextureAtlas.LOCATION_BLOCKS, Wrap.rl(model.particleTexture())));
+        var particle = baker.sprites().get(new Material(TextureAtlas.LOCATION_BLOCKS, Ids.rl(model.particleTexture())));
         return new DynamicBakedModel(model, particle);
     }
 

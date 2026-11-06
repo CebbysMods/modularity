@@ -1,10 +1,10 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.ClientCompat;
 import lv.cebbys.mcmods.modularity.api.client.ClientState;
 import lv.cebbys.mcmods.modularity.api.client.MovementInput;
 import lv.cebbys.mcmods.modularity.api.world.Player;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.ClientCompat;
 import net.minecraft.client.Minecraft;
 
 import java.util.Optional;
