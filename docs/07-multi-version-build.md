@@ -158,3 +158,4 @@ What each version layer changes (oldest first). Version-specific calls sit behin
 | Layer | Files | What changed in Minecraft / Fabric API |
 |---|---|---|
 | `changes/1.21.2+` | `RegistryCompat`, `GameCompat`, `BaseEntity`, `ClientCompat`, `NamedValuesProperty`, `client/DynamicUnbakedModel`, `client/DynamicBakedModel`, `client/ModularEntityRenderer` | block/item properties need their registry key (`setId`), `EntityType.Builder#build(ResourceKey)`, `EntityType#create(level, EntitySpawnReason)` (we use `TRIGGERED`); `InteractionResult` is a sealed interface (`SUCCESS` on both sides); `PiglinAi.angerNearbyPiglins` takes the server level; `hurt` is final, entities implement `hurtServer`/`hurtClient`; `Input` record for held keys; `Property` has a value list and `getInternalIndex`; `UnbakedModel#resolveDependencies`, no `ItemOverrides`; entity renderers draw from an `EntityRenderState` |
+| 1.21.3 | none | builds and runs from the 1.21.2+ layer unchanged |
