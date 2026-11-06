@@ -105,7 +105,6 @@ smoke-client = true
 minecraft = "26.1"
 fabric-api = "0.145.1+26.1"
 java = 25
-enabled = false
 
 [[platform]]
 name = "26.1.1"
