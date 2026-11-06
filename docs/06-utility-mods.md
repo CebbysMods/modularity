@@ -127,7 +127,9 @@ Priorities: loader sources 1000, `version-json` 100, `reflection` and `marker-cl
 * Modularity does **not** nest them (jar-in-jar would show them as children of Modularity in Mod
   Menu). Its `fabric.mod.json` declares `"depends": { "mvd": ">=4.0.0", "mpd": ">=1.0.0" }`.
 * `platforms/fabric-1.21.1` uses
-  `modImplementation project(path: ':utilities:mvd:mvd-fabric', configuration: 'namedElements')`
+  `implementation project(path: ':utilities:mvd:mvd-fabric', configuration: 'namedElements')`
+  (plain `implementation`: with `modImplementation` Loom remaps and caches the jar by version, so
+  dev runs kept loading stale builds)
   (same for mpd), so `runClient` loads all three as separate mods.
 * `FabricRuntime` maps `VersionDetector.detect()` to `McVersion` and
   `PlatformDetector.detect().platform()` to `Loader`. `modularity-api` stays dependency-free.
