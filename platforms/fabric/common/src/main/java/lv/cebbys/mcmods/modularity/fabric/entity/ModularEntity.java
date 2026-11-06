@@ -328,23 +328,11 @@ public class ModularEntity extends InterpolatedEntity {
         if (level().isClientSide()) {
             return;
         }
-        CompoundTag tag = new CompoundTag();
-        values.forEach((key, value) -> {
-            if (key.synced()) {
-                tag.put(key.id().toString(), write(key, value));
-            }
-        });
+        CompoundTag tag = NbtData.writeAll(values, EntityData::id, EntityData::codec, EntityData::synced);
         if (tank != null) {
             tag.put(TANK_SYNC_KEY, tank.save());
         }
         entityData.set(SYNCED, tag);
-    }
-
-    private static <T> CompoundTag write(EntityData<T> key, Object value) {
-        CompoundTag out = new CompoundTag();
-        @SuppressWarnings("unchecked") T typed = (T) value;
-        key.codec().write(typed, new NbtData(out));
-        return out;
     }
 
     @Override
@@ -370,11 +358,7 @@ public class ModularEntity extends InterpolatedEntity {
         }
         if (SYNCED.equals(accessor) && level().isClientSide()) {
             CompoundTag tag = entityData.get(SYNCED);
-            for (EntityData<?> key : definition.data()) {
-                if (key.synced() && tag.contains(key.id().toString())) {
-                    values.put(key, key.codec().read(new NbtData(Nbt.compound(tag, key.id().toString()))));
-                }
-            }
+            NbtData.readAll(definition.data(), EntityData::id, EntityData::codec, EntityData::synced, tag, values);
             if (tank != null && tag.contains(TANK_SYNC_KEY)) {
                 tank.load(Nbt.compound(tag, TANK_SYNC_KEY));
             }
@@ -383,11 +367,7 @@ public class ModularEntity extends InterpolatedEntity {
 
     @Override
     protected void loadData(CompoundTag stored) {
-        for (EntityData<?> key : definition.data()) {
-            if (key.saved() && stored.contains(key.id().toString())) {
-                values.put(key, key.codec().read(new NbtData(Nbt.compound(stored, key.id().toString()))));
-            }
-        }
+        NbtData.readAll(definition.data(), EntityData::id, EntityData::codec, EntityData::saved, stored, values);
         if (tank != null) {
             tank.load(Nbt.compound(stored, "tank"));
         }
@@ -403,12 +383,7 @@ public class ModularEntity extends InterpolatedEntity {
 
     @Override
     protected CompoundTag saveData() {
-        CompoundTag stored = new CompoundTag();
-        values.forEach((key, value) -> {
-            if (key.saved()) {
-                stored.put(key.id().toString(), write(key, value));
-            }
-        });
+        CompoundTag stored = NbtData.writeAll(values, EntityData::id, EntityData::codec, EntityData::saved);
         if (tank != null) {
             stored.put("tank", tank.save());
         }

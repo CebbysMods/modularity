@@ -1,7 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
 import lv.cebbys.mcmods.modularity.api.data.BlockData;
-import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.fabric.compat.RenderDataHolder;
 import lv.cebbys.mcmods.modularity.fabric.compat.SavedBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -65,12 +64,7 @@ public class ModularBlockEntity extends SavedBlockEntity implements RenderDataHo
 
     @Override
     protected void loadData(CompoundTag stored) {
-        for (BlockData<?> key : declared()) {
-            String id = key.id().toString();
-            if (stored.contains(id)) {
-                values.put(key, key.codec().read(new NbtData(Nbt.compound(stored, id))));
-            }
-        }
+        NbtData.readAll(declared(), BlockData::id, BlockData::codec, k -> true, stored, values);
         renderData = Map.copyOf(values);
         if (level != null && level.isClientSide()) {
             // Data arrived from the server: re-mesh the chunk section so models see it.
@@ -80,16 +74,7 @@ public class ModularBlockEntity extends SavedBlockEntity implements RenderDataHo
 
     @Override
     protected CompoundTag saveData() {
-        CompoundTag stored = new CompoundTag();
-        values.forEach((key, value) -> stored.put(key.id().toString(), write(key, value)));
-        return stored;
-    }
-
-    private static <T> CompoundTag write(BlockData<T> key, Object value) {
-        CompoundTag out = new CompoundTag();
-        @SuppressWarnings("unchecked") T typed = (T) value;
-        key.codec().write(typed, new NbtData(out));
-        return out;
+        return NbtData.writeAll(values, BlockData::id, BlockData::codec, k -> true);
     }
 
     @Override

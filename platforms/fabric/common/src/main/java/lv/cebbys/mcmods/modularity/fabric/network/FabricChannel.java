@@ -46,13 +46,11 @@ public final class FabricChannel<T> implements Channel<T> {
     }
 
     public Payload encode(T message) {
-        CompoundTag tag = new CompoundTag();
-        codec.write(message, new NbtData(tag));
-        return new Payload(type, tag);
+        return new Payload(type, NbtData.encode(codec, message));
     }
 
     public T decode(Payload payload) {
-        return codec.read(new NbtData(payload.body() == null ? new CompoundTag() : payload.body()));
+        return NbtData.decode(codec, payload.body());
     }
 
     @Override
