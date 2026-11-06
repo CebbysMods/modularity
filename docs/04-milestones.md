@@ -38,7 +38,7 @@ Pulled forward from M3/M4 because the vehicle mod (CebbysMods/immersive-vehicles
 Version and platform detection as two separate mods next to Modularity ([06](06-utility-mods.md)).
 
 * [x] Gradle skeleton under `utilities/`
-* [ ] mvd (`VersionDetector`), clean copy and refactor of minecraft-version-loader
+* [x] mvd (`VersionDetector`), clean copy and refactor of minecraft-version-loader
 * [ ] mpd (`PlatformDetector`)
 * [ ] Fabric 1.21.1 wrappers, Modularity depends on both, `FabricRuntime` uses them
 * [ ] Smoke test: 3 separate mods in game

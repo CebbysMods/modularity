@@ -38,8 +38,11 @@ dependencies {
 }
 
 jar {
+    dependsOn configurations.bundle
     from({ configurations.bundle.collect { zipTree(it) } }) {
         exclude 'META-INF/MANIFEST.MF'
+        // This mod's own services file already lists the core's sources.
+        exclude 'META-INF/services/**'
     }
 }
 
