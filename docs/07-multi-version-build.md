@@ -36,21 +36,36 @@ Fabric Loader: 0.20.1 (latest stable) for every platform.
 ## 7.2 Layout
 
 ```
-gradle/platforms.toml                      version table
+gradle/platforms.toml                      version table: one entry per loader and Minecraft version
 build-logic/                               included build: the lv.cebbys.modularity plugins
-platforms/fabric/
-  common/src/main/{java,resources}         Fabric code shared by every version
-  changes/<range>/src/main/{java,resources} one change, at the first version that needs it
-  versions/<version>/                      project dir of platform fabric-<version>;
-    src/main/{java,resources}              only truly single-version details
-tools/smoke/                               smoke-test mod (same layering, see 7.6)
+platforms/
+  minecraft/                               plain Minecraft code shared by every loader (see 7.3)
+  fabric/ | neoforge/ | forge/ | quilt/    one layer root per loader, each with:
+    common/src/main/{java,resources}         code shared by every version of the loader
+    changes/<range>/src/main/{java,resources} one change, at the first version that needs it
+    versions/<version>/                      project dir of platform <loader>-<version>;
+      src/main/{java,resources}              only truly single-version details
+tools/smoke/fabric | neoforge | forge      smoke-test mods (same layering, see 7.6); tools/smoke/guest
 ```
 
 Range folder names: `1.21.5+` (that version and every later one) or `1.21.5-1.21.8` (inclusive).
 
+Platforms are `<loader>-<version>` (`fabric-21.1`, `neoforge-21.1`), projects `:platforms:<loader>-<version>`.
+`-Pmodularity.platforms=fabric-21.1,neoforge-21.1` selects platforms by id, a bare version (`21.1`) every
+loader's platform of that version.
+
+Each loader assembles a stack of layer roots, lowest first:
+
+| Loader | Layer roots | Own jar |
+|---|---|---|
+| fabric | `minecraft`, `fabric` | yes |
+| quilt | `minecraft`, `fabric`, `quilt` | no: runs the Fabric jar's code on Quilt Loader, to verify it there |
+| neoforge | `minecraft`, `neoforge` | yes |
+| forge | `minecraft`, `forge` | yes |
+
 ## 7.3 Layering rules
 
-For platform version V the sources are, lowest to highest:
+For platform version V the sources of each layer root are, lowest to highest (roots stack in the order of 7.2):
 
 1. `common`
 2. every `changes/<range>` that contains V, ordered by range start (then by range end, open last)
@@ -138,6 +153,8 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Own small TOML reader (`MiniToml`) | The table uses a tiny subset; no extra plugin dependency or Gradle internal API. |
 | Final smoke run one platform per Gradle call (daemon stopped in between) instead of one `smokeAll` | On the 32 GB dev machine a single `smokeAll` was killed for low system memory; the per-platform `smoke` tasks are the same checks. `smokeAll` stays the CI entry point. |
 | Mod Menu in every platform's runs (`modmenu` per table entry, development only) | Shows the loaded mods, guest mods included, in every version; newest Mod Menu release per Minecraft version from Modrinth, checked on the Terraformers maven. |
+| Platforms keyed by loader and version (`fabric-21.1`); one layer root per loader on top of a shared `minecraft` root | Most code is plain Minecraft code (60 of 81 Fabric files use no Fabric API); version changes in it are then made once for every loader. |
+| Quilt runs the Fabric layers and publishes no jar | Quilt Loader runs Fabric mods and Fabric API; one Fabric jar serves both, the Quilt platform proves it. |
 | `build-logic` compiled for Java 25 | Loom 1.19.3 is published as Java 25 bytecode, so plugins depending on it must be too. |
 | Mixin config `compatibilityLevel` JAVA_21 for every platform | The mixins use no newer language features; one value every shipped Mixin knows. |
 | Mixins listed from `@Mixin` classes in the assembled sources, `client.*` under `client` | A version layer can add or remove a mixin without editing a config. |

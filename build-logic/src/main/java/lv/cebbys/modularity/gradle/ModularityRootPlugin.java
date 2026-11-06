@@ -33,7 +33,7 @@ public class ModularityRootPlugin implements Plugin<Project> {
             // Only projects the settings plugin placed in the layout (older hand-written platform projects
             // with their own build file are left alone).
             if (project != null && project.getProjectDir().toPath().normalize()
-                    .startsWith(new File(root.getRootDir(), "platforms/fabric/versions").toPath().normalize())) {
+                    .equals(new File(root.getRootDir(), p.projectDir()).toPath().normalize())) {
                 included.add(p);
                 project.getPluginManager().apply(ModularityPlatformPlugin.class);
             }
@@ -51,7 +51,7 @@ public class ModularityRootPlugin implements Plugin<Project> {
             t.setGroup("build");
             t.setDescription("Copies every platform jar and the extra jars (mvd, mpd) to build/libs-all/");
             // Sync, not Copy: removes jars of renamed or removed platforms.
-            for (PlatformTable.Platform p : included) {
+            for (PlatformTable.Platform p : included.stream().filter(p -> p.loader().publishes()).toList()) {
                 t.from((Callable<Object>) () -> root.project(p.projectPath()).getTasks()
                         .named(ModularityPlatformPlugin.modJarTask(p)));
             }

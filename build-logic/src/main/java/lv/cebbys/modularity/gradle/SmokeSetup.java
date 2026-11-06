@@ -36,8 +36,9 @@ final class SmokeSetup {
         TaskProvider<AssembleLayersTask> assemble = project.getTasks().register("assembleSmokeLayers",
                 AssembleLayersTask.class, t -> {
                     t.setGroup("modularity");
-                    t.setDescription("Assembles the smoke mod layers of " + platform.minecraft());
+                    t.setDescription("Assembles the smoke mod layers of " + platform.id());
                     t.getBaseDir().set(new File(project.getRootDir(), SMOKE_ROOT));
+                    t.getRoots().set(smokeRoots(platform));
                     t.getMinecraft().set(platform.minecraft().toString());
                     t.getSourceSet().set("src/main");
                     t.getOutputDir().set(project.getLayout().getBuildDirectory().dir("layered/smoke"));
@@ -70,22 +71,21 @@ final class SmokeSetup {
             t.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("smoke"));
             t.getArchiveFileName().set(SmokeCheck.GUEST + ".jar");
         });
-        String guestMods = "-Dmodularity.guestMods="
-                + new File(project.getLayout().getBuildDirectory().get().getAsFile(), "smoke/" + SmokeCheck.GUEST + ".jar").getAbsolutePath();
+        String guestMods = new File(project.getLayout().getBuildDirectory().get().getAsFile(), "smoke/" + SmokeCheck.GUEST + ".jar").getAbsolutePath();
 
         String userDir = new File(project.getProjectDir(), RUN_DIR).getAbsolutePath();
         loom.getRuns().register("smokeServer", r -> {
-            r.vmArg(guestMods);
+            r.property("modularity.guestMods", guestMods);
             r.server();
-            r.getDisplayName().set("Smoke server " + platform.name());
+            r.getDisplayName().set("Smoke server " + platform.id());
             r.getSourceSet().set(smoke.getName());
             r.getRunDirectory().set(project.getLayout().getProjectDirectory().dir(RUN_DIR));
             r.getGenerateRunConfig().set(false);
         });
         loom.getRuns().register("smokeClient", r -> {
-            r.vmArg(guestMods);
+            r.property("modularity.guestMods", guestMods);
             r.client();
-            r.getDisplayName().set("Smoke client " + platform.name());
+            r.getDisplayName().set("Smoke client " + platform.id());
             r.getSourceSet().set(smoke.getName());
             r.getRunDirectory().set(project.getLayout().getProjectDirectory().dir(RUN_DIR));
             r.getGenerateRunConfig().set(false);
@@ -93,7 +93,7 @@ final class SmokeSetup {
         });
 
         // Own port per platform as well, in case a server of another platform is still shutting down.
-        int port = 25600 + Math.floorMod(platform.minecraft().hashCode(), 300);
+        int port = 25600 + Math.floorMod(platform.id().hashCode(), 300);
         var prepare = project.getTasks().register("prepareSmokeServer", t -> {
             t.setGroup("verification");
             t.setDescription("Fresh run dir for the smoke server: eula, flat world settings");
@@ -148,6 +148,16 @@ final class SmokeSetup {
                 t.dependsOn(client);
             }
         });
+    }
+
+    /** Smoke mod layer roots under {@code tools/smoke}: Quilt runs the Fabric smoke mod. */
+    static List<String> smokeRoots(PlatformTable.Platform platform) {
+        return switch (platform.loader()) {
+            case FABRIC -> List.of("fabric");
+            case QUILT -> List.of("fabric", "quilt");
+            case NEOFORGE -> List.of("neoforge");
+            case FORGE -> List.of("forge");
+        };
     }
 
     private static void prepareServer(Path dir, int port) {

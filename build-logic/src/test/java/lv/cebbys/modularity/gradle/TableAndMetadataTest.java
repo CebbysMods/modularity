@@ -17,7 +17,7 @@ class TableAndMetadataTest {
 
     private static final String TABLE = """
             [defaults]
-            loader = "0.20.1"   # comment
+            fabric-loader = "0.20.1"   # comment
 
             [mod]
             id = "modularity"
@@ -51,17 +51,58 @@ class TableAndMetadataTest {
     @Test
     void parsesTableSortedByVersion() {
         PlatformTable t = PlatformTable.parse(TABLE);
-        assertEquals(List.of("21.1", "26.1"), t.platforms().stream().map(PlatformTable.Platform::name).toList());
-        PlatformTable.Platform p = t.platform("21.1").orElseThrow();
-        assertEquals("0.20.1", p.loader());
+        assertEquals(List.of("fabric-21.1", "fabric-26.1"), t.platforms().stream().map(PlatformTable.Platform::id).toList());
+        PlatformTable.Platform p = t.platform("fabric-21.1").orElseThrow();
+        assertEquals("0.20.1", p.loaderVersion());
+        assertEquals(Loader.FABRIC, p.loader());
         assertEquals(21, p.java());
         assertTrue(p.remap());
         assertFalse(p.enabled());
-        assertFalse(t.platform("26.1").orElseThrow().remap());
-        assertEquals(List.of("26.1"), t.enabled().stream().map(PlatformTable.Platform::name).toList());
+        assertFalse(t.platform("fabric-26.1").orElseThrow().remap());
+        assertEquals(List.of("fabric-26.1"), t.enabled().stream().map(PlatformTable.Platform::id).toList());
         assertEquals(List.of(":a", ":b"), t.mod().mods());
         assertEquals("modularity", t.mod().archivePrefix());
         assertEquals(":platforms:fabric-21.1", p.projectPath());
+    }
+
+    @Test
+    void loadersHaveOwnIdsVersionsAndLayerStacks() {
+        PlatformTable t = PlatformTable.parse(TABLE + """
+
+                [[platform]]
+                name = "21.1"
+                loader = "neoforge"
+                minecraft = "1.21.1"
+                neoforge = "21.1.265"
+                java = 21
+
+                [[platform]]
+                name = "21.1"
+                loader = "quilt"
+                minecraft = "1.21.1"
+                quilt-loader = "0.30.2"
+                fabric-api = "0.116.17+1.21.1"
+                java = 21
+                """);
+        PlatformTable.Platform neo = t.platform("neoforge-21.1").orElseThrow();
+        assertEquals("21.1.265", neo.loaderVersion());
+        assertFalse(neo.remap(), "NeoForge runs with Mojang names");
+        assertEquals("platforms/neoforge/versions/21.1", neo.projectDir());
+        assertEquals(List.of("minecraft", "neoforge"), neo.loader().layerRoots());
+        PlatformTable.Platform quilt = t.platform("quilt-21.1").orElseThrow();
+        assertTrue(quilt.remap());
+        assertFalse(quilt.loader().publishes(), "Quilt runs the Fabric jar");
+        assertEquals(List.of("minecraft", "fabric", "quilt"), quilt.loader().layerRoots());
+        assertThrows(IllegalArgumentException.class, () -> PlatformTable.parse(TABLE.replace("java = 25",
+                "java = 25\nloader = \"liteloader\"")), "unknown loader");
+        assertThrows(IllegalArgumentException.class, () -> PlatformTable.parse(TABLE + """
+
+                [[platform]]
+                name = "21.1"
+                loader = "forge"
+                minecraft = "1.21.1"
+                java = 21
+                """), "forge version missing");
     }
 
     @Test
@@ -80,14 +121,14 @@ class TableAndMetadataTest {
     @Test
     void modJsonHasExactMinecraftAndDependencies() {
         PlatformTable t = PlatformTable.parse(TABLE);
-        String json = ModMetadata.fabricModJson(t.mod(), t.platform("21.1").orElseThrow(), "0.1.0", true);
+        String json = ModMetadata.fabricModJson(t.mod(), t.platform("fabric-21.1").orElseThrow(), t.fabricLoader(), "0.1.0", true);
         assertTrue(json.contains("\"minecraft\": \"1.21.1\""), json);
         assertTrue(json.contains("\"mvd\": \">=4.0.0\""), json);
         assertTrue(json.contains("\"fabricloader\": \">=0.20.1\""), json);
         assertTrue(json.contains("\"java\": \">=21\""), json);
         assertTrue(json.contains("\"mixins\": [\n    \"modularity.mixins.json\"\n  ]"), json);
         assertTrue(json.contains("\"description\": \"API. Fabric 1.21.1 platform.\""), json);
-        assertFalse(ModMetadata.fabricModJson(t.mod(), t.platform("26.1").orElseThrow(), "0.1.0", false)
+        assertFalse(ModMetadata.fabricModJson(t.mod(), t.platform("fabric-26.1").orElseThrow(), t.fabricLoader(), "0.1.0", false)
                 .contains("mixins"));
     }
 
@@ -103,7 +144,7 @@ class TableAndMetadataTest {
         assertEquals(List.of("LevelMixin", "client.CameraMixin"), mixins);
 
         PlatformTable t = PlatformTable.parse(TABLE);
-        String cfg = ModMetadata.mixinConfig(t.mod(), t.platform("21.1").orElseThrow(), mixins);
+        String cfg = ModMetadata.mixinConfig(t.mod(), t.platform("fabric-21.1").orElseThrow(), mixins);
         assertTrue(cfg.contains("\"mixins\": [\n    \"LevelMixin\"\n  ]"), cfg);
         assertTrue(cfg.contains("\"client\": [\n    \"client.CameraMixin\"\n  ]"), cfg);
         assertTrue(cfg.contains("\"package\": \"lv.example.mixin\""), cfg);

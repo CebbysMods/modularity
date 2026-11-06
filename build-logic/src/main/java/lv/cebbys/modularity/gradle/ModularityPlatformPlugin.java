@@ -20,28 +20,31 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One Fabric platform project ({@code :platforms:fabric-<name>}), configured from {@code gradle/platforms.toml}:
- * Loom (remap with Mojang mappings for obfuscated Minecraft, plain from 26.1), Java target, layered sources from
- * {@code platforms/fabric}, generated {@code fabric.mod.json} and mixin config, dependencies, publication.
+ * One platform project ({@code :platforms:<loader>-<name>}), configured from {@code gradle/platforms.toml}: the
+ * loader's Gradle plugin, Java target, layered sources from the loader's layer roots under {@code platforms/},
+ * generated mod metadata, dependencies, publication. Fabric and Quilt use Loom (remap with Mojang mappings for
+ * obfuscated Minecraft, plain from 26.1).
  */
 public class ModularityPlatformPlugin implements Plugin<Project> {
 
-    public static final String LAYER_ROOT = "platforms/fabric";
+    public static final String LAYER_BASE = "platforms";
 
     @Override
     public void apply(Project project) {
         File rootDir = project.getRootDir();
         File tableFile = new File(rootDir, PlatformTable.FILE);
         PlatformTable table = PlatformTable.read(tableFile.toPath());
-        String name = project.getName().replaceFirst("^fabric-", "");
-        PlatformTable.Platform platform = table.platform(name)
+        PlatformTable.Platform platform = table.platform(project.getName())
                 .orElseThrow(() -> new GradleException(project.getPath() + " is not in " + PlatformTable.FILE));
         PlatformTable.Mod mod = table.mod();
+        if (!platform.fabricLike()) {
+            throw new GradleException(platform.id() + ": loader " + platform.loader().id() + " is not supported yet");
+        }
 
         project.getPluginManager().apply(platform.remap() ? "net.fabricmc.fabric-loom-remap" : "net.fabricmc.fabric-loom");
         project.getPluginManager().apply("maven-publish");
 
-        String archivesName = mod.archivePrefix() + "-fabric-" + name;
+        String archivesName = mod.archivePrefix() + "-" + platform.id();
         project.getExtensions().getByType(BasePluginExtension.class).getArchivesName().set(archivesName);
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -53,11 +56,12 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         });
 
         // Layered sources: build/layered/main/{java,resources} + generated metadata.
-        File layerRoot = new File(rootDir, LAYER_ROOT);
+        File layerBase = new File(rootDir, LAYER_BASE);
         TaskProvider<AssembleLayersTask> assemble = project.getTasks().register("assembleLayers", AssembleLayersTask.class, t -> {
             t.setGroup("modularity");
-            t.setDescription("Assembles common, changes and version layers of " + platform.minecraft());
-            t.getBaseDir().set(layerRoot);
+            t.setDescription("Assembles the layers of " + platform.id() + ": " + platform.loader().layerRoots());
+            t.getBaseDir().set(layerBase);
+            t.getRoots().set(platform.loader().layerRoots());
             t.getMinecraft().set(platform.minecraft().toString());
             t.getSourceSet().set("src/main");
             t.getOutputDir().set(project.getLayout().getBuildDirectory().dir("layered/main"));
@@ -67,7 +71,7 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
                 GenerateModMetadataTask.class, t -> {
                     t.setGroup("modularity");
                     t.getTableFile().set(tableFile);
-                    t.getPlatform().set(name);
+                    t.getPlatform().set(platform.id());
                     t.getModVersion().set(project.provider(() -> project.getVersion().toString()));
                     t.dependsOn(assemble);
                     t.getJavaDir().set(project.getLayout().getBuildDirectory().dir("layered/main/java"));
@@ -88,7 +92,7 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
             deps.add("mappings", loom.officialMojangMappings());
         }
         String modConfig = platform.remap() ? "modImplementation" : "implementation";
-        deps.add(modConfig, "net.fabricmc:fabric-loader:" + platform.loader());
+        deps.add(modConfig, "net.fabricmc:fabric-loader:" + platform.loaderVersion());
         deps.add(modConfig, "net.fabricmc.fabric-api:fabric-api:" + platform.fabricApi());
         for (String path : mod.nested()) {
             deps.add("api", deps.project(Map.of("path", path)));

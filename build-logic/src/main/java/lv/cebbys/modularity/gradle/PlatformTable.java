@@ -9,22 +9,47 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** {@code gradle/platforms.toml}: the mod metadata and one entry per platform. */
-public record PlatformTable(Mod mod, List<Platform> platforms) {
+/**
+ * {@code gradle/platforms.toml}: the mod metadata and one entry per platform.
+ *
+ * @param fabricLoader {@code [defaults] fabric-loader}: the {@code fabricloader} dependency of generated
+ *                     {@code fabric.mod.json} files (also on Quilt, which runs the Fabric jar)
+ */
+public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoader) {
 
     public static final String FILE = "gradle/platforms.toml";
 
-    /** One Fabric platform: one Minecraft version, one jar. */
-    public record Platform(String name, McVersion minecraft, String loader, String fabricApi, int java,
-                           String modmenu, boolean enabled, boolean smokeClient) {
+    /**
+     * One platform: one loader, one Minecraft version, one project ({@code :platforms:<loader>-<name>}).
+     *
+     * @param loaderVersion Fabric Loader, Quilt Loader, NeoForge or Forge version
+     * @param fabricApi     Fabric API version (Fabric and Quilt), else {@code null}
+     */
+    public record Platform(String name, Loader loader, McVersion minecraft, String loaderVersion, String fabricApi,
+                           int java, String modmenu, boolean enabled, boolean smokeClient) {
+
+        /** {@code <loader>-<name>}, e.g. {@code fabric-21.1}: project name and {@code -Pmodularity.platforms} value. */
+        public String id() {
+            return loader.id() + "-" + name;
+        }
 
         /** Project path, e.g. {@code :platforms:fabric-21.1}. */
         public String projectPath() {
-            return ":platforms:fabric-" + name;
+            return ":platforms:" + id();
         }
 
+        /** Project dir relative to the root, e.g. {@code platforms/fabric/versions/21.1}. */
+        public String projectDir() {
+            return "platforms/" + loader.id() + "/versions/" + name;
+        }
+
+        /** Obfuscated Minecraft that Fabric/Quilt must remap (NeoForge and Forge run with Mojang names). */
         public boolean remap() {
-            return minecraft.obfuscated();
+            return (loader == Loader.FABRIC || loader == Loader.QUILT) && minecraft.obfuscated();
+        }
+
+        public boolean fabricLike() {
+            return loader == Loader.FABRIC || loader == Loader.QUILT;
         }
     }
 
@@ -62,32 +87,43 @@ public record PlatformTable(Mod mod, List<Platform> platforms) {
                 (List<String>) mod.getOrDefault("nested", List.of()), (List<String>) mod.getOrDefault("mods", List.of()));
 
         List<Platform> platforms = new ArrayList<>();
-        List<String> names = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
         for (Map<String, Object> p : (List<Map<String, Object>>) toml.getOrDefault("platform", List.of())) {
             String name = str(p, "name", "platform");
-            if (names.contains(name)) {
-                throw new IllegalArgumentException("Platform " + name + " is listed twice in " + FILE);
+            Loader loader = Loader.parse((String) p.getOrDefault("loader", "fabric"));
+            String where = "platform " + loader.id() + "-" + name;
+            if (ids.contains(loader.id() + "-" + name)) {
+                throw new IllegalArgumentException("Platform " + loader.id() + "-" + name + " is listed twice in " + FILE);
             }
-            names.add(name);
-            McVersion minecraft = McVersion.parse(str(p, "minecraft", "platform " + name));
+            ids.add(loader.id() + "-" + name);
+            McVersion minecraft = McVersion.parse(str(p, "minecraft", where));
             if (!McVersion.parseShort(name).equals(minecraft)) {
                 throw new IllegalArgumentException("Platform " + name + " does not match minecraft " + minecraft);
             }
-            Object loader = p.getOrDefault("loader", defaults.get("loader"));
-            if (loader == null) {
-                throw new IllegalArgumentException("Platform " + name + ": no loader (and no [defaults] loader)");
+            // Fabric/Quilt Loader: one version for all platforms ([defaults]); NeoForge/Forge: per platform.
+            String versionKey = switch (loader) {
+                case FABRIC -> "fabric-loader";
+                case QUILT -> "quilt-loader";
+                case NEOFORGE -> "neoforge";
+                case FORGE -> "forge";
+            };
+            Object loaderVersion = p.getOrDefault(versionKey, defaults.get(versionKey));
+            if (loaderVersion == null) {
+                throw new IllegalArgumentException(where + ": no '" + versionKey + "' (here or in [defaults])");
             }
-            platforms.add(new Platform(name, minecraft, (String) loader, str(p, "fabric-api", "platform " + name),
-                    (Integer) require(p, "java", "platform " + name), (String) p.get("modmenu"),
+            String fabricApi = loader == Loader.FABRIC || loader == Loader.QUILT ? str(p, "fabric-api", where) : null;
+            platforms.add(new Platform(name, loader, minecraft, (String) loaderVersion, fabricApi,
+                    (Integer) require(p, "java", where), (String) p.get("modmenu"),
                     (Boolean) p.getOrDefault("enabled", true),
                     (Boolean) p.getOrDefault("smoke-client", false)));
         }
-        platforms.sort((a, b) -> a.minecraft().compareTo(b.minecraft()));
-        return new PlatformTable(m, List.copyOf(platforms));
+        platforms.sort(java.util.Comparator.comparing(Platform::loader).thenComparing(Platform::minecraft));
+        return new PlatformTable(m, List.copyOf(platforms), (String) defaults.get("fabric-loader"));
     }
 
-    public Optional<Platform> platform(String name) {
-        return platforms.stream().filter(p -> p.name().equals(name)).findFirst();
+    /** The platform with this id ({@code fabric-21.1}). */
+    public Optional<Platform> platform(String id) {
+        return platforms.stream().filter(p -> p.id().equals(id)).findFirst();
     }
 
     public List<Platform> enabled() {

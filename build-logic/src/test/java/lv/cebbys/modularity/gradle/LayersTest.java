@@ -48,6 +48,28 @@ class LayersTest {
     }
 
     @Test
+    void rootStackOrderAndCrossRootCopies() throws IOException {
+        write("minecraft/common", "A.java", "a");
+        write("minecraft/changes/26.1+", "A.java", "a26");
+        write("fabric/common", "F.java", "f");
+        write("fabric/changes/1.21.2+", "A.java", "fabric a");
+
+        List<String> labels = Layers.resolve(base, List.of("minecraft", "fabric"), McVersion.parse("26.1"), SUB)
+                .stream().map(Layers.Layer::label).toList();
+        assertEquals(List.of("minecraft/common", "minecraft/changes/26.1+", "fabric/common", "fabric/changes/1.21.2+"),
+                labels);
+        Map<String, Layers.Origin> o = Layers.merge(Layers.resolve(base, List.of("minecraft", "fabric"),
+                McVersion.parse("26.1"), SUB));
+        assertEquals("fabric/changes/1.21.2+", o.get("A.java").layer(), "loader roots sit above the shared root");
+        assertEquals(List.of("minecraft/common"), Layers.resolve(base, List.of("minecraft", "neoforge"),
+                McVersion.parse("1.21.1"), SUB).stream().map(Layers.Layer::label).toList(), "missing root is empty");
+
+        write("fabric/common", "A.java", "a");
+        assertThrows(Layers.LayerException.class, () -> Layers.merge(Layers.resolve(base, List.of("minecraft", "fabric"),
+                McVersion.parse("1.21.1"), SUB)), "identical copy across roots");
+    }
+
+    @Test
     void higherLayerWins() throws IOException {
         write("common", "A.java", "a");
         write("common", "pkg/B.java", "b");

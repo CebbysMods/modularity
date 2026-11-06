@@ -75,6 +75,21 @@ public final class Layers {
     }
 
     /**
+     * The layers of {@code version} for a stack of layer roots under {@code base} (e.g. {@code platforms} with
+     * {@code minecraft, fabric}): every root's layers in root order, labelled {@code <root>/<layer>}. Missing roots
+     * contribute nothing.
+     */
+    public static List<Layer> resolve(Path base, List<String> roots, McVersion version, String sub) {
+        List<Layer> layers = new ArrayList<>();
+        for (String root : roots) {
+            for (Layer layer : resolve(base.resolve(root), version, sub)) {
+                layers.add(new Layer(root + "/" + layer.label(), layer.dir()));
+            }
+        }
+        return layers;
+    }
+
+    /**
      * Merges the layers (lowest first) into relative path to origin.
      *
      * @throws LayerException when a layer contains a copy identical to the file below it, or a {@code .removed}

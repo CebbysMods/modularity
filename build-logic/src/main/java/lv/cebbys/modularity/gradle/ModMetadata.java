@@ -24,8 +24,8 @@ public final class ModMetadata {
         return mod.id() + ".mixins.json";
     }
 
-    public static String fabricModJson(PlatformTable.Mod mod, PlatformTable.Platform platform, String version,
-                                       boolean hasMixins) {
+    public static String fabricModJson(PlatformTable.Mod mod, PlatformTable.Platform platform, String fabricLoader,
+                                       String version, boolean hasMixins) {
         Map<String, Object> json = new LinkedHashMap<>();
         json.put("schemaVersion", 1);
         json.put("id", mod.id());
@@ -43,7 +43,7 @@ public final class ModMetadata {
             json.put("mixins", List.of(mixinConfigName(mod)));
         }
         Map<String, Object> depends = new LinkedHashMap<>();
-        depends.put("fabricloader", ">=" + platform.loader());
+        depends.put("fabricloader", ">=" + fabricLoader);
         depends.put("fabric-api", "*");
         depends.putAll(mod.depends());
         // Exact version: each jar is built for one Minecraft version.

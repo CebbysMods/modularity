@@ -3,6 +3,7 @@ package lv.cebbys.modularity.gradle;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
@@ -27,9 +28,16 @@ import java.util.stream.Collectors;
 @CacheableTask
 public abstract class AssembleLayersTask extends DefaultTask {
 
-    /** Layer root, e.g. {@code platforms/fabric} (holds common, changes, versions). */
+    /**
+     * Layer root, e.g. {@code tools/smoke/fabric} (holds common, changes, versions), or with {@link #getRoots()} the
+     * folder holding a stack of such roots, e.g. {@code platforms}.
+     */
     @Internal
     public abstract DirectoryProperty getBaseDir();
+
+    /** Layer roots under the base dir, lowest first (e.g. {@code minecraft, fabric}); empty: the base dir itself. */
+    @Input
+    public abstract ListProperty<String> getRoots();
 
     /** The layer sources only (not the platform projects' build or run folders). */
     @InputFiles
@@ -37,8 +45,12 @@ public abstract class AssembleLayersTask extends DefaultTask {
     public FileTree getLayerSources() {
         String version = McVersion.parse(getMinecraft().get()).shortName();
         String sub = getSourceSet().get();
-        return getBaseDir().getAsFileTree().matching(f -> f.include("common/" + sub + "/**", "changes/*/" + sub + "/**",
-                "versions/" + version + "/" + sub + "/**"));
+        List<String> roots = getRoots().get().isEmpty() ? List.of("") : getRoots().get();
+        return getBaseDir().getAsFileTree().matching(f -> roots.forEach(r -> {
+            String prefix = r.isEmpty() ? "" : r + "/";
+            f.include(prefix + "common/" + sub + "/**", prefix + "changes/*/" + sub + "/**",
+                    prefix + "versions/" + version + "/" + sub + "/**");
+        }));
     }
 
     @Input
@@ -58,8 +70,10 @@ public abstract class AssembleLayersTask extends DefaultTask {
     @TaskAction
     public void assemble() {
         McVersion version = McVersion.parse(getMinecraft().get());
-        List<Layers.Layer> layers = Layers.resolve(getBaseDir().get().getAsFile().toPath(), version,
-                getSourceSet().get());
+        Path base = getBaseDir().get().getAsFile().toPath();
+        List<Layers.Layer> layers = getRoots().get().isEmpty()
+                ? Layers.resolve(base, version, getSourceSet().get())
+                : Layers.resolve(base, getRoots().get(), version, getSourceSet().get());
         Map<String, Layers.Origin> origins;
         try {
             origins = Layers.assemble(layers, getOutputDir().get().getAsFile().toPath());

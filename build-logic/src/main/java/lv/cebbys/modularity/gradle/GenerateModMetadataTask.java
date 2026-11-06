@@ -50,7 +50,8 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
         try {
             Files.createDirectories(out);
             Files.writeString(out.resolve("fabric.mod.json"),
-                    ModMetadata.fabricModJson(table.mod(), platform, getModVersion().get(), !mixins.isEmpty()));
+                    ModMetadata.fabricModJson(table.mod(), platform, table.fabricLoader(), getModVersion().get(),
+                            !mixins.isEmpty()));
             Path mixinFile = out.resolve(ModMetadata.mixinConfigName(table.mod()));
             if (mixins.isEmpty()) {
                 Files.deleteIfExists(mixinFile);

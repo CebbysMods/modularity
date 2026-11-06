@@ -2,10 +2,12 @@
 # Values from meta.fabricmc.net and maven.fabricmc.net (newest Fabric API build per exact version) and
 # Mojang's version manifest (Java), checked 2026-11-06. Never guess them: re-check when adding a version.
 # smoke-client = true: smokeAll also runs the client smoke test (docs/07, 7.6).
-# enabled = false: not ported yet (still selectable with -Pmodularity.platforms=<name>).
+# enabled = false: not ported yet (still selectable with -Pmodularity.platforms=<loader>-<name>).
+# loader = fabric (default) | quilt | neoforge | forge; project :platforms:<loader>-<name>.
+# Fabric/Quilt: fabric-api per platform, loader versions in [defaults]; NeoForge/Forge: neoforge/forge per platform.
 
 [defaults]
-loader = "0.20.1"
+fabric-loader = "0.20.1"
 
 [mod]
 id = "modularity"
