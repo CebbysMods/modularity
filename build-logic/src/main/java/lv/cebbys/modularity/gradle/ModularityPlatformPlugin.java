@@ -92,7 +92,20 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
             deps.add("mappings", loom.officialMojangMappings());
         }
         String modConfig = platform.remap() ? "modImplementation" : "implementation";
-        deps.add(modConfig, "net.fabricmc:fabric-loader:" + platform.loaderVersion());
+        if (platform.loader() == Loader.QUILT) {
+            QuiltSetup.addLoader(project, modConfig, platform.loaderVersion());
+            QuiltSetup.mirrorLaunchProperties(project);
+            // Compile exactly what the Fabric jar compiles (the guest loader uses Fabric Loader classes, unused on
+            // Quilt); at runtime only Quilt Loader is present.
+            deps.add("compileOnly", "net.fabricmc:fabric-loader:" + table.fabricLoader());
+            // Fabric API depends on Fabric Loader (followed for unremapped 26.x dependencies); on Quilt only Quilt
+            // Loader may be on the run class path (both ship net.fabricmc.loader.impl classes).
+            project.getConfigurations().matching(c -> c.getName().endsWith("RuntimeClasspath")
+                    || c.getName().equals("runtimeClasspath")).configureEach(c ->
+                    c.exclude(Map.of("group", "net.fabricmc", "module", "fabric-loader")));
+        } else {
+            deps.add(modConfig, "net.fabricmc:fabric-loader:" + platform.loaderVersion());
+        }
         deps.add(modConfig, "net.fabricmc.fabric-api:fabric-api:" + platform.fabricApi());
         for (String path : mod.nested()) {
             deps.add("api", deps.project(Map.of("path", path)));
@@ -119,6 +132,9 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         project.getTasks().matching(t -> t.getName().startsWith("remap")).configureEach(t -> t.usesService(remaps));
 
         SmokeSetup.apply(project, platform, loom, main);
+        if (platform.loader() == Loader.QUILT) {
+            QuiltSetup.mainClasses(loom, project);
+        }
 
         project.getExtensions().getByType(PublishingExtension.class).getPublications()
                 .create("maven", MavenPublication.class, pub -> {

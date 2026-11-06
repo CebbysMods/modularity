@@ -23,15 +23,25 @@ public final class SmokeCheck {
     public static final String GUEST = "smoke_guest";
 
     public static Result check(String log, String minecraft, Side side) {
+        return check(log, minecraft, side, "FABRIC", true);
+    }
+
+    /**
+     * @param platform the platform mpd must report ({@code FABRIC}, {@code QUILT}, {@code NEOFORGE}, {@code FORGE})
+     * @param guests   whether the platform loads guest mods (the smoke guest must then load and initialize)
+     */
+    public static Result check(String log, String minecraft, Side side, String platform, boolean guests) {
         List<String> expectations = new ArrayList<>();
         for (String mod : List.of("modularity", "mvd", "mpd")) {
             expectations.add("\\[smoke\\] mod " + mod + ": loaded=true version=\\S+ nested=no");
         }
         expectations.add("\\[mvd\\] Detected version " + Pattern.quote(minecraft) + " \\(");
-        expectations.add("\\[mpd\\] Detected platform FABRIC \\S+, " + side + "\\b");
-        // A guest mod (modularity.mod.json only) was turned into a Fabric mod and its entrypoint ran.
-        expectations.add("\\[modularity\\] Loaded guest mod " + GUEST + " ");
-        expectations.add("\\[smoke\\] guest mod " + GUEST + ": loaded=true initialized=true");
+        expectations.add("\\[mpd\\] Detected platform " + platform + " \\S+, " + side + "\\b");
+        if (guests) {
+            // A guest mod (modularity.mod.json only) was turned into a mod of the loader and its entrypoint ran.
+            expectations.add("\\[modularity\\] Loaded guest mod " + GUEST + " ");
+            expectations.add("\\[smoke\\] guest mod " + GUEST + ": loaded=true initialized=true");
+        }
         if (side == Side.SERVER) {
             expectations.add("\\[smoke\\] server ticked \\d+ times, stopping");
         } else {

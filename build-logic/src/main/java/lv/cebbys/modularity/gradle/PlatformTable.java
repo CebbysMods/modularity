@@ -12,10 +12,12 @@ import java.util.Optional;
 /**
  * {@code gradle/platforms.toml}: the mod metadata and one entry per platform.
  *
- * @param fabricLoader {@code [defaults] fabric-loader}: the {@code fabricloader} dependency of generated
- *                     {@code fabric.mod.json} files (also on Quilt, which runs the Fabric jar)
+ * @param fabricLoader    {@code [defaults] fabric-loader}: the Fabric Loader the Fabric platforms build and run with
+ * @param fabricLoaderMin {@code [defaults] fabric-loader-min} (default: {@code fabricLoader}): the {@code fabricloader}
+ *                        dependency of generated {@code fabric.mod.json} files; Quilt Loader reports an older
+ *                        Fabric Loader version, and the Fabric jar must load there too
  */
-public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoader) {
+public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoader, String fabricLoaderMin) {
 
     public static final String FILE = "gradle/platforms.toml";
 
@@ -118,7 +120,9 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
                     (Boolean) p.getOrDefault("smoke-client", false)));
         }
         platforms.sort(java.util.Comparator.comparing(Platform::loader).thenComparing(Platform::minecraft));
-        return new PlatformTable(m, List.copyOf(platforms), (String) defaults.get("fabric-loader"));
+        String fabricLoader = (String) defaults.get("fabric-loader");
+        return new PlatformTable(m, List.copyOf(platforms), fabricLoader,
+                (String) defaults.getOrDefault("fabric-loader-min", fabricLoader));
     }
 
     /** The platform with this id ({@code fabric-21.1}). */

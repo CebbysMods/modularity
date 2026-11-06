@@ -71,11 +71,15 @@ final class SmokeSetup {
             t.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("smoke"));
             t.getArchiveFileName().set(SmokeCheck.GUEST + ".jar");
         });
+        // Guest mods are implemented for Fabric so far (docs/08); other loaders run without the guest.
+        boolean guests = platform.loader() == Loader.FABRIC;
         String guestMods = new File(project.getLayout().getBuildDirectory().get().getAsFile(), "smoke/" + SmokeCheck.GUEST + ".jar").getAbsolutePath();
 
         String userDir = new File(project.getProjectDir(), RUN_DIR).getAbsolutePath();
         loom.getRuns().register("smokeServer", r -> {
-            r.property("modularity.guestMods", guestMods);
+            if (guests) {
+                r.property("modularity.guestMods", guestMods);
+            }
             r.server();
             r.getDisplayName().set("Smoke server " + platform.id());
             r.getSourceSet().set(smoke.getName());
@@ -83,7 +87,9 @@ final class SmokeSetup {
             r.getGenerateRunConfig().set(false);
         });
         loom.getRuns().register("smokeClient", r -> {
-            r.property("modularity.guestMods", guestMods);
+            if (guests) {
+                r.property("modularity.guestMods", guestMods);
+            }
             r.client();
             r.getDisplayName().set("Smoke client " + platform.id());
             r.getSourceSet().set(smoke.getName());
@@ -109,11 +115,13 @@ final class SmokeSetup {
         String mc = platform.minecraft().toString();
         var server = project.getTasks().register("smokeServer", SmokeCheckTask.class, t -> {
             t.setGroup("verification");
-            t.setDescription("Dedicated server smoke test of " + mc);
+            t.setDescription("Dedicated server smoke test of " + platform.id());
             t.dependsOn("runSmokeServer");
             t.getLog().set(new File(userDir, "logs/latest.log"));
             t.getMinecraft().set(mc);
             t.getSide().set(SmokeCheck.Side.SERVER);
+            t.getPlatform().set(platform.loader().name());
+            t.getGuests().set(guests);
             t.getSummary().set(project.getLayout().getBuildDirectory().file("smoke/server.txt"));
             t.getOutputs().upToDateWhen(x -> false);  // checks the run that just happened
         });
@@ -131,18 +139,20 @@ final class SmokeSetup {
         });
         var client = project.getTasks().register("smokeClient", SmokeCheckTask.class, t -> {
             t.setGroup("verification");
-            t.setDescription("Client smoke test of " + mc);
+            t.setDescription("Client smoke test of " + platform.id());
             t.dependsOn("runSmokeClient");
             t.getLog().set(new File(userDir, "logs/latest.log"));
             t.getMinecraft().set(mc);
             t.getSide().set(SmokeCheck.Side.CLIENT);
+            t.getPlatform().set(platform.loader().name());
+            t.getGuests().set(guests);
             t.getSummary().set(project.getLayout().getBuildDirectory().file("smoke/client.txt"));
             t.getOutputs().upToDateWhen(x -> false);
         });
 
         project.getTasks().register("smoke", t -> {
             t.setGroup("verification");
-            t.setDescription("Smoke tests of " + mc + (platform.smokeClient() ? " (server and client)" : " (server)"));
+            t.setDescription("Smoke tests of " + platform.id() + (platform.smokeClient() ? " (server and client)" : " (server)"));
             t.dependsOn(server);
             if (platform.smokeClient()) {
                 t.dependsOn(client);

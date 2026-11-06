@@ -28,6 +28,14 @@ public abstract class SmokeCheckTask extends DefaultTask {
     @Input
     public abstract Property<SmokeCheck.Side> getSide();
 
+    /** Platform mpd must report: {@code FABRIC}, {@code QUILT}, {@code NEOFORGE}, {@code FORGE}. */
+    @Input
+    public abstract Property<String> getPlatform();
+
+    /** Whether the smoke guest mod must load (platforms whose loader supports guest mods). */
+    @Input
+    public abstract Property<Boolean> getGuests();
+
     /** The matched lines, one per expectation. */
     @OutputFile
     public abstract RegularFileProperty getSummary();
@@ -45,7 +53,8 @@ public abstract class SmokeCheckTask extends DefaultTask {
             Files.createDirectories(summary.getParent());
             Files.copy(log, summary.resolveSibling(getSide().get().name().toLowerCase() + ".log"),
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            SmokeCheck.Result result = SmokeCheck.check(text, getMinecraft().get(), getSide().get());
+            SmokeCheck.Result result = SmokeCheck.check(text, getMinecraft().get(), getSide().get(), getPlatform().get(),
+                    getGuests().get());
             Files.writeString(summary, String.join("\n", result.lines()) + "\n");
             if (!result.ok()) {
                 throw new GradleException("Smoke " + getSide().get() + " " + getMinecraft().get() + " failed ("

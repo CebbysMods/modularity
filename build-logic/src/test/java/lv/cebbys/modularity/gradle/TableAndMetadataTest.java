@@ -18,6 +18,7 @@ class TableAndMetadataTest {
     private static final String TABLE = """
             [defaults]
             fabric-loader = "0.20.1"   # comment
+            fabric-loader-min = "0.16.0"
 
             [mod]
             id = "modularity"
@@ -121,14 +122,14 @@ class TableAndMetadataTest {
     @Test
     void modJsonHasExactMinecraftAndDependencies() {
         PlatformTable t = PlatformTable.parse(TABLE);
-        String json = ModMetadata.fabricModJson(t.mod(), t.platform("fabric-21.1").orElseThrow(), t.fabricLoader(), "0.1.0", true);
+        String json = ModMetadata.fabricModJson(t.mod(), t.platform("fabric-21.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", true);
         assertTrue(json.contains("\"minecraft\": \"1.21.1\""), json);
         assertTrue(json.contains("\"mvd\": \">=4.0.0\""), json);
-        assertTrue(json.contains("\"fabricloader\": \">=0.20.1\""), json);
+        assertTrue(json.contains("\"fabricloader\": \">=0.16.0\""), json);
         assertTrue(json.contains("\"java\": \">=21\""), json);
         assertTrue(json.contains("\"mixins\": [\n    \"modularity.mixins.json\"\n  ]"), json);
         assertTrue(json.contains("\"description\": \"API. Fabric 1.21.1 platform.\""), json);
-        assertFalse(ModMetadata.fabricModJson(t.mod(), t.platform("fabric-26.1").orElseThrow(), t.fabricLoader(), "0.1.0", false)
+        assertFalse(ModMetadata.fabricModJson(t.mod(), t.platform("fabric-26.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", false)
                 .contains("mixins"));
     }
 

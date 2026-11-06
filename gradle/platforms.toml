@@ -8,6 +8,11 @@
 
 [defaults]
 fabric-loader = "0.20.1"
+# fabricloader dependency of the Fabric jars: the API they use is old and stable; Quilt Loader 0.30.2 reports
+# Fabric Loader 0.19.5. Same floor as mvd and mpd.
+fabric-loader-min = "0.16.0"
+# Quilt Loader: newest stable from meta.quiltmc.org, checked 2026-11-06.
+quilt-loader = "0.30.2"
 
 [mod]
 id = "modularity"
@@ -149,3 +154,14 @@ minecraft = "26.3"
 fabric-api = "0.165.2+26.3"
 java = 25
 modmenu = "21.0.0"
+
+# Quilt: the Fabric layers on Quilt Loader (no own jar, docs/07 7.2). Only 1.21.1 for now.
+
+[[platform]]
+name = "21.1"
+loader = "quilt"
+minecraft = "1.21.1"
+fabric-api = "0.116.17+1.21.1"
+java = 21
+modmenu = "11.0.5"
+smoke-client = true

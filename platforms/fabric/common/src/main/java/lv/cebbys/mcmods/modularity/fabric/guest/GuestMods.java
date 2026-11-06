@@ -39,6 +39,12 @@ public final class GuestMods implements PreLaunchEntrypoint {
                 throw new IllegalStateException("Modularity: cannot read guest mod " + candidate, e);
             }
         }
+        if (!guests.isEmpty() && onQuilt()) {
+            // LoaderInjection uses Fabric Loader internals, which Quilt Loader does not have (docs/08).
+            LOGGER.error("[modularity] Guest mods are not supported on Quilt yet; not loaded: {}",
+                    guests.stream().map(GuestDescriptor::id).toList());
+            return;
+        }
         Map<String, GuestDescriptor> byId = new LinkedHashMap<>();
         for (GuestDescriptor guest : guests) {
             if (FabricLoader.getInstance().isModLoaded(guest.id()) || byId.containsKey(guest.id())) {
@@ -57,6 +63,15 @@ public final class GuestMods implements PreLaunchEntrypoint {
                     guest.origin().getFileName());
         }
         byId.values().forEach(GuestMods::checkDependencies);
+    }
+
+    private static boolean onQuilt() {
+        try {
+            Class.forName("org.quiltmc.loader.api.QuiltLoader", false, GuestMods.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     /** Fabric resolved dependencies before guests existed; the same rules, checked here. */
