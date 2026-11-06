@@ -136,6 +136,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Mod metadata, nested module and runtime mods in `[mod]` of `platforms.toml` | The plugin stays free of Modularity paths and can later build mods on Modularity. |
 | `enabled = false` per table entry until the version is ported; `-Pmodularity.platforms=21.1,26.3` selects platforms | All versions are recorded once; ports switch one flag; fast builds of a few platforms while porting. |
 | Own small TOML reader (`MiniToml`) | The table uses a tiny subset; no extra plugin dependency or Gradle internal API. |
+| Final smoke run one platform per Gradle call (daemon stopped in between) instead of one `smokeAll` | On the 32 GB dev machine a single `smokeAll` was killed for low system memory; the per-platform `smoke` tasks are the same checks. `smokeAll` stays the CI entry point. |
 | `build-logic` compiled for Java 25 | Loom 1.19.3 is published as Java 25 bytecode, so plugins depending on it must be too. |
 | Mixin config `compatibilityLevel` JAVA_21 for every platform | The mixins use no newer language features; one value every shipped Mixin knows. |
 | Mixins listed from `@Mixin` classes in the assembled sources, `client.*` under `client` | A version layer can add or remove a mixin without editing a config. |
@@ -179,3 +180,30 @@ What each version layer changes (oldest first). Version-specific calls sit behin
 | 26.1.2 | none | builds and runs from the 26.1+ layer unchanged |
 | 26.2 | `changes/26.2+`: HudHook, EntityIds + ServerLevelAccessor (EntityAccessor `.removed`); smoke Screenshots | hidden state and screen moved to `Minecraft.gui`; entity id counter moved to `ServerLevel`; main render target in `GameRenderer` |
 | 26.3 | `changes/26.3+`: InterpolatedEntity, PoseOutput, ClientLevelMixin | InterpolationHandler is an interface made by `createInterpolationHandler`; `PoseStack.mulPose(Quaternionf)` replaced by `rotate`; breaking particles in `ClientLevel#addBreakingParticles` |
+
+## 7.10 Verification (2026-11-06)
+
+`./gradlew buildAll collectJars --rerun-tasks` passes; `build/libs-all` holds `modularity-fabric-<version>` for all 16 versions plus `mvd-fabric-4.0.0` and `mpd-fabric-1.0.0`. Plugin tests: 27 passed. Layer checks (no identical copies, every `.removed` names a file below) pass on every platform. Fabric meta re-checked: 26.3 is the newest stable.
+
+Files per layer (`.removed` markers in brackets): common 77; `1.21.2+` 8; `1.21.4+` 3; `1.21.5+` 5; `1.21.6+` 4; `1.21.9+` 5 (2); `1.21.11+` 4; `26.1+` 18; `26.2+` 3 (1); `26.3+` 3; no `versions/<v>` has sources. Smoke mod: common 4, `1.21.6+` 1, `26.2+` 1.
+
+Smoke log lines (`build/smoke/{server,client}.txt`):
+
+| Version | Mods loaded (not nested) | `[mvd] Detected version` | `[mpd] Detected platform` | Server end | Client |
+|---|---|---|---|---|---|
+| 21.1 | 3/3 | 1.21.1 | FABRIC 0.20.1 SERVER | ticked 40 | joined, screenshot, done |
+| 21.2 | 3/3 | 1.21.2 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 21.3 | 3/3 | 1.21.3 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 21.4 | 3/3 | 1.21.4 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 21.5 | 3/3 | 1.21.5 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 21.6 | 3/3 | 1.21.6 | FABRIC 0.20.1 SERVER | ticked 40 | joined, screenshot, done |
+| 21.7 | 3/3 | 1.21.7 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 21.8 | 3/3 | 1.21.8 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 21.9 | 3/3 | 1.21.9 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 21.10 | 3/3 | 1.21.10 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 21.11 | 3/3 | 1.21.11 | FABRIC 0.20.1 SERVER | ticked 40 | joined, screenshot, done |
+| 26.1 | 3/3 | 26.1 | FABRIC 0.20.1 SERVER | ticked 40 | joined, screenshot, done |
+| 26.1.1 | 3/3 | 26.1.1 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 26.1.2 | 3/3 | 26.1.2 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 26.2 | 3/3 | 26.2 | FABRIC 0.20.1 SERVER | ticked 40 | - |
+| 26.3 | 3/3 | 26.3 | FABRIC 0.20.1 SERVER | ticked 40 | joined, screenshot, done |
