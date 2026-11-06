@@ -149,3 +149,12 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | `tools/smoke-fabric-1.21.1` kept | It is the refabslab integration test (double slabs, KleeSlabs) in CI, not a platform test. |
 | CI: JDK 21 and 25, `buildAll collectJars`, `smokeAll` under xvfb | Loom 1.19 needs Gradle on 25; 1.21.x toolchains need 21. |
 | mvd/mpd compiled against 1.21.1 | They use no Minecraft classes; the oldest target gives one jar for all. |
+
+## 7.9 Port log
+
+What each version layer changes (oldest first). Version-specific calls sit behind the small classes of
+`fabric/compat` (and a few small client classes), so a layer replaces those, not the large files using them.
+
+| Layer | Files | What changed in Minecraft / Fabric API |
+|---|---|---|
+| `changes/1.21.2+` | `RegistryCompat`, `GameCompat`, `BaseEntity`, `ClientCompat`, `NamedValuesProperty`, `client/DynamicUnbakedModel`, `client/DynamicBakedModel`, `client/ModularEntityRenderer` | block/item properties need their registry key (`setId`), `EntityType.Builder#build(ResourceKey)`, `EntityType#create(level, EntitySpawnReason)` (we use `TRIGGERED`); `InteractionResult` is a sealed interface (`SUCCESS` on both sides); `PiglinAi.angerNearbyPiglins` takes the server level; `hurt` is final, entities implement `hurtServer`/`hurtClient`; `Input` record for held keys; `Property` has a value list and `getInternalIndex`; `UnbakedModel#resolveDependencies`, no `ItemOverrides`; entity renderers draw from an `EntityRenderState` |
