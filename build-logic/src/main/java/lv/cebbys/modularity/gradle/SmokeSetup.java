@@ -138,6 +138,10 @@ final class SmokeSetup {
             Files.writeString(dir.resolve("eula.txt"), "eula=true\n");
             Files.writeString(dir.resolve("server.properties"), String.join("\n",
                     "level-name=smoke", "level-type=minecraft\\:flat", "online-mode=false", "spawn-protection=0",
+                    // Explicit flat preset: with none, vanilla logs "No key layers" and falls back to the default.
+                    "generator-settings={\"layers\":[{\"block\":\"minecraft:bedrock\",\"height\":1},"
+                            + "{\"block\":\"minecraft:dirt\",\"height\":2},{\"block\":\"minecraft:grass_block\",\"height\":1}],"
+                            + "\"biome\":\"minecraft:plains\"}",
                     "generate-structures=false", "spawn-monsters=false", "spawn-animals=false", "server-port=" + port,
                     "") );
         } catch (IOException e) {
