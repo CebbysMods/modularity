@@ -91,7 +91,6 @@ name = "21.10"
 minecraft = "1.21.10"
 fabric-api = "0.138.4+1.21.10"
 java = 21
-enabled = false
 
 [[platform]]
 name = "21.11"

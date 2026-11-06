@@ -165,3 +165,4 @@ What each version layer changes (oldest first). Version-specific calls sit behin
 | 1.21.7 | none | builds and runs from the 1.21.6+ layers unchanged |
 | 1.21.8 | none | builds and runs from the 1.21.6+ layers unchanged |
 | `changes/1.21.9+` | `KeyMappings`, `SyncedData`, `client/ModularEntityRenderer`, `client/SubmitPoseOutput` (new), `client/BufferPoseOutput.java.removed`, `mixin/client/ClientLevelMixin` (new), `mixin/client/ParticleEngineMixin.java.removed` | key mappings take a registered `KeyMapping.Category`; no vanilla compound entity data serializer (ours, registered with `FabricTrackedDataRegistry` as `modularity:compound_tag`); entity renderers `submit` to a `SubmitNodeCollector` (custom geometry) instead of writing to buffers; hit particles spawn in `ClientLevel#addBreakingBlockEffect` (was `ParticleEngine#crack`) |
+| 1.21.10 | none | builds and runs from the 1.21.9+ layers unchanged |
