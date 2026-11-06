@@ -12,12 +12,12 @@ import lv.cebbys.mcmods.modularity.api.world.Rotation;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.block.NbtData;
+import lv.cebbys.mcmods.modularity.fabric.compat.EntityIds;
 import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.fabric.compat.InterpolatedEntity;
 import lv.cebbys.mcmods.modularity.fabric.compat.Inventories;
 import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.fabric.compat.SyncedData;
-import lv.cebbys.mcmods.modularity.fabric.mixin.EntityAccessor;
 import lv.cebbys.mcmods.modularity.fabric.transfer.FabricFluidTank;
 import lv.cebbys.mcmods.modularity.fabric.transfer.FabricItemInventory;
 import net.minecraft.core.NonNullList;
@@ -79,9 +79,7 @@ public class ModularEntity extends InterpolatedEntity {
             parts[i] = new ModularPart(this, partList.get(i), i);
         }
         if (parts.length > 0) {
-            // Reserve consecutive ids for the parts, like the Ender Dragon: clients build the same
-            // parts and both sides resolve part ids from the parent id.
-            setId(EntityAccessor.modularity$counter().getAndAdd(parts.length + 1) + 1);
+            EntityIds.reserveParts(this, parts.length);
         }
         this.tank = definition.tankCapacity() > 0
                 ? new FabricFluidTank(definition.tankCapacity(), definition.tankFluids(), this::syncData) : null;

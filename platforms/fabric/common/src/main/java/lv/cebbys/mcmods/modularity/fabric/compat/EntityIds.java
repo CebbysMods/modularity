@@ -1,0 +1,18 @@
+package lv.cebbys.mcmods.modularity.fabric.compat;
+
+import lv.cebbys.mcmods.modularity.fabric.mixin.EntityAccessor;
+import net.minecraft.world.entity.Entity;
+
+/** Entity ids. */
+public final class EntityIds {
+    private EntityIds() {
+    }
+
+    /**
+     * Gives {@code entity} an id followed by {@code parts} free consecutive ids for its parts, like the Ender Dragon:
+     * clients build the same parts and both sides resolve part ids from the parent id.
+     */
+    public static void reserveParts(Entity entity, int parts) {
+        entity.setId(EntityAccessor.modularity$counter().getAndAdd(parts + 1) + 1);
+    }
+}
