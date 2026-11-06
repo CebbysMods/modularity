@@ -39,7 +39,9 @@ Fabric Loader: 0.20.1 (latest stable) for every platform.
 gradle/platforms.toml                      version table: one entry per loader and Minecraft version
 build-logic/                               included build: the lv.cebbys.modularity plugins
 platforms/
-  minecraft/                               plain Minecraft code shared by every loader (see 7.3)
+  minecraft/                               plain Minecraft code shared by every loader (see 7.3), package
+                                           lv.cebbys.mcmods.modularity.platform: runtime, blocks, entities,
+                                           client rendering, mixins, and the loader seams (platform.loader)
   fabric/ | neoforge/ | forge/ | quilt/    one layer root per loader, each with:
     common/src/main/{java,resources}         code shared by every version of the loader
     changes/<range>/src/main/{java,resources} one change, at the first version that needs it
@@ -62,6 +64,19 @@ Each loader assembles a stack of layer roots, lowest first:
 | quilt | `minecraft`, `fabric`, `quilt` | no: runs the Fabric jar's code on Quilt Loader, to verify it there |
 | neoforge | `minecraft`, `neoforge` | yes |
 | forge | `minecraft`, `forge` | yes |
+
+Code that needs a loader API goes through the seams in `platform.loader`, installed by the loader's entrypoint
+through `Loaders.install` (client: `installClient`):
+
+| Seam | Covers | Fabric implementation |
+|---|---|---|
+| `LoaderInfo` | side, loaded mods and versions, development mode, mods with a `modularity` entrypoint | `FabricLoaderInfo` |
+| `RenderDataAccess` | block entity render data for models, also off the game thread | `FabricRenderData` |
+| `StorageBackend` | fluid unit, exposing entity tanks and inventories, filling from a held item | `FabricStorageBackend` |
+| `LoaderHooks` / `ClientHooks` | registration, block entity types, creative tabs, payloads; key mappings, entity renderers, dynamic block models, HUD, reload, client tick | `FabricLoaderHooks` / `FabricClientHooks` |
+
+A loader layer may also replace a shared file at the same path (Fabric does for `SyncedData` from 1.21.9 and
+for `RenderDataHolder`).
 
 ## 7.3 Layering rules
 

@@ -53,7 +53,7 @@ and resolved all mods, before Minecraft starts:
 1. Finds candidates: every `*.jar` in `mods/` and every path in the system property
    `modularity.guestMods` (separated by the path separator; jars or folders, for development). A
    candidate is a guest when it has a `modularity.mod.json` and no `fabric.mod.json`.
-2. Generates the `fabric.mod.json` the mod would have shipped (`GuestDescriptor#toFabricModJson`):
+2. Generates the `fabric.mod.json` the mod would have shipped (`FabricGuestJson.of`, from the shared `GuestDescriptor`):
    metadata copied, `entrypoints.modularity` = the descriptor's entrypoints, `depends` = `minecraft`,
    `modularity` and the descriptor's `depends`.
 3. Adds the mod (`LoaderInjection`): Fabric's own parser reads the generated JSON, the jar joins the
