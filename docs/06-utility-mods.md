@@ -143,7 +143,7 @@ Bundling details:
 * Core and wrapper would both ship `META-INF/services/...Source`. The core's copy is left out of
   the mod jar; the wrapper's file lists the core sources too (`ServiceLoader` ignores the duplicate
   entries in development, where both are on the class path).
-* `mvd` uses mvl's icon (`assets/mvd/icon.png`); `mpd` has no icon yet.
+* `mvd` has its own icon (`assets/mvd/icon.png`, 256x256); `mpd` has no icon yet.
 
 ## 6.5 Verification
 
