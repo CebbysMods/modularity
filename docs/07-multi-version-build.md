@@ -137,6 +137,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | `enabled = false` per table entry until the version is ported; `-Pmodularity.platforms=21.1,26.3` selects platforms | All versions are recorded once; ports switch one flag; fast builds of a few platforms while porting. |
 | Own small TOML reader (`MiniToml`) | The table uses a tiny subset; no extra plugin dependency or Gradle internal API. |
 | Final smoke run one platform per Gradle call (daemon stopped in between) instead of one `smokeAll` | On the 32 GB dev machine a single `smokeAll` was killed for low system memory; the per-platform `smoke` tasks are the same checks. `smokeAll` stays the CI entry point. |
+| Mod Menu in every platform's runs (`modmenu` per table entry, development only) | Shows the loaded mods, guest mods included, in every version; newest Mod Menu release per Minecraft version from Modrinth, checked on the Terraformers maven. |
 | `build-logic` compiled for Java 25 | Loom 1.19.3 is published as Java 25 bytecode, so plugins depending on it must be too. |
 | Mixin config `compatibilityLevel` JAVA_21 for every platform | The mixins use no newer language features; one value every shipped Mixin knows. |
 | Mixins listed from `@Mixin` classes in the assembled sources, `client.*` under `client` | A version layer can add or remove a mixin without editing a config. |
