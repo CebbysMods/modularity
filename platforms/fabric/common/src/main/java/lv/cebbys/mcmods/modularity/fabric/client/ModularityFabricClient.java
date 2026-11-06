@@ -16,7 +16,7 @@ import lv.cebbys.mcmods.modularity.api.client.ModelRef;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.entity.EntityHandle;
 import lv.cebbys.mcmods.modularity.api.network.Channel;
-import lv.cebbys.mcmods.modularity.fabric.ModularityFabric;
+import lv.cebbys.mcmods.modularity.fabric.ModularityCore;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import lv.cebbys.mcmods.modularity.fabric.compat.KeyMappings;
@@ -44,7 +44,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         FabricChannel.ClientSender.install(ClientPlayNetworking::send);
-        ModularityFabric.forEachMod("client initialization", loaded -> loaded.mod().initClient(new Context(loaded.modId())));
+        ModularityCore.forEachMod("client initialization", loaded -> loaded.mod().initClient(new Context(loaded.modId())));
         ModelLoadingPlugin.register(plugin -> ClientRegistry.MODELS.forEach((block, model) ->
                 plugin.registerBlockStateResolver(block, context -> {
                     var unbaked = new DynamicUnbakedModel(model);

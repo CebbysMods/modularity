@@ -6,7 +6,7 @@ import lv.cebbys.mcmods.modularity.api.world.BlockView;
 import lv.cebbys.mcmods.modularity.api.world.Pos;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularBlockEntity;
-import lv.cebbys.mcmods.modularity.fabric.compat.BlockViews;
+import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
 import net.minecraft.world.level.BlockGetter;
 
 import java.util.Map;
@@ -36,7 +36,7 @@ public class NativeBlockView implements BlockView {
                 && getter.getBlockEntity(nativePos) instanceof ModularBlockEntity entity) {
             return entity.get(data);
         }
-        Object renderData = BlockViews.renderData(getter, nativePos);
+        Object renderData = Loaders.renderData().renderData(getter, nativePos);
         if (renderData instanceof Map<?, ?> map && map.get(data) != null) {
             @SuppressWarnings("unchecked") T value = (T) map.get(data);
             return Optional.of(value);

@@ -8,25 +8,25 @@ import lv.cebbys.mcmods.modularity.api.core.McVersion;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
 import lv.cebbys.mcmods.mpd.Platform;
 import lv.cebbys.mcmods.mpd.PlatformDetector;
 import lv.cebbys.mcmods.mvd.DetectedVersion;
 import lv.cebbys.mcmods.mvd.VersionDetector;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
 
-final class FabricRuntime implements Modularity.Runtime, lv.cebbys.mcmods.modularity.api.Platform {
-    static final FabricRuntime INSTANCE = new FabricRuntime();
+/** The Modularity runtime and platform info, the same on every loader; loader facts come from {@link Loaders#info()}. */
+public final class McRuntime implements Modularity.Runtime, lv.cebbys.mcmods.modularity.api.Platform {
+    public static final McRuntime INSTANCE = new McRuntime();
 
     // Version and loader come from the mvd and mpd utility mods (docs/06-utility-mods.md).
     private final McVersion version = toMcVersion(VersionDetector.detect());
     private final Loader loader = toLoader(PlatformDetector.detect().platform());
 
-    private FabricRuntime() {
+    private McRuntime() {
     }
 
     @Override
@@ -56,23 +56,22 @@ final class FabricRuntime implements Modularity.Runtime, lv.cebbys.mcmods.modula
 
     @Override
     public Side side() {
-        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT ? Side.CLIENT : Side.SERVER;
+        return Loaders.info().side();
     }
 
     @Override
     public boolean isModLoaded(String modId) {
-        return FabricLoader.getInstance().isModLoaded(modId);
+        return Loaders.info().isModLoaded(modId);
     }
 
     @Override
     public Optional<String> modVersion(String modId) {
-        return FabricLoader.getInstance().getModContainer(modId)
-                .map(container -> container.getMetadata().getVersion().getFriendlyString());
+        return Loaders.info().modVersion(modId);
     }
 
     @Override
     public boolean isDevelopment() {
-        return FabricLoader.getInstance().isDevelopmentEnvironment();
+        return Loaders.info().isDevelopment();
     }
 
     static McVersion toMcVersion(DetectedVersion version) {

@@ -57,7 +57,7 @@ final class FabricModContext implements ModContext {
 
     @Override
     public Platform platform() {
-        return FabricRuntime.INSTANCE;
+        return McRuntime.INSTANCE;
     }
 
     @Override

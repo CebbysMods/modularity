@@ -9,7 +9,7 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 public final class ModularityFabricServer implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
-        ModularityFabric.forEachMod("server initialization", loaded -> loaded.mod().initServer(new Context(loaded.modId())));
+        ModularityCore.forEachMod("server initialization", loaded -> loaded.mod().initServer(new Context(loaded.modId())));
     }
 
     private record Context(String modId) implements ServerContext {
