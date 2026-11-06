@@ -3,27 +3,18 @@ package lv.cebbys.mcmods.modularity.fabric.transfer;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.api.transfer.ItemInventory;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
-import lv.cebbys.mcmods.modularity.fabric.compat.Storages;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.world.SimpleContainer;
 
-/** Portable inventory over a vanilla container, exposed to other mods as a Transfer API storage. */
-public final class FabricItemInventory implements ItemInventory {
+/** Portable inventory over a vanilla container; other mods reach the container through the loader's storage API. */
+public final class McItemInventory implements ItemInventory {
     private final SimpleContainer container;
-    private final Storage<ItemVariant> storage;
 
-    public FabricItemInventory(int slots) {
+    public McItemInventory(int slots) {
         this.container = new SimpleContainer(slots);
-        this.storage = Storages.of(container);
     }
 
     public SimpleContainer container() {
         return container;
-    }
-
-    public Storage<ItemVariant> storage() {
-        return storage;
     }
 
     @Override

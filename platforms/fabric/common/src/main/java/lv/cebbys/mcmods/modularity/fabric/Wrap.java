@@ -10,7 +10,7 @@ import lv.cebbys.mcmods.modularity.fabric.world.FabricBlockRef;
 import lv.cebbys.mcmods.modularity.fabric.world.FabricBlockStateRef;
 import lv.cebbys.mcmods.modularity.fabric.world.FabricItemStack;
 import lv.cebbys.mcmods.modularity.fabric.world.FabricLevel;
-import lv.cebbys.mcmods.modularity.fabric.world.FabricPlayer;
+import lv.cebbys.mcmods.modularity.fabric.world.McPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -70,13 +70,13 @@ public final class Wrap {
         return new FabricLevel(level);
     }
 
-    public static FabricPlayer player(net.minecraft.world.entity.player.Player player) {
-        return new FabricPlayer(player);
+    public static McPlayer player(net.minecraft.world.entity.player.Player player) {
+        return new McPlayer(player);
     }
 
     public static lv.cebbys.mcmods.modularity.api.entity.EntityRef entity(net.minecraft.world.entity.Entity entity) {
         return entity instanceof net.minecraft.world.entity.player.Player player
-                ? new FabricPlayer(player) : new lv.cebbys.mcmods.modularity.fabric.world.NativeEntityRef(entity);
+                ? new McPlayer(player) : new lv.cebbys.mcmods.modularity.fabric.world.NativeEntityRef(entity);
     }
 
     public static net.minecraft.world.phys.Vec3 vec(Vec3 vec) {

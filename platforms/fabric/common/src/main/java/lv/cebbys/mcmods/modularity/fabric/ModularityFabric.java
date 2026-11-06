@@ -3,6 +3,7 @@ package lv.cebbys.mcmods.modularity.fabric;
 import lv.cebbys.mcmods.modularity.fabric.compat.SyncedData;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderInfo;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricRenderData;
+import lv.cebbys.mcmods.modularity.fabric.loader.FabricStorageBackend;
 import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
 import net.fabricmc.api.ModInitializer;
 
@@ -10,7 +11,7 @@ import net.fabricmc.api.ModInitializer;
 public final class ModularityFabric implements ModInitializer {
     @Override
     public void onInitialize() {
-        Loaders.install(new FabricLoaderInfo(), new FabricRenderData());
+        Loaders.install(new FabricLoaderInfo(), new FabricRenderData(), new FabricStorageBackend());
         SyncedData.init();
         ModularityCore.initCommon("Fabric", FabricModContext::new);
     }

@@ -6,13 +6,15 @@ import java.util.Objects;
 public final class Loaders {
     private static volatile LoaderInfo info;
     private static volatile RenderDataAccess renderData;
+    private static volatile StorageBackend storage;
 
     private Loaders() {
     }
 
-    public static void install(LoaderInfo loaderInfo, RenderDataAccess renderDataAccess) {
+    public static void install(LoaderInfo loaderInfo, RenderDataAccess renderDataAccess, StorageBackend storageBackend) {
         info = Objects.requireNonNull(loaderInfo, "info");
         renderData = Objects.requireNonNull(renderDataAccess, "renderData");
+        storage = Objects.requireNonNull(storageBackend, "storage");
     }
 
     public static LoaderInfo info() {
@@ -21,6 +23,10 @@ public final class Loaders {
 
     public static RenderDataAccess renderData() {
         return require(renderData);
+    }
+
+    public static StorageBackend storage() {
+        return require(storage);
     }
 
     private static <T> T require(T value) {

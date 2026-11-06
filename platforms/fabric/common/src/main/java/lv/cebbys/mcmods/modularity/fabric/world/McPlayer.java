@@ -6,18 +6,14 @@ import lv.cebbys.mcmods.modularity.api.transfer.FluidTank;
 import lv.cebbys.mcmods.modularity.api.world.Player;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.compat.Messages;
-import lv.cebbys.mcmods.modularity.fabric.transfer.FabricFluidTank;
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
+import lv.cebbys.mcmods.modularity.fabric.transfer.McFluidTank;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
 
-public final class FabricPlayer extends NativeEntityRef implements Player {
+public final class McPlayer extends NativeEntityRef implements Player {
     private final net.minecraft.world.entity.player.Player player;
 
-    public FabricPlayer(net.minecraft.world.entity.player.Player player) {
+    public McPlayer(net.minecraft.world.entity.player.Player player) {
         super(player);
         this.player = player;
     }
@@ -59,16 +55,10 @@ public final class FabricPlayer extends NativeEntityRef implements Player {
 
     @Override
     public long fillFromHeldItem(FluidTank tank) {
-        if (player.level().isClientSide() || !(tank instanceof FabricFluidTank fabricTank)) {
+        if (player.level().isClientSide() || !(tank instanceof McFluidTank mcTank)) {
             return 0;
         }
-        var context = ContainerItemContext.forPlayerInteraction(player, InteractionHand.MAIN_HAND);
-        var source = context.find(FluidStorage.ITEM);
-        if (source == null) {
-            return 0;
-        }
-        long droplets = StorageUtil.move(source, fabricTank.storage(), variant -> true, Long.MAX_VALUE, null);
-        return droplets * 1000 / FluidConstants.BUCKET;
+        return Loaders.storage().fillFromHeldItem(player, mcTank);
     }
 
     @Override

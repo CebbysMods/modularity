@@ -17,8 +17,9 @@ import lv.cebbys.mcmods.modularity.fabric.compat.InterpolatedEntity;
 import lv.cebbys.mcmods.modularity.fabric.compat.Inventories;
 import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.fabric.compat.SyncedData;
-import lv.cebbys.mcmods.modularity.fabric.transfer.FabricFluidTank;
-import lv.cebbys.mcmods.modularity.fabric.transfer.FabricItemInventory;
+import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
+import lv.cebbys.mcmods.modularity.fabric.transfer.McFluidTank;
+import lv.cebbys.mcmods.modularity.fabric.transfer.McItemInventory;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -53,8 +54,8 @@ public class ModularEntity extends InterpolatedEntity {
 
     private final EntityDefinition definition;
     private final Map<EntityData<?>, Object> values = new LinkedHashMap<>();
-    private final FabricFluidTank tank;
-    private final FabricItemInventory inventory;
+    private final McFluidTank tank;
+    private final McItemInventory inventory;
     private final EntityContext context;
     private float lastYaw;
     private int lerpSteps;
@@ -81,8 +82,8 @@ public class ModularEntity extends InterpolatedEntity {
             EntityIds.reserveParts(this, parts.length);
         }
         this.tank = definition.tankCapacity() > 0
-                ? new FabricFluidTank(definition.tankCapacity(), definition.tankFluids(), this::syncData) : null;
-        this.inventory = definition.inventorySlots() > 0 ? new FabricItemInventory(definition.inventorySlots()) : null;
+                ? new McFluidTank(Loaders.storage().unitsPerMb(), definition.tankCapacity(), definition.tankFluids(), this::syncData) : null;
+        this.inventory = definition.inventorySlots() > 0 ? new McItemInventory(definition.inventorySlots()) : null;
         EntityRef self = Wrap.entity(this);
         this.context = () -> self;
     }
@@ -405,11 +406,11 @@ public class ModularEntity extends InterpolatedEntity {
         return Optional.ofNullable(inventory);
     }
 
-    public FabricFluidTank nativeTank() {
+    public McFluidTank nativeTank() {
         return tank;
     }
 
-    public FabricItemInventory nativeInventory() {
+    public McItemInventory nativeInventory() {
         return inventory;
     }
 
