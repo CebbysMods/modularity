@@ -9,6 +9,7 @@
     "sources": "https://github.com/CebbysMods/modularity"
   },
   "license": "CC0-1.0",
+  "icon": "assets/mpd/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": ["lv.cebbys.mcmods.mpd.fabric.MpdFabric"]
