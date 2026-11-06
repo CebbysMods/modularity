@@ -39,11 +39,11 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
 }
 
 // The 3 mod jars of a release (Modularity, mvd, mpd), next to each other in build/libs-all/.
-if (findProject(':platforms:fabric-1.21.1') != null) {
-    tasks.register('collectJars', Copy) {
+if (findProject(':platforms:fabric-21.1') != null) {
+    tasks.register('collectJars', Sync) {   // Sync: removes jars of renamed or removed projects
         group = 'build'
         description = 'Copies the Modularity, mvd and mpd mod jars to build/libs-all/'
-        [':platforms:fabric-1.21.1', ':utilities:mvd:mvd-fabric', ':utilities:mpd:mpd-fabric'].each { path ->
+        [':platforms:fabric-21.1', ':utilities:mvd:mvd-fabric', ':utilities:mpd:mpd-fabric'].each { path ->
             from(project(path).tasks.named('remapJar'))
         }
         into layout.buildDirectory.dir('libs-all')

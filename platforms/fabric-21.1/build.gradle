@@ -4,9 +4,11 @@ plugins {
 }
 
 def minecraftVersion = '1.21.1'
+// Platform name uses the short version (21.1), like 26.x versions are named.
+def platformName = 'fabric-21.1'
 
 base {
-    archivesName = "modularity-fabric-${minecraftVersion}"
+    archivesName = "modularity-${platformName}"
 }
 
 java {

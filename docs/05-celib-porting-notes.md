@@ -41,7 +41,7 @@ git switch <branch>          # e.g. git switch wip/old-pc-resource-packs
 
 - `feature/2.0.0/new-modular-environment`: `celib-bridge` with `bridge/fabric/v1/{v16,v17,v18,v19,v20}` and
   `loader/`. It has one bridge implementation per Minecraft version behind a shared API, selected at runtime.
-  It is a reference for how platforms beyond `fabric-1.21.1` could share code across close versions.
+  It is a reference for how platforms beyond `fabric-21.1` could share code across close versions.
 - `minecraft\mvl` (minecraft-version-loader) is the version-detection library that this design used.
 
 ### 3. Block entities and inventories (milestones M3/M7)

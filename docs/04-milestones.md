@@ -11,7 +11,7 @@ Goal: research, design, and enough API to reimplement refabslab with zero Minecr
 * [x] Research of all repositories ([01](01-research.md)), requirements ([02](02-requirements.md)), design ([03](03-api-design.md))
 * [x] `modularity-api`: ids, versions, `Versioned`, handles, blocks, properties, behaviours, block data, interceptors, dynamic models, hit particles
 * [x] `modularity-testkit`: in-memory game for unit tests
-* [x] `platforms/fabric-1.21.1`
+* [x] `platforms/fabric-21.1`
 * [x] refabslab ported: `refabslab-common` (pure API) + `refabslab-fabric-1.21.1` (metadata + resources only)
 * [x] Feature parity tests for every refabslab feature (19 tests) + API tests
 * [x] CI for both repositories

@@ -27,7 +27,7 @@ code without leaving the project.**
 * `modularity-testkit` – a deterministic in-memory implementation of the runtime that simulates the
   vanilla code paths the API hooks (placement, mining, breaking, drops, rendering). Mods use it for
   unit tests.
-* `platforms/fabric-1.21.1` (milestone 1), `platforms/neoforge-1.21.1`, `platforms/fabric-1.20.1`
+* `platforms/fabric-21.1` (milestone 1), `platforms/neoforge-21.1`, `platforms/fabric-20.1`
   (milestone 2), ... – one per loader × version family. Shared code between neighbouring versions is
   factored into `platforms/common-*` source sets when the second version arrives.
 

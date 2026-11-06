@@ -34,7 +34,7 @@ public final class RefabslabMod implements ModularMod {
 |---|---|---|
 | `modularity-api` | The API (Java 17) | no |
 | `modularity-testkit` | In-memory game to unit test mods | no |
-| `platforms/fabric-1.21.1` | Fabric 1.21.1 implementation | yes |
+| `platforms/fabric-21.1` | Fabric 1.21.1 implementation | yes |
 
 ## Building
 

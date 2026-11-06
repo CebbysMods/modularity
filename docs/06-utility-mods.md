@@ -126,7 +126,7 @@ Priorities: loader sources 1000, `version-json` 100, `reflection` and `marker-cl
   The `-core` classes are packed into that jar, so each utility is a single file.
 * Modularity does **not** nest them (jar-in-jar would show them as children of Modularity in Mod
   Menu). Its `fabric.mod.json` declares `"depends": { "mvd": ">=4.0.0", "mpd": ">=1.0.0" }`.
-* `platforms/fabric-1.21.1` uses
+* `platforms/fabric-21.1` uses
   `implementation project(path: ':utilities:mvd:mvd-fabric', configuration: 'namedElements')`
   (plain `implementation`: with `modImplementation` Loom remaps and caches the jar by version, so
   dev runs kept loading stale builds)

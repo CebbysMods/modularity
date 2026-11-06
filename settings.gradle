@@ -25,5 +25,5 @@ def platforms = providers.gradleProperty('modularity.platforms').getOrElse('all'
 if (platforms != 'none') {
     include 'utilities:mvd:mvd-fabric'
     include 'utilities:mpd:mpd-fabric'
-    include 'platforms:fabric-1.21.1'
+    include 'platforms:fabric-21.1'
 }
