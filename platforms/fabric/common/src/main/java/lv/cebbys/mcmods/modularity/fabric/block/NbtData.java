@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.api.data.DataInput;
 import lv.cebbys.mcmods.modularity.api.data.DataOutput;
 import net.minecraft.nbt.CompoundTag;
@@ -38,12 +39,12 @@ public record NbtData(CompoundTag tag) implements DataOutput, DataInput {
 
     @Override
     public double getDouble(String key) {
-        return tag.getDouble(key);
+        return Nbt.getDouble(tag, key);
     }
 
     @Override
     public long getLong(String key) {
-        return tag.getLong(key);
+        return Nbt.getLong(tag, key);
     }
 
     @Override
@@ -53,16 +54,16 @@ public record NbtData(CompoundTag tag) implements DataOutput, DataInput {
 
     @Override
     public String getString(String key) {
-        return tag.getString(key);
+        return Nbt.getString(tag, key);
     }
 
     @Override
     public int getInt(String key) {
-        return tag.getInt(key);
+        return Nbt.getInt(tag, key);
     }
 
     @Override
     public boolean getBoolean(String key) {
-        return tag.getBoolean(key);
+        return Nbt.getBoolean(tag, key);
     }
 }

@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.transfer;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.transfer.FluidTank;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
@@ -121,9 +122,9 @@ public final class FabricFluidTank implements FluidTank {
 
     public void load(CompoundTag tag) {
         if (tag.contains("fluid")) {
-            Fluid fluid = BuiltInRegistries.FLUID.getOptional(net.minecraft.resources.ResourceLocation.parse(tag.getString("fluid"))).orElse(Fluids.EMPTY);
+            Fluid fluid = BuiltInRegistries.FLUID.getOptional(net.minecraft.resources.ResourceLocation.parse(Nbt.getString(tag, "fluid"))).orElse(Fluids.EMPTY);
             storage.variant = FluidVariant.of(fluid);
-            storage.amount = tag.getLong("amount");
+            storage.amount = Nbt.getLong(tag, "amount");
         } else {
             storage.variant = FluidVariant.blank();
             storage.amount = 0;

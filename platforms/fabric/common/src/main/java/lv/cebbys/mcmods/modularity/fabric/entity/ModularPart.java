@@ -1,6 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.entity;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.BaseEntity;
+import lv.cebbys.mcmods.modularity.fabric.compat.BoundsEntity;
 import lv.cebbys.mcmods.modularity.api.entity.EntityPart;
 import lv.cebbys.mcmods.modularity.api.world.Rotation;
 import net.minecraft.nbt.CompoundTag;
@@ -28,7 +28,7 @@ import java.util.List;
  * parent's), but returned by {@code Level.getEntities} so it can be aimed at, hit, interacted with
  * and collided with. Its box follows the parent's position and full orientation every tick.
  */
-public final class ModularPart extends BaseEntity {
+public final class ModularPart extends BoundsEntity {
     private final ModularEntity parent;
     private final EntityPart part;
     private final int index;

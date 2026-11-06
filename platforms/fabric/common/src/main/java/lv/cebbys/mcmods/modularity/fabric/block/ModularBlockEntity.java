@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.block;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.api.data.BlockData;
 import net.fabricmc.fabric.api.blockview.v2.RenderDataBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -66,11 +67,11 @@ public class ModularBlockEntity extends BlockEntity implements RenderDataBlockEn
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        CompoundTag stored = tag.getCompound(TAG);
+        CompoundTag stored = Nbt.compound(tag, TAG);
         for (BlockData<?> key : declared()) {
             String id = key.id().toString();
             if (stored.contains(id)) {
-                values.put(key, key.codec().read(new NbtData(stored.getCompound(id))));
+                values.put(key, key.codec().read(new NbtData(Nbt.compound(stored, id))));
             }
         }
         renderData = Map.copyOf(values);

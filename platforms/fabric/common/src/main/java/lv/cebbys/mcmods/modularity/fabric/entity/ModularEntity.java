@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.entity;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.BaseEntity;
+import lv.cebbys.mcmods.modularity.fabric.compat.InterpolatedEntity;
+import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
 import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.api.core.InteractionResult;
 import lv.cebbys.mcmods.modularity.api.entity.EntityContext;
@@ -45,7 +46,7 @@ import java.util.Optional;
  * mirrored to clients through one compound tracked data entry, saved data is written under
  * {@code "modularity"}. Movement is server authoritative and interpolated on clients.
  */
-public class ModularEntity extends BaseEntity {
+public class ModularEntity extends InterpolatedEntity {
     private static final EntityDataAccessor<CompoundTag> SYNCED = SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Quaternionf> ORIENTATION =
             SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.QUATERNION);
@@ -373,29 +374,29 @@ public class ModularEntity extends BaseEntity {
             CompoundTag tag = entityData.get(SYNCED);
             for (EntityData<?> key : definition.data()) {
                 if (key.synced() && tag.contains(key.id().toString())) {
-                    values.put(key, key.codec().read(new NbtData(tag.getCompound(key.id().toString()))));
+                    values.put(key, key.codec().read(new NbtData(Nbt.compound(tag, key.id().toString()))));
                 }
             }
             if (tank != null && tag.contains(TANK_SYNC_KEY)) {
-                tank.load(tag.getCompound(TANK_SYNC_KEY));
+                tank.load(Nbt.compound(tag, TANK_SYNC_KEY));
             }
         }
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
-        CompoundTag stored = tag.getCompound("modularity");
+        CompoundTag stored = Nbt.compound(tag, "modularity");
         for (EntityData<?> key : definition.data()) {
             if (key.saved() && stored.contains(key.id().toString())) {
-                values.put(key, key.codec().read(new NbtData(stored.getCompound(key.id().toString()))));
+                values.put(key, key.codec().read(new NbtData(Nbt.compound(stored, key.id().toString()))));
             }
         }
         if (tank != null) {
-            tank.load(stored.getCompound("tank"));
+            tank.load(Nbt.compound(stored, "tank"));
         }
         if (inventory != null) {
             NonNullList<ItemStack> items = NonNullList.withSize(inventory.size(), ItemStack.EMPTY);
-            ContainerHelper.loadAllItems(stored.getCompound("inventory"), items, registryAccess());
+            ContainerHelper.loadAllItems(Nbt.compound(stored, "inventory"), items, registryAccess());
             for (int i = 0; i < items.size(); i++) {
                 inventory.container().setItem(i, items.get(i));
             }
@@ -484,7 +485,7 @@ public class ModularEntity extends BaseEntity {
     }
 
     @Override
-    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+    protected void onLerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
         lerpX = x;
         lerpY = y;
         lerpZ = z;
