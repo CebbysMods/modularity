@@ -202,3 +202,13 @@ Branch `feature/mvd-mpd-utilities`, one commit per step:
 * NeoForge and Forge wrappers, or one jar per utility carrying both `fabric.mod.json` and
   `neoforge.mods.toml`.
 * Move mvd and mpd to their own repositories.
+
+## NeoForge and Forge
+
+`mvd-neoforge`, `mpd-neoforge`, `mvd-forge` and `mpd-forge` wrap the same cores for NeoForge 21.1.265 and
+Forge 52.1.21 (Minecraft 1.21.1, Java 21, `minecraft` `[1.21.1,)`). They ask FML for the Minecraft version
+(`FMLLoader.versionInfo().mcVersion()`), the loader version, the side (`FMLEnvironment.dist`) and the
+development flag (`FMLLoader.isProduction()`). Each is an `@Mod` with its own `neoforge.mods.toml` /
+`mods.toml`; the core is packed into the jar as in the Fabric modules. Quilt uses the Fabric modules:
+`mpd-fabric` reports `QUILT` there.
+

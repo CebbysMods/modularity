@@ -32,4 +32,8 @@ def platforms = providers.gradleProperty('modularity.platforms').getOrElse('all'
 if (platforms != 'none') {
     include 'utilities:mvd:mvd-fabric'
     include 'utilities:mpd:mpd-fabric'
+    include 'utilities:mvd:mvd-neoforge'
+    include 'utilities:mpd:mpd-neoforge'
+    include 'utilities:mvd:mvd-forge'
+    include 'utilities:mpd:mpd-forge'
 }

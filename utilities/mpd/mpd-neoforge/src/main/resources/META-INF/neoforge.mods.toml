@@ -1,0 +1,17 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="CC0-1.0"
+
+[[mods]]
+modId="mpd"
+version="${version}"
+displayName="Minecraft Platform Detector"
+authors="CebbyS"
+description="Detects the running mod loader for other mods."
+
+[[dependencies.mpd]]
+modId="minecraft"
+type="required"
+versionRange="[${minecraft_version},)"
+ordering="NONE"
+side="BOTH"

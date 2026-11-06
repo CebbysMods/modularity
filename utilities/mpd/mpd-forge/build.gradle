@@ -1,0 +1,71 @@
+plugins {
+    id 'java-library'
+    id 'net.minecraftforge.gradle'
+    id 'maven-publish'
+}
+
+description = 'Minecraft Platform Detector: Forge mod'
+
+base {
+    archivesName = 'mpd-forge'
+}
+
+def javaRelease = Integer.parseInt(project.property('java_release'))
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(javaRelease) }
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = javaRelease
+    options.encoding = 'UTF-8'
+}
+
+minecraft {
+    mappings channel: 'official', version: project.property('minecraft_version')
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+}
+
+configurations {
+    // mpd-core is packed into this jar, so the mod is a single file (as in mpd-fabric).
+    bundle
+    compileOnly.extendsFrom bundle
+    runtimeOnly.extendsFrom bundle
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${project.property('minecraft_version')}-${project.property('forge_version')}")
+    bundle project(':utilities:mpd:mpd-core')
+}
+
+jar {
+    dependsOn configurations.bundle
+    from({ configurations.bundle.collect { zipTree(it) } }) {
+        exclude 'META-INF/MANIFEST.MF'
+        // This mod's own services file already lists the core's sources.
+        exclude 'META-INF/services/**'
+    }
+}
+
+processResources {
+    def props = [version: project.version, minecraft_version: project.property('minecraft_version')]
+    inputs.properties(props)
+    filesMatching('META-INF/mods.toml') {
+        expand(props)
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = base.archivesName.get()
+            from components.java
+        }
+    }
+}

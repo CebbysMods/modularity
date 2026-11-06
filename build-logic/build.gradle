@@ -18,6 +18,10 @@ dependencies {
     // The one Loom of the whole build: both plugin ids (fabric-loom-remap, fabric-loom) are in this artifact,
     // so applying lv.cebbys.modularity in the root project puts it on the shared plugin classpath.
     implementation 'net.fabricmc:fabric-loom:1.19.3'
+    // NeoForge (ModDevGradle) and Forge (ForgeGradle 7): the plugins and versions of NeoForge's and Forge's own
+    // 1.21.1 MDKs, on the same shared classpath, so platforms and utilities apply them without a version.
+    implementation 'net.neoforged:moddev-gradle:2.0.148'
+    implementation 'net.minecraftforge:forgegradle:7.0.40'
 
     testImplementation platform('org.junit:junit-bom:5.10.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'

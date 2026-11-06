@@ -1,0 +1,17 @@
+modLoader="javafml"
+loaderVersion="[52,)"
+license="CC0-1.0"
+
+[[mods]]
+modId="mvd"
+version="${version}"
+displayName="Minecraft Version Detector"
+authors="CebbyS"
+description="Detects the running Minecraft version for other mods."
+
+[[dependencies.mvd]]
+modId="minecraft"
+mandatory=true
+versionRange="[${minecraft_version},)"
+ordering="NONE"
+side="BOTH"

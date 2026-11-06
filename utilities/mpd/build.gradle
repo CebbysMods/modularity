@@ -1,7 +1,8 @@
 // Minecraft Platform Detector (mpd). Shared settings of the mpd-* modules. Must not reference the Modularity root project,
 // so the folder can later become its own repository.
 // Properties of this folder's gradle.properties, passed down explicitly (Gradle 10 drops the implicit lookup in parents).
-def shared = ['mpd_group', 'mpd_version', 'java_release', 'junit_version', 'minecraft_version', 'fabric_loader_version']
+def shared = ['mpd_group', 'mpd_version', 'java_release', 'junit_version', 'minecraft_version', 'fabric_loader_version',
+    'neoforge_version', 'forge_version']
     .collectEntries { [it, property(it)] }
 
 subprojects {
