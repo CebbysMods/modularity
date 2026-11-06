@@ -109,6 +109,11 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
             deps.add(platform.remap() ? "modLocalRuntime" : "localRuntime", "com.terraformersmc:modmenu:" + platform.modmenu());
         }
 
+        // Remapping is memory hungry: a few at a time across all platforms.
+        var remaps = project.getGradle().getSharedServices().registerIfAbsent(RemapService.NAME, RemapService.class,
+                spec -> spec.getMaxParallelUsages().set(RemapService.MAX_PARALLEL));
+        project.getTasks().matching(t -> t.getName().startsWith("remap")).configureEach(t -> t.usesService(remaps));
+
         SmokeSetup.apply(project, platform, loom, main);
 
         project.getExtensions().getByType(PublishingExtension.class).getPublications()
