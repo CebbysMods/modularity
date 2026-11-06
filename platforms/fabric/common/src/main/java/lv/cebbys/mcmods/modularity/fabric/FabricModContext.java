@@ -39,6 +39,7 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 final class FabricModContext implements ModContext {
     private final String modId;
@@ -66,9 +67,7 @@ final class FabricModContext implements ModContext {
 
     @Override
     public BlockHandle block(String name, Consumer<BlockDefinition.Builder> spec) {
-        BlockDefinition.Builder builder = BlockDefinition.builder();
-        spec.accept(builder);
-        BlockDefinition definition = builder.build();
+        BlockDefinition definition = build(BlockDefinition.builder(), spec, BlockDefinition.Builder::build);
         Id id = id(name);
         var location = Ids.rl(id);
 
@@ -82,23 +81,7 @@ final class FabricModContext implements ModContext {
         if (definition.hasItem()) {
             Registry.register(BuiltInRegistries.ITEM, location, new BlockItem(block, RegistryCompat.itemProperties(id)));
         }
-        BlockRef ref = Wrap.block(block);
-        return new BlockHandle() {
-            @Override
-            public Id id() {
-                return id;
-            }
-
-            @Override
-            public BlockDefinition definition() {
-                return definition;
-            }
-
-            @Override
-            public BlockRef get() {
-                return ref;
-            }
-        };
+        return new RegisteredBlock(id, definition, Wrap.block(block));
     }
 
     @Override
@@ -108,50 +91,39 @@ final class FabricModContext implements ModContext {
 
     @Override
     public EntityHandle entity(String name, Consumer<EntityDefinition.Builder> spec) {
-        EntityDefinition.Builder builder = EntityDefinition.builder();
-        spec.accept(builder);
-        EntityDefinition definition = builder.build();
+        EntityDefinition definition = build(EntityDefinition.builder(), spec, EntityDefinition.Builder::build);
         Id id = id(name);
         EntityTypes.register(id, definition);
-        return new EntityHandle() {
-            @Override
-            public Id id() {
-                return id;
-            }
-
-            @Override
-            public EntityDefinition definition() {
-                return definition;
-            }
-        };
+        return new RegisteredEntity(id, definition);
     }
 
     @Override
     public ItemHandle item(String name, Consumer<ItemDefinition.Builder> spec) {
-        ItemDefinition.Builder builder = ItemDefinition.builder();
-        spec.accept(builder);
-        ItemDefinition definition = builder.build();
+        ItemDefinition definition = build(ItemDefinition.builder(), spec, ItemDefinition.Builder::build);
         Id id = id(name);
         ModularItem item = Registry.register(BuiltInRegistries.ITEM, Ids.rl(id), new ModularItem(id, definition));
         if (definition.creativeTab() != null) {
             CreativeTabs.add(tab(definition.creativeTab()), item);
         }
-        return new ItemHandle() {
-            @Override
-            public Id id() {
-                return id;
-            }
+        return new RegisteredItem(id, definition, item);
+    }
 
-            @Override
-            public ItemDefinition definition() {
-                return definition;
-            }
+    private static <B, D> D build(B builder, Consumer<B> spec, Function<B, D> build) {
+        spec.accept(builder);
+        return build.apply(builder);
+    }
 
-            @Override
-            public ItemStackRef stack(int count) {
-                return Wrap.stack(new ItemStack(item, count));
-            }
-        };
+    private record RegisteredBlock(Id id, BlockDefinition definition, BlockRef get) implements BlockHandle {
+    }
+
+    private record RegisteredEntity(Id id, EntityDefinition definition) implements EntityHandle {
+    }
+
+    private record RegisteredItem(Id id, ItemDefinition definition, ModularItem item) implements ItemHandle {
+        @Override
+        public ItemStackRef stack(int count) {
+            return Wrap.stack(new ItemStack(item, count));
+        }
     }
 
     private static net.minecraft.resources.ResourceKey<net.minecraft.world.item.CreativeModeTab> tab(CreativeTab tab) {

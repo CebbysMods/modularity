@@ -94,23 +94,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
 
         @Override
         public KeyBinding keyBinding(String name, int defaultKey) {
-            KeyMapping mapping = KeyMappings.register(modId, name, defaultKey);
-            return new KeyBinding() {
-                @Override
-                public String name() {
-                    return name;
-                }
-
-                @Override
-                public boolean isDown() {
-                    return mapping.isDown();
-                }
-
-                @Override
-                public boolean consumeClick() {
-                    return mapping.consumeClick();
-                }
-            };
+            return new Key(name, KeyMappings.register(modId, name, defaultKey));
         }
 
         @Override
@@ -143,6 +127,18 @@ public final class ModularityFabricClient implements ClientModInitializer {
         @Override
         public ClientState state() {
             return FabricClientState.INSTANCE;
+        }
+    }
+
+    private record Key(String name, KeyMapping mapping) implements KeyBinding {
+        @Override
+        public boolean isDown() {
+            return mapping.isDown();
+        }
+
+        @Override
+        public boolean consumeClick() {
+            return mapping.consumeClick();
         }
     }
 }
