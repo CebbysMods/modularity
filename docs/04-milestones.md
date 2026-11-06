@@ -42,6 +42,8 @@ Version and platform detection as two separate mods next to Modularity ([06](06-
 * [x] mpd (`PlatformDetector`)
 * [x] Fabric 1.21.1 wrappers, Modularity depends on both, `FabricRuntime` uses them
 * [x] Smoke test: 3 separate mods in game
+* [x] Docs updated to what was built
+* Not yet: backports to older Minecraft versions, NeoForge/Forge wrappers, own repositories
 
 ## M2 – Second loader, second version, build tooling
 

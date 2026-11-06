@@ -55,7 +55,9 @@ public final class VersionDetector {
     public static Optional<DetectedVersion> tryDetect();
 }
 public final class DetectedVersion implements Comparable<DetectedVersion> {
+    static DetectedVersion parse(String raw, String source); // IllegalArgumentException for snapshots
     int major(); int minor(); int patch(); String raw(); String source();
+    boolean isAtLeast(int major, int minor, int patch);
 }
 public interface VersionSource {
     int priority(); String name();
@@ -68,10 +70,12 @@ public final class PlatformDetector {
     public static Optional<DetectedPlatform> tryDetect();
 }
 public final class DetectedPlatform {
+    static final String UNKNOWN_VERSION = "unknown";
+    static DetectedPlatform of(Platform platform, String platformVersion, Side side, boolean development, String source);
     Platform platform(); String platformVersion(); Side side(); boolean development(); String source();
 }
 public enum Platform { FABRIC, QUILT, FORGE, NEOFORGE, UNKNOWN }
-public enum Side { CLIENT, SERVER }
+public enum Side { CLIENT, SERVER, UNKNOWN }
 public interface PlatformSource {
     int priority(); String name();
     Optional<DetectedPlatform> detect() throws Exception;
@@ -98,7 +102,11 @@ mpd sources, in order:
 
 1. `fabric-loader` (in `mpd-fabric`): loader version, side and dev flag from `FabricLoader`.
 2. `marker-classes` (core): `Class.forName(name, false, loader)` checks, Quilt before Fabric
-   (Quilt also contains Fabric's classes), then NeoForge, then Forge.
+   (Quilt also contains Fabric's classes), then NeoForge, then Forge. Always returns a result:
+   `UNKNOWN` when no marker is found, so `PlatformDetector.detect()` only throws when every source
+   throws.
+
+Priorities: loader sources 1000, `version-json` 100, `reflection` and `marker-classes` 0.
 
 ## 6.3 What changes from mvl
 
@@ -128,15 +136,51 @@ mpd sources, in order:
 Fabric metadata of both utilities: `"minecraft": "~1.21.1"`, `"fabricloader": ">=0.16.0"`,
 `"java": ">=21"`, no Fabric API dependency.
 
+Bundling details:
+
+* The `-core` jar is packed through a `bundle` configuration (`compileOnly` + `runtimeOnly`), so
+  consumers of `namedElements` never get the core classes twice.
+* Core and wrapper would both ship `META-INF/services/...Source`. The core's copy is left out of
+  the mod jar; the wrapper's file lists the core sources too (`ServiceLoader` ignores the duplicate
+  entries in development, where both are on the class path).
+* `mvd` uses mvl's icon (`assets/mvd/icon.png`); `mpd` has no icon yet.
+
 ## 6.5 Verification
 
 * JUnit tests in `mvd-core` (parsing, source order, error aggregation) and `mpd-core` (marker
   class order with fake classes on a test class loader, `UNKNOWN`).
 * `tools/smoke-fabric-1.21.1` installs the 3 jars on server and client and checks the log for
   `modularity`, `mvd` and `mpd` as separate loaded mods, mvd reporting `1.21.1` and mpd reporting
-  `FABRIC`.
+  `FABRIC`. `SmokeServer` also logs each of the three mods with `nested=<parent>|no`.
+  The utilities are published to Maven local (`./gradlew publishToMavenLocal`) and the smoke build
+  adds them with `modRuntimeOnly`, like Modularity.
 
-## 6.6 Steps
+Result of the local run (server, then client):
+
+```
+(FabricLoader) Loading 46 mods:
+	- modularity 0.1.0-SNAPSHOT
+	- mpd 1.0.0
+	- mvd 4.0.0
+[smoke] mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no
+[smoke] mod mvd: loaded=true version=4.0.0 nested=no
+[smoke] mod mpd: loaded=true version=1.0.0 nested=no
+[mvd] Detected version 1.21.1 (source: fabric-loader)
+[mpd] Detected platform FABRIC 0.16.9, SERVER (development) (source: fabric-loader)
+Modularity 0.1.0-SNAPSHOT on Fabric, Minecraft 1.21.1: initializing 0 mod(s)
+...
+[mpd] Detected platform FABRIC 0.16.9, CLIENT (development) (source: fabric-loader)
+```
+
+## 6.6 Deviations from the plan
+
+* `Side` has a third value, `UNKNOWN`, and `DetectedPlatform.UNKNOWN_VERSION` exists: the
+  loader independent marker-class source cannot know the side or the loader version.
+* `DetectedVersion.parse` and `DetectedPlatform.of` are public, so sources outside the core
+  (the Fabric wrappers, future loaders) can build results.
+* Gradle 8.14 does not run on JDK 25; run it with a JDK 21 `JAVA_HOME`.
+
+## 6.7 Steps
 
 Branch `feature/mvd-mpd-utilities`, one commit per step:
 
@@ -149,7 +193,7 @@ Branch `feature/mvd-mpd-utilities`, one commit per step:
 7. Smoke test and `collectJars`.
 8. Docs update.
 
-## 6.7 Later
+## 6.8 Later
 
 * Backports to older Minecraft versions (Java 17 cores, `version.json` and loader metadata for
   obfuscated releases).
