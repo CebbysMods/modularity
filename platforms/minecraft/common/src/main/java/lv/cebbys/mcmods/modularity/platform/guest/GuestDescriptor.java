@@ -1,6 +1,5 @@
-package lv.cebbys.mcmods.modularity.fabric.guest;
+package lv.cebbys.mcmods.modularity.platform.guest;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -15,7 +14,8 @@ import java.util.Map;
 
 /**
  * {@code modularity.mod.json} of a guest mod: a mod written only against the Modularity API, shipped as one jar with
- * no loader metadata. Modularity turns it into a mod of the running loader.
+ * no loader metadata. Modularity turns it into a mod of the running loader (the loader layer writes that loader's
+ * metadata from it, e.g. {@code FabricGuestJson}).
  *
  * <pre>{@code
  * {
@@ -27,11 +27,11 @@ import java.util.Map;
  * }
  * }</pre>
  */
-record GuestDescriptor(Path origin, JsonObject json) {
+public record GuestDescriptor(Path origin, JsonObject json) {
 
-    static final String FILE = "modularity.mod.json";
+    public static final String FILE = "modularity.mod.json";
 
-    static GuestDescriptor read(Path origin, Path file) throws IOException {
+    public static GuestDescriptor read(Path origin, Path file) throws IOException {
         try (Reader reader = Files.newBufferedReader(file)) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
             for (String required : List.of("id", "version", "entrypoints")) {
@@ -43,15 +43,15 @@ record GuestDescriptor(Path origin, JsonObject json) {
         }
     }
 
-    String id() {
+    public String id() {
         return json.get("id").getAsString();
     }
 
-    String version() {
+    public String version() {
         return json.get("version").getAsString();
     }
 
-    List<String> entrypoints() {
+    public List<String> entrypoints() {
         List<String> classes = new ArrayList<>();
         JsonElement e = json.get("entrypoints");
         if (e.isJsonArray()) {
@@ -63,7 +63,7 @@ record GuestDescriptor(Path origin, JsonObject json) {
     }
 
     /** {@code depends} plus the Minecraft and Modularity ranges. */
-    Map<String, String> depends() {
+    public Map<String, String> depends() {
         var all = new java.util.LinkedHashMap<String, String>();
         all.put("minecraft", string("minecraft", "*"));
         all.put("modularity", string("modularity", "*"));
@@ -71,7 +71,7 @@ record GuestDescriptor(Path origin, JsonObject json) {
         return all;
     }
 
-    Map<String, String> map(String key) {
+    public Map<String, String> map(String key) {
         var out = new java.util.LinkedHashMap<String, String>();
         if (json.has(key)) {
             json.getAsJsonObject(key).entrySet().forEach(e -> out.put(e.getKey(), e.getValue().getAsString()));
@@ -83,37 +83,8 @@ record GuestDescriptor(Path origin, JsonObject json) {
         return json.has(key) ? json.get(key).getAsString() : fallback;
     }
 
-    /** The {@code fabric.mod.json} Fabric would have read if the mod shipped one. */
-    JsonObject toFabricModJson() {
-        JsonObject fabric = new JsonObject();
-        fabric.addProperty("schemaVersion", 1);
-        fabric.addProperty("id", id());
-        fabric.addProperty("version", version());
-        for (String key : List.of("name", "description", "license", "icon", "environment")) {
-            if (json.has(key)) {
-                fabric.add(key, json.get(key));
-            }
-        }
-        for (String key : List.of("authors", "contributors", "contact")) {
-            if (json.has(key)) {
-                fabric.add(key, json.get(key));
-            }
-        }
-        JsonObject entrypoints = new JsonObject();
-        JsonArray modularity = new JsonArray();
-        entrypoints().forEach(modularity::add);
-        entrypoints.add("modularity", modularity);
-        fabric.add("entrypoints", entrypoints);
-        fabric.add("depends", object(depends()));
-        for (String key : List.of("recommends", "suggests", "breaks", "conflicts")) {
-            if (json.has(key)) {
-                fabric.add(key, object(map(key)));
-            }
-        }
-        return fabric;
-    }
-
-    private static JsonObject object(Map<String, String> map) {
+    /** A string map as a JSON object. */
+    public static JsonObject object(Map<String, String> map) {
         JsonObject o = new JsonObject();
         map.forEach(o::addProperty);
         return o;

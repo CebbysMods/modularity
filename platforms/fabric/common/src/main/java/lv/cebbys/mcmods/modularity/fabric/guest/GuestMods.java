@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.guest;
 
+import lv.cebbys.mcmods.modularity.platform.guest.GuestDescriptor;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
@@ -55,7 +56,7 @@ public final class GuestMods implements PreLaunchEntrypoint {
         }
         for (GuestDescriptor guest : byId.values()) {
             try {
-                LoaderInjection.addMod(guest.origin(), guest.toFabricModJson().toString());
+                LoaderInjection.addMod(guest.origin(), FabricGuestJson.of(guest).toString());
             } catch (Exception e) {
                 throw new IllegalStateException("Modularity: cannot add guest mod '" + guest.id() + "'", e);
             }
