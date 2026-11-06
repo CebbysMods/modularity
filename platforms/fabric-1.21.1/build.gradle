@@ -20,6 +20,14 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+repositories {
+    maven {
+        name = 'TerraformersMC'
+        url = 'https://maven.terraformersmc.com/releases/'
+        content { includeGroup 'com.terraformersmc' }
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraftVersion}"
     mappings loom.officialMojangMappings()
@@ -30,6 +38,8 @@ dependencies {
     // Separate mods, not nested: Modularity declares them in fabric.mod.json "depends".
     modImplementation project(path: ':utilities:mvd:mvd-fabric', configuration: 'namedElements')
     modImplementation project(path: ':utilities:mpd:mpd-fabric', configuration: 'namedElements')
+    // Development only (runClient): lists the loaded mods. Not a dependency of the published jar.
+    modLocalRuntime 'com.terraformersmc:modmenu:11.0.5'
     include project(':modularity-api')
 }
 
