@@ -59,7 +59,12 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
     public record Mod(String id, String name, String description, String license, List<String> authors,
                       String sources, String mixinPackage, Map<String, List<String>> entrypoints,
                       Map<String, String> depends, String archivePrefix, List<String> nested,
-                      List<String> mods) {
+                      List<String> mods, String icon) {
+
+        /** Jar path of the icon ({@code assets/<id>/icon.png}), or null without {@code icon}. */
+        public String iconPath() {
+            return icon == null ? null : "assets/" + id + "/icon.png";
+        }
     }
 
     public static PlatformTable read(Path file) {
@@ -86,7 +91,8 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
                 str(mod, "license", "mod"), (List<String>) require(mod, "authors", "mod"),
                 (String) mod.get("sources"), str(mod, "mixin-package", "mod"), entrypoints, depends,
                 (String) mod.getOrDefault("archive-prefix", mod.get("id")),
-                (List<String>) mod.getOrDefault("nested", List.of()), (List<String>) mod.getOrDefault("mods", List.of()));
+                (List<String>) mod.getOrDefault("nested", List.of()), (List<String>) mod.getOrDefault("mods", List.of()),
+                (String) mod.get("icon"));
 
         List<Platform> platforms = new ArrayList<>();
         List<String> ids = new ArrayList<>();

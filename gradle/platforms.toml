@@ -21,6 +21,7 @@ name = "Modularity"
 description = "Multi version, multi loader modding API."
 license = "MIT"
 authors = ["CebbyS"]
+icon = "images/modularity.png"
 mixin-package = "lv.cebbys.mcmods.modularity.fabric.mixin"
 # Nested in the jar and exposed as api.
 nested = [":modularity-api"]

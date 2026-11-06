@@ -191,6 +191,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Client smoke run for every newly ported version, not only the five in the table | Two mixin targets (1.21.9 `ParticleEngine#crack`, 26.1 `Camera#setup`) compiled but failed at run time; only a client start shows it. |
 | Remap tasks limited to 2 at a time (`RemapService`), daemon heap 4 GB | A cold `buildAll` of 11 obfuscated versions in parallel ran out of heap; the limit keeps the build parallel elsewhere. |
 | 26.2 part ids reserved from `ServerLevel`'s counter, only on the server | The counter moved from `Entity` to `ServerLevel` (which skips ids in use); client entities take their id from the spawn packet. |
+| One icon for every loader: `[mod] icon` in `platforms.toml`, copied to `assets/<id>/icon.png` | Generated with the metadata, so Fabric (`icon`) and NeoForge/Forge (`logoFile`) point at the same file in every jar; the 256×256 source is `images/modularity.png`. |
 
 ## 7.9 Port log
 

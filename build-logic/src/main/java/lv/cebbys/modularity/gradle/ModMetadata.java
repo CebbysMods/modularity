@@ -40,6 +40,9 @@ public final class ModMetadata {
             json.put("contact", Map.of("sources", mod.sources()));
         }
         json.put("license", mod.license());
+        if (mod.iconPath() != null) {
+            json.put("icon", mod.iconPath());
+        }
         json.put("environment", "*");
         json.put("entrypoints", mod.entrypoints());
         if (hasMixins) {
@@ -86,6 +89,9 @@ public final class ModMetadata {
         lines.add("authors=" + quote(String.join(", ", mod.authors())));
         lines.add("description=" + quote(mod.description() + " " + (neo ? "NeoForge " : "Forge ")
                 + platform.minecraft() + " platform."));
+        if (mod.iconPath() != null) {
+            lines.add("logoFile=" + quote(mod.iconPath()));
+        }
         Map<String, String> depends = new LinkedHashMap<>();
         depends.put("minecraft", "[" + platform.minecraft() + "]");
         depends.put(neo ? "neoforge" : "forge", "[" + loaderLine + ",)");

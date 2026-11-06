@@ -8,6 +8,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 /** Writes {@code fabric.mod.json} and the mixin config of one platform (see {@link ModMetadata}). */
@@ -38,6 +40,12 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getJavaDir();
 
+    /** The mod icon ({@code [mod] icon}), copied to {@link PlatformTable.Mod#iconPath()}. */
+    @InputFile
+    @Optional
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract RegularFileProperty getIconFile();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutputDir();
 
@@ -49,6 +57,11 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
         Path out = getOutputDir().get().getAsFile().toPath();
         try {
             Files.createDirectories(out);
+            if (getIconFile().isPresent()) {
+                Path icon = out.resolve(table.mod().iconPath());
+                Files.createDirectories(icon.getParent());
+                Files.copy(getIconFile().get().getAsFile().toPath(), icon, StandardCopyOption.REPLACE_EXISTING);
+            }
             if (!platform.fabricLike()) {
                 if (!mixins.isEmpty()) {
                     throw new org.gradle.api.GradleException(platform.id() + ": mixins " + mixins

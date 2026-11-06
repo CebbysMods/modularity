@@ -83,6 +83,10 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
                     t.dependsOn(assemble);
                     t.getJavaDir().set(project.getLayout().getBuildDirectory().dir("layered/main/java"));
                     t.getOutputDir().set(project.getLayout().getBuildDirectory().dir("generated/modularity"));
+                    if (table.mod().icon() != null) {
+                        t.getIconFile().set(project.getRootProject().getLayout().getProjectDirectory()
+                                .file(table.mod().icon()));
+                    }
                 });
 
         SourceSet main = project.getExtensions().getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);

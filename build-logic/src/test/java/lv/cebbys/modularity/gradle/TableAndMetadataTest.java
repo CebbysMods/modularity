@@ -135,6 +135,13 @@ class TableAndMetadataTest {
         assertTrue(forge.contains("loaderVersion=\"[52,)\""), forge);
         assertTrue(forge.contains("modId=\"forge\"\nmandatory=true\nversionRange=\"[52,)\""), forge);
         assertEquals("META-INF/mods.toml", ModMetadata.metadataPath(t.platform("forge-21.1").orElseThrow()));
+        assertFalse(forge.contains("logoFile"), forge);
+        PlatformTable withIcon = PlatformTable.parse(TABLE.replace("license = \"MIT\"", "license = \"MIT\"\nicon =\"images/x.png\""));
+        assertEquals("assets/modularity/icon.png", withIcon.mod().iconPath());
+        assertTrue(ModMetadata.modsToml(withIcon.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0")
+                .contains("logoFile=\"assets/modularity/icon.png\""));
+        assertTrue(ModMetadata.fabricModJson(withIcon.mod(), t.platform("fabric-21.1").orElseThrow(), "0.16.0", "0.1.0", false)
+                .contains("\"icon\": \"assets/modularity/icon.png\""));
 
         assertEquals("[0,)", ModMetadata.mavenRange("*"));
         assertEquals("[1.2.3]", ModMetadata.mavenRange("1.2.3"));
