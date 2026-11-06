@@ -33,6 +33,16 @@ Pulled forward from M3/M4 because the vehicle mod (CebbysMods/immersive-vehicles
 * [x] Orientation and multipart entities (vehicle refactor): `Rotation` (quaternion), `EntityRef#orientation` synced and interpolated, seats follow it, `RenderOutput#rotate`; `EntityPart` boxes per entity (Ender Dragon style part entities with consecutive ids), aimed at / hit / used per part (`EntityBehaviour#interactPart` / `#attackedPart`), solid parts collide with their rotated shape (column approximation) and carry entities standing on them
 * Not yet: menus/screens, entity data on vanilla entities, NeoForge implementation
 
+## M1.6 – Utility mods mvd and mpd (branch `feature/mvd-mpd-utilities`)
+
+Version and platform detection as two separate mods next to Modularity ([06](06-utility-mods.md)).
+
+* [ ] Gradle skeleton under `utilities/`
+* [ ] mvd (`VersionDetector`), clean copy and refactor of minecraft-version-loader
+* [ ] mpd (`PlatformDetector`)
+* [ ] Fabric 1.21.1 wrappers, Modularity depends on both, `FabricRuntime` uses them
+* [ ] Smoke test: 3 separate mods in game
+
 ## M2 – Second loader, second version, build tooling
 
 Goal: prove "multi loader, multi version" with the same refabslab common jar.
