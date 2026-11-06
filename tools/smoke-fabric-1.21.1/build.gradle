@@ -25,6 +25,9 @@ dependencies {
     modImplementation 'net.fabricmc.fabric-api:fabric-api:0.110.0+1.21.1'
 
     modRuntimeOnly 'lv.cebbys.mcmods:modularity-fabric-1.21.1:0.1.0-SNAPSHOT'
+    // Utility mods Modularity depends on; separate mods, see docs/06-utility-mods.md.
+    modRuntimeOnly 'lv.cebbys.mcmods.mvd:mvd-fabric:4.0.0'
+    modRuntimeOnly 'lv.cebbys.mcmods.mpd:mpd-fabric:1.0.0'
     // -PwithKleeSlabs: also load KleeSlabs (+ Balm) to test the refabslab integration in game.
     if (providers.gradleProperty('withKleeSlabs').isPresent()) {
         modRuntimeOnly 'maven.modrinth:kleeslabs:21.1.11+fabric-1.21.1'

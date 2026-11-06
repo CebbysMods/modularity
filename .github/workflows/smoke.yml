@@ -51,7 +51,7 @@ jobs:
         run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew -p $SMOKE runClient -PmodJar="$MOD_JAR" -PwithKleeSlabs
       - name: Smoke log
         if: always()
-        run: grep -h "\[smoke\]\|Modularity\|ERROR\|Exception" $SMOKE/run/logs/*.log | head -200 || true
+        run: grep -h "\[smoke\]\|\[mvd\]\|\[mpd\]\|Modularity\|ERROR\|Exception" $SMOKE/run/logs/*.log | head -200 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
