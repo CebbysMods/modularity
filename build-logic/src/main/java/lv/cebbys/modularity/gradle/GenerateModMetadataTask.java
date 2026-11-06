@@ -49,6 +49,16 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
         Path out = getOutputDir().get().getAsFile().toPath();
         try {
             Files.createDirectories(out);
+            if (!platform.fabricLike()) {
+                if (!mixins.isEmpty()) {
+                    throw new org.gradle.api.GradleException(platform.id() + ": mixins " + mixins
+                            + " found, but mixin configs are generated for Fabric and Quilt only so far");
+                }
+                Path toml = out.resolve(ModMetadata.metadataPath(platform));
+                Files.createDirectories(toml.getParent());
+                Files.writeString(toml, ModMetadata.modsToml(table.mod(), platform, getModVersion().get()));
+                return;
+            }
             Files.writeString(out.resolve("fabric.mod.json"),
                     ModMetadata.fabricModJson(table.mod(), platform, table.fabricLoaderMin(), getModVersion().get(),
                             !mixins.isEmpty()));

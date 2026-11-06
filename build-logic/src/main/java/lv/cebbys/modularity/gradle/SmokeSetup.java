@@ -32,7 +32,56 @@ final class SmokeSetup {
     private SmokeSetup() {
     }
 
-    static void apply(Project project, PlatformTable.Platform platform, LoomGradleExtensionAPI loom, SourceSet main) {
+    /**
+     * The loader's two game runs, in {@code build/smoke/run}, registering the tasks {@code runSmokeServer} and
+     * {@code runSmokeClient}; the client opens the world {@code smoke} ({@code --quickPlaySingleplayer}).
+     */
+    interface Runs {
+        /**
+         * @param guestMods jar for the system property {@code modularity.guestMods}, or {@code null}
+         */
+        void register(Project project, PlatformTable.Platform platform, SourceSet main, SourceSet smoke,
+                      String guestMods);
+    }
+
+    /**
+     * Fabric and Quilt: Loom runs; each source set is its own mod in development (Fabric's classpath groups). Loom
+     * 1.19 deprecates every way to pass a JVM system property ({@code property}, {@code vmArg}, {@code getVmArgs})
+     * without a replacement.
+     */
+    @SuppressWarnings("deprecation")
+    static Runs loom(LoomGradleExtensionAPI loom) {
+        return (project, platform, main, smoke, guestMods) -> {
+            loom.getMods().register("modularity", m -> m.sourceSet(main));
+            loom.getMods().register("modularity_smoke", m -> m.sourceSet(smoke));
+            loom.getRuns().register("smokeServer", r -> {
+                if (guestMods != null) {
+                    r.property("modularity.guestMods", guestMods);
+                }
+                r.server();
+                r.getDisplayName().set("Smoke server " + platform.id());
+                r.getSourceSet().set(smoke.getName());
+                r.getRunDirectory().set(project.getLayout().getProjectDirectory().dir(RUN_DIR));
+                r.getGenerateRunConfig().set(false);
+            });
+            loom.getRuns().register("smokeClient", r -> {
+                if (guestMods != null) {
+                    r.property("modularity.guestMods", guestMods);
+                }
+                r.client();
+                r.getDisplayName().set("Smoke client " + platform.id());
+                r.getSourceSet().set(smoke.getName());
+                r.getRunDirectory().set(project.getLayout().getProjectDirectory().dir(RUN_DIR));
+                r.getGenerateRunConfig().set(false);
+                r.getProgramArguments().addAll(CLIENT_ARGS);
+            });
+        };
+    }
+
+    static final List<String> CLIENT_ARGS = List.of("--quickPlaySingleplayer", "smoke", "--width", "854", "--height",
+            "480");
+
+    static void apply(Project project, PlatformTable.Platform platform, SourceSet main, Runs gameRuns) {
         TaskProvider<AssembleLayersTask> assemble = project.getTasks().register("assembleSmokeLayers",
                 AssembleLayersTask.class, t -> {
                     t.setGroup("modularity");
@@ -53,10 +102,6 @@ final class SmokeSetup {
         smoke.setCompileClasspath(mainClasses.plus(main.getCompileClasspath()));
         smoke.setRuntimeClasspath(smoke.getOutput().plus(main.getRuntimeClasspath()));
 
-        // Each source set is its own mod in development (Fabric's classpath groups).
-        loom.getMods().register("modularity", m -> m.sourceSet(main));
-        loom.getMods().register("modularity_smoke", m -> m.sourceSet(smoke));
-
         // Guest mod: Modularity API only, a modularity.mod.json and no loader metadata, so one jar for every
         // platform. Not on the run class path: Modularity must find it (modularity.guestMods) and load it itself.
         SourceSet guest = sourceSets.create("smokeGuest");
@@ -76,27 +121,7 @@ final class SmokeSetup {
         String guestMods = new File(project.getLayout().getBuildDirectory().get().getAsFile(), "smoke/" + SmokeCheck.GUEST + ".jar").getAbsolutePath();
 
         String userDir = new File(project.getProjectDir(), RUN_DIR).getAbsolutePath();
-        loom.getRuns().register("smokeServer", r -> {
-            if (guests) {
-                r.property("modularity.guestMods", guestMods);
-            }
-            r.server();
-            r.getDisplayName().set("Smoke server " + platform.id());
-            r.getSourceSet().set(smoke.getName());
-            r.getRunDirectory().set(project.getLayout().getProjectDirectory().dir(RUN_DIR));
-            r.getGenerateRunConfig().set(false);
-        });
-        loom.getRuns().register("smokeClient", r -> {
-            if (guests) {
-                r.property("modularity.guestMods", guestMods);
-            }
-            r.client();
-            r.getDisplayName().set("Smoke client " + platform.id());
-            r.getSourceSet().set(smoke.getName());
-            r.getRunDirectory().set(project.getLayout().getProjectDirectory().dir(RUN_DIR));
-            r.getGenerateRunConfig().set(false);
-            r.getProgramArguments().addAll("--quickPlaySingleplayer", "smoke", "--width", "854", "--height", "480");
-        });
+        gameRuns.register(project, platform, main, smoke, guests ? guestMods : null);
 
         // Own port per platform as well, in case a server of another platform is still shutting down.
         int port = 25600 + Math.floorMod(platform.id().hashCode(), 300);
@@ -160,14 +185,9 @@ final class SmokeSetup {
         });
     }
 
-    /** Smoke mod layer roots under {@code tools/smoke}: Quilt runs the Fabric smoke mod. */
+    /** Smoke mod layer roots under {@code tools/smoke}: the same stack as the platform's (Quilt: the Fabric mod). */
     static List<String> smokeRoots(PlatformTable.Platform platform) {
-        return switch (platform.loader()) {
-            case FABRIC -> List.of("fabric");
-            case QUILT -> List.of("fabric", "quilt");
-            case NEOFORGE -> List.of("neoforge");
-            case FORGE -> List.of("forge");
-        };
+        return platform.loader().layerRoots();
     }
 
     private static void prepareServer(Path dir, int port) {

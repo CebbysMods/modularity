@@ -11,7 +11,10 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-/** Generates {@code fabric.mod.json} and the mixin config of one platform. */
+/**
+ * Generates the mod metadata of one platform: {@code fabric.mod.json} (Fabric, Quilt),
+ * {@code META-INF/neoforge.mods.toml} (NeoForge) or {@code META-INF/mods.toml} (Forge), and the mixin config.
+ */
 public final class ModMetadata {
 
     private static final Pattern MIXIN = Pattern.compile("^\\s*@Mixin\\s*\\(", Pattern.MULTILINE);
@@ -51,6 +54,71 @@ public final class ModMetadata {
         depends.put("java", ">=" + platform.java());
         json.put("depends", depends);
         return Json.write(json) + "\n";
+    }
+
+    /** Path of the loader metadata file inside the jar. */
+    public static String metadataPath(PlatformTable.Platform platform) {
+        return switch (platform.loader()) {
+            case FABRIC, QUILT -> "fabric.mod.json";
+            case NEOFORGE -> "META-INF/neoforge.mods.toml";
+            case FORGE -> "META-INF/mods.toml";
+        };
+    }
+
+    /**
+     * {@code neoforge.mods.toml} / {@code mods.toml}: the same mod and dependencies as {@code fabric.mod.json}, with
+     * Maven version ranges. Minecraft exact (one jar per version); the loader from its major line on (NeoForge
+     * {@code 21.1}, Forge {@code 52}).
+     */
+    public static String modsToml(PlatformTable.Mod mod, PlatformTable.Platform platform, String version) {
+        boolean neo = platform.loader() == Loader.NEOFORGE;
+        String[] parts = platform.loaderVersion().split("\\.");
+        String loaderLine = neo ? parts[0] + "." + parts[1] : parts[0];
+        List<String> lines = new ArrayList<>();
+        lines.add("modLoader=\"javafml\"");
+        lines.add("loaderVersion=\"[" + (neo ? "1" : parts[0]) + ",)\"");
+        lines.add("license=" + quote(mod.license()));
+        lines.add("");
+        lines.add("[[mods]]");
+        lines.add("modId=" + quote(mod.id()));
+        lines.add("version=" + quote(version));
+        lines.add("displayName=" + quote(mod.name()));
+        lines.add("authors=" + quote(String.join(", ", mod.authors())));
+        lines.add("description=" + quote(mod.description() + " " + (neo ? "NeoForge " : "Forge ")
+                + platform.minecraft() + " platform."));
+        Map<String, String> depends = new LinkedHashMap<>();
+        depends.put("minecraft", "[" + platform.minecraft() + "]");
+        depends.put(neo ? "neoforge" : "forge", "[" + loaderLine + ",)");
+        mod.depends().forEach((id, range) -> depends.put(id, mavenRange(range)));
+        depends.forEach((id, range) -> {
+            lines.add("");
+            lines.add("[[dependencies." + mod.id() + "]]");
+            lines.add("modId=" + quote(id));
+            lines.add(neo ? "type=\"required\"" : "mandatory=true");
+            lines.add("versionRange=" + quote(range));
+            lines.add("ordering=\"NONE\"");
+            lines.add("side=\"BOTH\"");
+        });
+        return String.join("\n", lines) + "\n";
+    }
+
+    /** Fabric-style range of the table ({@code >=4.0.0}, {@code *}, exact) as a Maven range ({@code [4.0.0,)}). */
+    static String mavenRange(String range) {
+        String r = range.strip();
+        if (r.equals("*")) {
+            return "[0,)";
+        }
+        if (r.startsWith(">=")) {
+            return "[" + r.substring(2).strip() + ",)";
+        }
+        if (r.matches("[0-9][0-9A-Za-z.+-]*")) {
+            return "[" + r + "]";
+        }
+        throw new IllegalArgumentException("Range '" + range + "' has no Maven form (use >=X, an exact version or *)");
+    }
+
+    private static String quote(String s) {
+        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     /**

@@ -107,6 +107,42 @@ class TableAndMetadataTest {
     }
 
     @Test
+    void modsTomlForNeoForgeAndForge() {
+        PlatformTable t = PlatformTable.parse(TABLE + """
+
+                [[platform]]
+                name = "21.1"
+                loader = "neoforge"
+                minecraft = "1.21.1"
+                neoforge = "21.1.265"
+                java = 21
+
+                [[platform]]
+                name = "21.1"
+                loader = "forge"
+                minecraft = "1.21.1"
+                forge = "52.1.21"
+                java = 21
+                """);
+        String neo = ModMetadata.modsToml(t.mod(), t.platform("neoforge-21.1").orElseThrow(), "0.1.0");
+        assertTrue(neo.contains("modId=\"modularity\""), neo);
+        assertTrue(neo.contains("modId=\"minecraft\"\ntype=\"required\"\nversionRange=\"[1.21.1]\""), neo);
+        assertTrue(neo.contains("modId=\"neoforge\"\ntype=\"required\"\nversionRange=\"[21.1,)\""), neo);
+        assertTrue(neo.contains("modId=\"mvd\"\ntype=\"required\"\nversionRange=\"[4.0.0,)\""), neo);
+        assertEquals("META-INF/neoforge.mods.toml", ModMetadata.metadataPath(t.platform("neoforge-21.1").orElseThrow()));
+
+        String forge = ModMetadata.modsToml(t.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0");
+        assertTrue(forge.contains("loaderVersion=\"[52,)\""), forge);
+        assertTrue(forge.contains("modId=\"forge\"\nmandatory=true\nversionRange=\"[52,)\""), forge);
+        assertEquals("META-INF/mods.toml", ModMetadata.metadataPath(t.platform("forge-21.1").orElseThrow()));
+
+        assertEquals("[0,)", ModMetadata.mavenRange("*"));
+        assertEquals("[1.2.3]", ModMetadata.mavenRange("1.2.3"));
+        assertThrows(IllegalArgumentException.class, () -> ModMetadata.mavenRange("~1.2"));
+        assertEquals(":utilities:mvd:mvd-neoforge", NeoForgeSetup.loaderModule(":utilities:mvd:mvd-fabric", Loader.NEOFORGE));
+    }
+
+    @Test
     void tableErrors() {
         assertThrows(IllegalArgumentException.class,
                 () -> PlatformTable.parse(TABLE.replace("name = \"21.1\"", "name = \"26.1\"")), "duplicate");

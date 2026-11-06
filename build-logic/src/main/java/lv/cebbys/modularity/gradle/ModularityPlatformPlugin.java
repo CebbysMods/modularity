@@ -37,11 +37,18 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         PlatformTable.Platform platform = table.platform(project.getName())
                 .orElseThrow(() -> new GradleException(project.getPath() + " is not in " + PlatformTable.FILE));
         PlatformTable.Mod mod = table.mod();
-        if (!platform.fabricLike()) {
-            throw new GradleException(platform.id() + ": loader " + platform.loader().id() + " is not supported yet");
+        switch (platform.loader()) {
+            case FABRIC, QUILT -> project.getPluginManager()
+                    .apply(platform.remap() ? "net.fabricmc.fabric-loom-remap" : "net.fabricmc.fabric-loom");
+            case NEOFORGE -> {
+                project.getPluginManager().apply("java-library");
+                project.getPluginManager().apply("net.neoforged.moddev");
+            }
+            case FORGE -> {
+                project.getPluginManager().apply("java-library");
+                project.getPluginManager().apply("net.minecraftforge.gradle");
+            }
         }
-
-        project.getPluginManager().apply(platform.remap() ? "net.fabricmc.fabric-loom-remap" : "net.fabricmc.fabric-loom");
         project.getPluginManager().apply("maven-publish");
 
         String archivesName = mod.archivePrefix() + "-" + platform.id();
@@ -84,7 +91,22 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         main.getResources().srcDir(project.files(project.getLayout().getBuildDirectory().dir("generated/modularity"))
                 .builtBy(metadata));
 
-        // Dependencies.
+        switch (platform.loader()) {
+            case FABRIC, QUILT -> fabric(project, table, platform, main);
+            case NEOFORGE -> NeoForgeSetup.apply(project, table, platform, main);
+            case FORGE -> ForgeSetup.apply(project, table, platform, main);
+        }
+
+        project.getExtensions().getByType(PublishingExtension.class).getPublications()
+                .create("maven", MavenPublication.class, pub -> {
+                    pub.setArtifactId(archivesName);
+                    pub.from(project.getComponents().getByName("java"));
+                });
+    }
+
+    /** Loom (Fabric, Quilt): Minecraft with Mojang mappings where obfuscated, loader, Fabric API, mods, smoke runs. */
+    private static void fabric(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main) {
+        PlatformTable.Mod mod = table.mod();
         LoomGradleExtensionAPI loom = project.getExtensions().getByType(LoomGradleExtensionAPI.class);
         DependencyHandler deps = project.getDependencies();
         deps.add("minecraft", "com.mojang:minecraft:" + platform.minecraft());
@@ -131,16 +153,11 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
                 spec -> spec.getMaxParallelUsages().set(RemapService.MAX_PARALLEL));
         project.getTasks().matching(t -> t.getName().startsWith("remap")).configureEach(t -> t.usesService(remaps));
 
-        SmokeSetup.apply(project, platform, loom, main);
+        SmokeSetup.apply(project, platform, main, SmokeSetup.loom(loom));
         if (platform.loader() == Loader.QUILT) {
             QuiltSetup.mainClasses(loom, project);
         }
 
-        project.getExtensions().getByType(PublishingExtension.class).getPublications()
-                .create("maven", MavenPublication.class, pub -> {
-                    pub.setArtifactId(archivesName);
-                    pub.from(project.getComponents().getByName("java"));
-                });
     }
 
     /** The jar task that produces the mod jar: {@code remapJar} for obfuscated versions, else {@code jar}. */

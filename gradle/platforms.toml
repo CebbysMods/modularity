@@ -165,3 +165,13 @@ fabric-api = "0.116.17+1.21.1"
 java = 21
 modmenu = "11.0.5"
 smoke-client = true
+
+# NeoForge: newest 21.1 build on maven.neoforged.net, checked 2026-11-06.
+
+[[platform]]
+name = "21.1"
+loader = "neoforge"
+minecraft = "1.21.1"
+neoforge = "21.1.265"
+java = 21
+smoke-client = true
