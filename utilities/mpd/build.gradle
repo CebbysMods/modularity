@@ -1,0 +1,10 @@
+// Minecraft Platform Detector (mpd). Shared settings of the mpd-* modules. Must not reference the Modularity root project,
+// so the folder can later become its own repository.
+subprojects {
+    group = project.property('mpd_group')
+    version = project.property('mpd_version')
+
+    repositories {
+        mavenCentral()
+    }
+}

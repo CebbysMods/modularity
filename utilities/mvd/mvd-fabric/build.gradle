@@ -1,0 +1,62 @@
+plugins {
+    id 'fabric-loom' version '1.10-SNAPSHOT'
+    id 'maven-publish'
+}
+
+description = 'Minecraft Version Detector: Fabric mod'
+
+base {
+    archivesName = 'mvd-fabric'
+}
+
+def javaRelease = Integer.parseInt(project.property('java_release'))
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(javaRelease) }
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = javaRelease
+    options.encoding = 'UTF-8'
+}
+
+configurations {
+    // mvd-core is packed into this jar, so the mod is a single file. It is not exported as a
+    // dependency, which would put the core classes on a consumer's classpath twice.
+    bundle
+    compileOnly.extendsFrom bundle
+    runtimeOnly.extendsFrom bundle
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.property('minecraft_version')}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.property('fabric_loader_version')}"
+
+    bundle project(':utilities:mvd:mvd-core')
+}
+
+jar {
+    from({ configurations.bundle.collect { zipTree(it) } }) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+}
+
+processResources {
+    def props = [version: project.version, minecraft_version: project.property('minecraft_version')]
+    inputs.properties(props)
+    filesMatching('fabric.mod.json') {
+        expand(props)
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = base.archivesName.get()
+            artifact remapJar
+            artifact(remapSourcesJar) { classifier = 'sources' }
+        }
+    }
+}

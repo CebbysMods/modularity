@@ -1,0 +1,35 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+description = 'Minecraft Platform Detector: loader independent core'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(Integer.parseInt(project.property('java_release'))) }
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = Integer.parseInt(project.property('java_release'))
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:all']
+}
+
+dependencies {
+    testImplementation platform("org.junit:junit-bom:${project.property('junit_version')}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}

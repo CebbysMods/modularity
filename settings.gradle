@@ -15,9 +15,15 @@ rootProject.name = 'modularity'
 include 'modularity-api'
 include 'modularity-testkit'
 
+// Utility mods (see docs/06-utility-mods.md). Self-contained: they never reference the root project.
+include 'utilities:mvd:mvd-core'
+include 'utilities:mpd:mpd-core'
+
 // Platform implementations need Minecraft and loader mavens.
 // Skip them with -Pmodularity.platforms=none (e.g. in offline environments).
 def platforms = providers.gradleProperty('modularity.platforms').getOrElse('all')
 if (platforms != 'none') {
+    include 'utilities:mvd:mvd-fabric'
+    include 'utilities:mpd:mpd-fabric'
     include 'platforms:fabric-1.21.1'
 }

@@ -1,0 +1,10 @@
+// Minecraft Version Detector (mvd). Shared settings of the mvd-* modules. Must not reference the Modularity root project,
+// so the folder can later become its own repository.
+subprojects {
+    group = project.property('mvd_group')
+    version = project.property('mvd_version')
+
+    repositories {
+        mavenCentral()
+    }
+}

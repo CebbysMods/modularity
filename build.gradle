@@ -1,4 +1,5 @@
-subprojects {
+// utilities/ (mvd, mpd) configure themselves, so they can later move to their own repositories.
+configure(subprojects.findAll { !it.path.startsWith(':utilities') }) {
     group = rootProject.group
     version = rootProject.version
 
