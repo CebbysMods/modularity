@@ -123,7 +123,6 @@ name = "26.2"
 minecraft = "26.2"
 fabric-api = "0.161.0+26.2"
 java = 25
-enabled = false
 
 [[platform]]
 name = "26.3"
