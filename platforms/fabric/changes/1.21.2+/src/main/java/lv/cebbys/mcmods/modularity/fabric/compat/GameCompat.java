@@ -16,6 +16,17 @@ public final class GameCompat {
         return InteractionResult.SUCCESS;
     }
 
+    /** Minecraft's result for a portable one; SUCCESS as vanilla returns it on that side. */
+    public static InteractionResult result(lv.cebbys.mcmods.modularity.api.core.InteractionResult result,
+                                           boolean clientSide) {
+        return switch (result) {
+            case PASS -> InteractionResult.PASS;
+            case SUCCESS -> success(clientSide);
+            case CONSUME -> InteractionResult.CONSUME;
+            case FAIL -> InteractionResult.FAIL;
+        };
+    }
+
     /** Piglins near {@code player} get angry, as if they saw a guarded block break. */
     public static void angerNearbyPiglins(Level level, Player player) {
         if (level instanceof ServerLevel serverLevel) {

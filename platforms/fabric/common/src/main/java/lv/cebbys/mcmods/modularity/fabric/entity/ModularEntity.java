@@ -1,6 +1,5 @@
 package lv.cebbys.mcmods.modularity.fabric.entity;
 
-import lv.cebbys.mcmods.modularity.api.core.InteractionResult;
 import lv.cebbys.mcmods.modularity.api.entity.EntityContext;
 import lv.cebbys.mcmods.modularity.api.entity.EntityData;
 import lv.cebbys.mcmods.modularity.api.entity.EntityDefinition;
@@ -204,7 +203,8 @@ public class ModularEntity extends InterpolatedEntity {
             return net.minecraft.world.InteractionResult.PASS;
         }
         ModularPart part = aimedPart(aimed, player);
-        return toNative(definition.behaviour().interactPart(context, Wrap.player(player), part.part()));
+        return GameCompat.result(definition.behaviour().interactPart(context, Wrap.player(player), part.part()),
+                level().isClientSide());
     }
 
     /**
@@ -530,16 +530,7 @@ public class ModularEntity extends InterpolatedEntity {
         if (hand != InteractionHand.MAIN_HAND) {
             return net.minecraft.world.InteractionResult.PASS;
         }
-        return toNative(definition.behaviour().interact(context, Wrap.player(player)));
-    }
-
-    private net.minecraft.world.InteractionResult toNative(InteractionResult result) {
-        return switch (result) {
-            case PASS -> net.minecraft.world.InteractionResult.PASS;
-            case SUCCESS -> GameCompat.success(level().isClientSide());
-            case CONSUME -> net.minecraft.world.InteractionResult.CONSUME;
-            case FAIL -> net.minecraft.world.InteractionResult.FAIL;
-        };
+        return GameCompat.result(definition.behaviour().interact(context, Wrap.player(player)), level().isClientSide());
     }
 
     @Override

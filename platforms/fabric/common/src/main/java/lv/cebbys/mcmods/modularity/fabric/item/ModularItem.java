@@ -60,11 +60,8 @@ public class ModularItem extends Item {
                 return Wrap.vec(context.getClickLocation());
             }
         };
-        return switch (definition.behaviour().useOnBlock(portable)) {
-            case PASS -> super.useOn(context);
-            case SUCCESS -> GameCompat.success(context.getLevel().isClientSide());
-            case CONSUME -> InteractionResult.CONSUME;
-            case FAIL -> InteractionResult.FAIL;
-        };
+        var result = definition.behaviour().useOnBlock(portable);
+        return result == lv.cebbys.mcmods.modularity.api.core.InteractionResult.PASS ? super.useOn(context)
+                : GameCompat.result(result, context.getLevel().isClientSide());
     }
 }
