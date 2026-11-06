@@ -2,6 +2,7 @@ package lv.cebbys.mcmods.modularity.fabric;
 
 import lv.cebbys.mcmods.modularity.api.Modularity;
 import lv.cebbys.mcmods.modularity.api.ModularMod;
+import lv.cebbys.mcmods.modularity.fabric.compat.SyncedData;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ public final class ModularityFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        SyncedData.init();
         Modularity.install(FabricRuntime.INSTANCE);
         var containers = FabricLoader.getInstance().getEntrypointContainers(ENTRYPOINT, ModularMod.class);
         LOGGER.info("Modularity {} on Fabric, Minecraft {}: initializing {} mod(s)",

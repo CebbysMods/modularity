@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
+import lv.cebbys.mcmods.modularity.fabric.compat.KeyMappings;
 import lv.cebbys.mcmods.modularity.api.Modularity;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.block.BlockHandle;
@@ -122,8 +123,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
 
         @Override
         public KeyBinding keyBinding(String name, int defaultKey) {
-            KeyMapping mapping = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                    "key." + modId + "." + name, defaultKey, "key.categories." + modId));
+            KeyMapping mapping = KeyBindingHelper.registerKeyBinding(KeyMappings.create(modId, name, defaultKey));
             return new KeyBinding() {
                 @Override
                 public String name() {

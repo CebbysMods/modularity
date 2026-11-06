@@ -21,7 +21,7 @@ final class ModularEntityRenderer extends net.minecraft.client.renderer.entity.E
 
     @Override
     public void render(ModularEntity entity, float yaw, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light) {
-        EntityDrawing.draw(renderer, entity, partialTick, poseStack, buffers, light);
+        EntityDrawing.draw(renderer, entity, partialTick, poseStack, new BufferPoseOutput(poseStack, buffers, light));
         super.render(entity, yaw, partialTick, poseStack, buffers, light);
     }
 

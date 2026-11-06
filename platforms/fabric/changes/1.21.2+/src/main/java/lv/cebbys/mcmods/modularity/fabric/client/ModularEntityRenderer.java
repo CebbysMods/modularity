@@ -42,7 +42,7 @@ final class ModularEntityRenderer
 
     @Override
     public void render(State state, PoseStack poseStack, MultiBufferSource buffers, int light) {
-        EntityDrawing.draw(renderer, state.entity, state.partialTick, poseStack, buffers, light);
+        EntityDrawing.draw(renderer, state.entity, state.partialTick, poseStack, new BufferPoseOutput(poseStack, buffers, light));
         super.render(state, poseStack, buffers, light);
     }
 }

@@ -23,7 +23,7 @@ public final class FabricPlayer extends NativeEntityRef implements Player {
 
     @Override
     public String name() {
-        return player.getGameProfile().getName();
+        return player.getName().getString();
     }
 
     @Override

@@ -3,6 +3,7 @@ package lv.cebbys.mcmods.modularity.fabric.entity;
 import lv.cebbys.mcmods.modularity.fabric.compat.InterpolatedEntity;
 import lv.cebbys.mcmods.modularity.fabric.compat.Inventories;
 import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
+import lv.cebbys.mcmods.modularity.fabric.compat.SyncedData;
 import lv.cebbys.mcmods.modularity.fabric.compat.GameCompat;
 import lv.cebbys.mcmods.modularity.api.core.InteractionResult;
 import lv.cebbys.mcmods.modularity.api.entity.EntityContext;
@@ -47,7 +48,7 @@ import java.util.Optional;
  * {@code "modularity"}. Movement is server authoritative and interpolated on clients.
  */
 public class ModularEntity extends InterpolatedEntity {
-    private static final EntityDataAccessor<CompoundTag> SYNCED = SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.COMPOUND_TAG);
+    private static final EntityDataAccessor<CompoundTag> SYNCED = SynchedEntityData.defineId(ModularEntity.class, SyncedData.COMPOUND);
     private static final EntityDataAccessor<Quaternionf> ORIENTATION =
             SynchedEntityData.defineId(ModularEntity.class, EntityDataSerializers.QUATERNION);
     private static final String TANK_SYNC_KEY = "modularity:tank";

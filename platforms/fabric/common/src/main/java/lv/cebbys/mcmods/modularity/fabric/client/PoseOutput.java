@@ -7,15 +7,27 @@ import lv.cebbys.mcmods.modularity.api.client.ModelRef;
 import lv.cebbys.mcmods.modularity.api.client.RenderOutput;
 import lv.cebbys.mcmods.modularity.api.client.model.ObjModel;
 import lv.cebbys.mcmods.modularity.api.core.Id;
-import lv.cebbys.mcmods.modularity.fabric.Wrap;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import lv.cebbys.mcmods.modularity.api.world.Rotation;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
 import java.util.List;
 
-/** {@link RenderOutput} on a pose stack and buffer source: OBJ faces as entity quads. */
-record PoseOutput(PoseStack pose, MultiBufferSource buffers, int light) implements RenderOutput {
+/**
+ * {@link RenderOutput} on a pose stack: transforms change the stack, models become entity quads. How the quads reach
+ * the renderer ({@link #draw}) depends on the version's render pipeline.
+ */
+abstract class PoseOutput implements RenderOutput {
+    protected final PoseStack pose;
+    protected final int light;
+
+    PoseOutput(PoseStack pose, int light) {
+        this.pose = pose;
+        this.light = light;
+    }
+
+    /** Draws {@code faces} with {@code texture} at the current pose. */
+    protected abstract void draw(Id texture, List<ObjModel.Face> faces);
+
     @Override
     public void push() {
         pose.pushPose();
@@ -47,7 +59,7 @@ record PoseOutput(PoseStack pose, MultiBufferSource buffers, int light) implemen
     }
 
     @Override
-    public void rotate(lv.cebbys.mcmods.modularity.api.world.Rotation r) {
+    public void rotate(Rotation r) {
         pose.mulPose(new org.joml.Quaternionf((float) r.x(), (float) r.y(), (float) r.z(), (float) r.w()));
     }
 
@@ -58,24 +70,23 @@ record PoseOutput(PoseStack pose, MultiBufferSource buffers, int light) implemen
 
     @Override
     public void model(ModelRef model, Id texture) {
-        VertexConsumer consumer = buffers.getBuffer(RenderType.entityCutoutNoCull(Wrap.rl(texture)));
+        List<ObjModel.Face> faces = new java.util.ArrayList<>();
         for (String group : model.model().groupNames()) {
-            draw(consumer, model.model().faces(group));
+            faces.addAll(model.model().faces(group));
         }
+        draw(texture, faces);
     }
 
     @Override
     public void model(ModelRef model, String group, Id texture) {
-        VertexConsumer consumer = buffers.getBuffer(RenderType.entityCutoutNoCull(Wrap.rl(texture)));
-        draw(consumer, model.model().faces(group));
+        draw(texture, model.model().faces(group));
     }
 
-    private void draw(VertexConsumer consumer, List<ObjModel.Face> faces) {
-        PoseStack.Pose last = pose.last();
+    /** Writes the faces as entity quads; triangles repeat their last vertex. */
+    static void emit(VertexConsumer consumer, PoseStack.Pose last, List<ObjModel.Face> faces, int light) {
         for (ObjModel.Face face : faces) {
             List<ObjModel.Vertex> vertices = face.vertices();
             for (int i = 0; i < 4; i++) {
-                // Entity render types draw quads; triangles repeat their last vertex.
                 ObjModel.Vertex v = vertices.get(Math.min(i, vertices.size() - 1));
                 consumer.addVertex(last, v.x(), v.y(), v.z())
                         .setColor(-1)
