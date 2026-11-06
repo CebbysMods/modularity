@@ -27,6 +27,7 @@ final class NeoForgeSetup {
         }
         for (String path : table.mod().mods()) {
             deps.add("implementation", deps.project(Map.of("path", loaderModule(path, platform.loader()))));
+            deps.add("compileOnly", deps.project(Map.of("path", coreModule(path))));
         }
 
         neoForge.getMods().register(table.mod().id(), m -> m.sourceSet(main));
@@ -69,5 +70,13 @@ final class NeoForgeSetup {
      */
     static String loaderModule(String fabricPath, Loader loader) {
         return fabricPath.replaceAll("-fabric$", "-" + loader.id());
+    }
+
+    /**
+     * The API of a separate mod for compiling against ({@code mvd-core}): the NeoForge and Forge builds pack it inside
+     * and do not export it, as its packages would otherwise be split between two module jars at run time.
+     */
+    static String coreModule(String fabricPath) {
+        return fabricPath.replaceAll("-fabric$", "-core");
     }
 }

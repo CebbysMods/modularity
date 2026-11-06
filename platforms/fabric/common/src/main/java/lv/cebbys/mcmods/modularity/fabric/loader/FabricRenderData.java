@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.loader;
 
+import lv.cebbys.mcmods.modularity.platform.loader.RenderDataAccess;
 import lv.cebbys.mcmods.modularity.fabric.compat.BlockViews;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;

@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.loader;
 
+import lv.cebbys.mcmods.modularity.platform.loader.LoaderInfo;
 import lv.cebbys.mcmods.modularity.api.ModularMod;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 import net.fabricmc.api.EnvType;

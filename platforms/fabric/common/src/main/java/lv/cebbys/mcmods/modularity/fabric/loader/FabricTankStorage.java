@@ -1,6 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.loader;
 
-import lv.cebbys.mcmods.modularity.fabric.transfer.McFluidTank;
+import lv.cebbys.mcmods.modularity.platform.transfer.McFluidTank;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;

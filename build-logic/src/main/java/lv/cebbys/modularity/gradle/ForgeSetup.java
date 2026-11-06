@@ -74,6 +74,7 @@ final class ForgeSetup {
 
         for (String path : table.mod().mods()) {
             deps.add("implementation", deps.project(Map.of("path", NeoForgeSetup.loaderModule(path, platform.loader()))));
+            deps.add("compileOnly", deps.project(Map.of("path", NeoForgeSetup.coreModule(path))));
         }
 
         // Forge's development mod discovery takes each class path folder as its own mod file: a mod's resources

@@ -1,8 +1,8 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
 import lv.cebbys.mcmods.modularity.api.client.DynamicModel;
-import lv.cebbys.mcmods.modularity.fabric.Wrap;
-import lv.cebbys.mcmods.modularity.fabric.world.NativeBlockView;
+import lv.cebbys.mcmods.modularity.platform.Wrap;
+import lv.cebbys.mcmods.modularity.platform.world.NativeBlockView;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.Minecraft;

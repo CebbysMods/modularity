@@ -1,10 +1,11 @@
 package lv.cebbys.mcmods.modularity.fabric.loader;
 
+import lv.cebbys.mcmods.modularity.platform.loader.StorageBackend;
 import lv.cebbys.mcmods.modularity.api.entity.EntityDefinition;
-import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.platform.compat.Ids;
 import lv.cebbys.mcmods.modularity.fabric.compat.Storages;
-import lv.cebbys.mcmods.modularity.fabric.entity.ModularEntity;
-import lv.cebbys.mcmods.modularity.fabric.transfer.McFluidTank;
+import lv.cebbys.mcmods.modularity.platform.entity.ModularEntity;
+import lv.cebbys.mcmods.modularity.platform.transfer.McFluidTank;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;

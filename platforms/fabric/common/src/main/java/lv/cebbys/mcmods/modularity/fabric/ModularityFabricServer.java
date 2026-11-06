@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric;
 
+import lv.cebbys.mcmods.modularity.platform.ModularityCore;
 import lv.cebbys.mcmods.modularity.api.Modularity;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.server.ServerContext;

@@ -1,10 +1,11 @@
 package lv.cebbys.mcmods.modularity.fabric.loader;
 
+import lv.cebbys.mcmods.modularity.platform.loader.LoaderHooks;
 import lv.cebbys.mcmods.modularity.api.core.Id;
-import lv.cebbys.mcmods.modularity.fabric.block.ModularBlockEntity;
-import lv.cebbys.mcmods.modularity.fabric.block.ModularEntityBlock;
+import lv.cebbys.mcmods.modularity.platform.block.ModularBlockEntity;
+import lv.cebbys.mcmods.modularity.platform.block.ModularEntityBlock;
 import lv.cebbys.mcmods.modularity.fabric.compat.CreativeTabs;
-import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.platform.compat.Ids;
 import lv.cebbys.mcmods.modularity.fabric.compat.Payloads;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;

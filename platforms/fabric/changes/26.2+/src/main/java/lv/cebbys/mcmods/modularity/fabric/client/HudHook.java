@@ -1,7 +1,8 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
+import lv.cebbys.mcmods.modularity.platform.client.McHudContext;
 import lv.cebbys.mcmods.modularity.api.client.HudLayer;
-import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
+import lv.cebbys.mcmods.modularity.platform.compat.Ids;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 
@@ -22,7 +23,7 @@ final class HudHook {
             if (minecraft.gui.hud.isHidden() || minecraft.gui.screen() != null || minecraft.player == null) {
                 return;
             }
-            var ctx = new FabricHudContext(graphics, minecraft);
+            var ctx = new McHudContext(graphics, minecraft);
             layers.forEach(layer -> layer.render(ctx));
         });
     }

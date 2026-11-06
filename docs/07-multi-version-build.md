@@ -193,6 +193,13 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | 26.2 part ids reserved from `ServerLevel`'s counter, only on the server | The counter moved from `Entity` to `ServerLevel` (which skips ids in use); client entities take their id from the spawn packet. |
 | One icon for every loader: `[mod] icon` in `platforms.toml`, copied to `assets/<id>/icon.png` | Generated with the metadata, so Fabric (`icon`) and NeoForge/Forge (`logoFile`) point at the same file in every jar; the 256×256 source is `images/modularity.png`. |
 | Shared helpers instead of copies in the 1.21.1 base (`GameCompat.result`, `NbtData.encode/decode/writeAll/readAll`, `ModularityFabric.forEachMod`, handle records, `PartShape.slab`, `Props.with`) | Each copy existed once per caller; one helper is one place to fix and one place for the later shared Minecraft layer. Tolerances and error texts kept, so no behaviour change. |
+| Loader seams `LoaderInfo`, `RenderDataAccess`, `StorageBackend`, `LoaderHooks` + `ClientHooks`, installed through `Loaders` | Everything the shared code needs from a loader goes through four interfaces; a new loader implements them (Fabric: ~400 lines) instead of copying the runtime. |
+| Tank amounts in the loader's unit (`McFluidTank`, Fabric droplets) | Other mods move fluid in that unit; keeping it avoids rounding at the boundary and keeps the saved NBT unchanged. |
+| Classes without `net.fabricmc` imports live in `platforms/minecraft`, package `lv.cebbys.mcmods.modularity.platform.*`; `Fabric*` names that held no Fabric code became `Mc*` | One copy for every loader; the package says which code is shared. NeoForge and Forge compile it already. |
+| A loader layer may replace a shared file at the same path (`SyncedData` 1.21.9+, `RenderDataHolder`) | The roots stack (`minecraft`, then the loader), so a loader-specific version of a shared seam needs no extra indirection. Shared changes for a range go to `platforms/minecraft/changes`, loader ones to the loader's. |
+| `DynamicUnbakedModel` stays in the Fabric layer | It only feeds Fabric's model loading plugin and creates the Fabric renderer's baked model. |
+| NeoForge and Forge jars carry the shared mixins without a mixin config | Wiring them belongs to those runtimes (not written yet); the metadata task only logs it instead of failing. |
+| NeoForge and Forge compile against `mvd-core` / `mpd-core` (`compileOnly`) | Their utility mods pack the core without exporting it (split packages); the shared runtime calls the detectors directly. |
 
 ## 7.9 Port log
 

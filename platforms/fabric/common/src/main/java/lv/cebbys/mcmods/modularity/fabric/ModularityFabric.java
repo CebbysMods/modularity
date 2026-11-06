@@ -1,11 +1,12 @@
 package lv.cebbys.mcmods.modularity.fabric;
 
-import lv.cebbys.mcmods.modularity.fabric.compat.SyncedData;
+import lv.cebbys.mcmods.modularity.platform.ModularityCore;
+import lv.cebbys.mcmods.modularity.platform.compat.SyncedData;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderHooks;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderInfo;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricRenderData;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricStorageBackend;
-import lv.cebbys.mcmods.modularity.fabric.loader.Loaders;
+import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
 import net.fabricmc.api.ModInitializer;
 
 /** Fabric entrypoint: installs the Fabric seams and initializes every {@code "modularity"} entrypoint. */

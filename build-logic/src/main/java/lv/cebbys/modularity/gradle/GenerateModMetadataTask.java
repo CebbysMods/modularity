@@ -63,9 +63,11 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
                 Files.copy(getIconFile().get().getAsFile().toPath(), icon, StandardCopyOption.REPLACE_EXISTING);
             }
             if (!platform.fabricLike()) {
+                // The shared Minecraft layer carries the mixins; NeoForge and Forge get a mixin config with their
+                // runtime (not written yet), until then the classes are in the jar unused.
                 if (!mixins.isEmpty()) {
-                    throw new org.gradle.api.GradleException(platform.id() + ": mixins " + mixins
-                            + " found, but mixin configs are generated for Fabric and Quilt only so far");
+                    getLogger().info("{}: {} mixins not wired (no {} runtime yet)", platform.id(), mixins.size(),
+                            platform.loader().id());
                 }
                 Path toml = out.resolve(ModMetadata.metadataPath(platform));
                 Files.createDirectories(toml.getParent());

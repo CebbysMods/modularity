@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.compat;
 
+import lv.cebbys.mcmods.modularity.platform.compat.Ids;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 
