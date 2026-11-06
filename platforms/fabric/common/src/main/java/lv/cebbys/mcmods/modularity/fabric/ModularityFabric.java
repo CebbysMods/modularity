@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Fabric entrypoint: installs the runtime and initializes every {@code "modularity"} entrypoint. */
 public final class ModularityFabric implements ModInitializer {
@@ -26,6 +27,21 @@ public final class ModularityFabric implements ModInitializer {
         return Collections.unmodifiableList(MODS);
     }
 
+    /** Runs {@code init} for every loaded mod; a failure names the mod ("failed {@code what}"). */
+    public static void forEachMod(String what, Consumer<LoadedMod> init) {
+        for (LoadedMod loaded : MODS) {
+            run(loaded.modId(), what, () -> init.accept(loaded));
+        }
+    }
+
+    private static void run(String modId, String what, Runnable init) {
+        try {
+            init.run();
+        } catch (RuntimeException e) {
+            throw new IllegalStateException("Modularity mod '" + modId + "' failed " + what, e);
+        }
+    }
+
     @Override
     public void onInitialize() {
         SyncedData.init();
@@ -36,13 +52,11 @@ public final class ModularityFabric implements ModInitializer {
                 FabricRuntime.INSTANCE.minecraftVersion(), containers.size());
         for (var container : containers) {
             String modId = container.getProvider().getMetadata().getId();
-            try {
+            run(modId, "to initialize", () -> {
                 ModularMod mod = container.getEntrypoint();
                 mod.initCommon(new FabricModContext(modId));
                 MODS.add(new LoadedMod(modId, mod));
-            } catch (RuntimeException e) {
-                throw new IllegalStateException("Modularity mod '" + modId + "' failed to initialize", e);
-            }
+            });
         }
     }
 }

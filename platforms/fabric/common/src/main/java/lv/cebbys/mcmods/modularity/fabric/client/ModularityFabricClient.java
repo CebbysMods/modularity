@@ -44,13 +44,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         FabricChannel.ClientSender.install(ClientPlayNetworking::send);
-        for (var loaded : ModularityFabric.mods()) {
-            try {
-                loaded.mod().initClient(new Context(loaded.modId()));
-            } catch (RuntimeException e) {
-                throw new IllegalStateException("Modularity mod '" + loaded.modId() + "' failed client initialization", e);
-            }
-        }
+        ModularityFabric.forEachMod("client initialization", loaded -> loaded.mod().initClient(new Context(loaded.modId())));
         ModelLoadingPlugin.register(plugin -> ClientRegistry.MODELS.forEach((block, model) ->
                 plugin.registerBlockStateResolver(block, context -> {
                     var unbaked = new DynamicUnbakedModel(model);
