@@ -18,7 +18,7 @@ public abstract class ClientLevelMixin {
     @Inject(method = "addBreakingBlockEffect", at = @At("HEAD"), cancellable = true)
     private void modularity$hitParticles(BlockPos pos, Direction side, CallbackInfo ci) {
         ClientLevel self = (ClientLevel) (Object) this;
-        if (HitParticles.spawn(self, self.random, pos, side)) {
+        if (HitParticles.spawn(self, self.getRandom(), pos, side)) {
             ci.cancel();
         }
     }

@@ -7,7 +7,7 @@ import lv.cebbys.mcmods.modularity.api.world.Player;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.block.NbtData;
 import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import lv.cebbys.mcmods.modularity.fabric.compat.Payloads;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -38,8 +38,7 @@ public final class FabricChannel<T> implements Channel<T> {
         StreamCodec<FriendlyByteBuf, Payload> streamCodec = StreamCodec.of(
                 (buf, payload) -> buf.writeNbt(payload.body()),
                 buf -> new Payload(type, buf.readNbt()));
-        PayloadTypeRegistry.playC2S().register(type, streamCodec);
-        PayloadTypeRegistry.playS2C().register(type, streamCodec);
+        Payloads.registerPlay(type, streamCodec);
     }
 
     public CustomPacketPayload.Type<Payload> type() {

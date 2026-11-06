@@ -24,11 +24,9 @@ import lv.cebbys.mcmods.modularity.fabric.entity.ModularEntity;
 import lv.cebbys.mcmods.modularity.fabric.network.FabricChannel;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -68,14 +66,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
             TICK_HANDLERS.forEach(handler -> handler.accept(state));
             CameraState.update(minecraft);
         });
-        HudRenderCallback.EVENT.register((graphics, delta) -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.options.hideGui || minecraft.screen != null || minecraft.player == null) {
-                return;
-            }
-            var ctx = new FabricHudContext(graphics, minecraft);
-            HUD_LAYERS.forEach(layer -> layer.render(ctx));
-        });
+        HudHook.install(HUD_LAYERS);
         ObjModelReloadListener.register();
     }
 
@@ -109,7 +100,7 @@ public final class ModularityFabricClient implements ClientModInitializer {
 
         @Override
         public KeyBinding keyBinding(String name, int defaultKey) {
-            KeyMapping mapping = KeyBindingHelper.registerKeyBinding(KeyMappings.create(modId, name, defaultKey));
+            KeyMapping mapping = KeyMappings.register(modId, name, defaultKey);
             return new KeyBinding() {
                 @Override
                 public String name() {

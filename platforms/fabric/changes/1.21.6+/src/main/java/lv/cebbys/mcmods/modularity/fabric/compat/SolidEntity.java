@@ -5,7 +5,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 
 /** Entity base: maps "other entities collide with this one" to {@link #isSolid}. 1.21.6: the check gets the other entity. */
-public abstract class SolidEntity extends DamageEntity {
+public abstract class SolidEntity extends UsableEntity {
 
     protected SolidEntity(EntityType<?> type, Level level) {
         super(type, level);

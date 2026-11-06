@@ -3,7 +3,7 @@ package lv.cebbys.mcmods.modularity.fabric.transfer;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.api.transfer.ItemInventory;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+import lv.cebbys.mcmods.modularity.fabric.compat.Storages;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.world.SimpleContainer;
@@ -15,7 +15,7 @@ public final class FabricItemInventory implements ItemInventory {
 
     public FabricItemInventory(int slots) {
         this.container = new SimpleContainer(slots);
-        this.storage = InventoryStorage.of(container, null);
+        this.storage = Storages.of(container);
     }
 
     public SimpleContainer container() {

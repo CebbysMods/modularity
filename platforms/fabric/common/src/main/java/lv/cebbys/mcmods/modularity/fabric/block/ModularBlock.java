@@ -5,6 +5,7 @@ import lv.cebbys.mcmods.modularity.api.block.property.Property;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.fabric.Props;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.LootCompat;
 import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -122,7 +123,7 @@ public class ModularBlock extends Block {
         var entity = params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof ModularBlockEntity modular
                 ? modular : null;
         var player = params.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof Player p ? p : null;
-        var tool = params.getOptionalParameter(LootContextParams.TOOL);
+        var tool = LootCompat.tool(params);
         var pos = BlockPos.containing(params.getParameter(LootContextParams.ORIGIN));
         var context = Contexts.drops(params.getLevel(), pos, state, entity, player, tool,
                 () -> super.getDrops(state, params));

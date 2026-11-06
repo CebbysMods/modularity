@@ -6,8 +6,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 
 /**
- * First link of the Modularity entity bases ({@code SavedEntity}, {@link DamageEntity}, {@link SolidEntity},
- * {@link BoundsEntity}, {@link InterpolatedEntity}); one concern per class, so a version layer replaces only the
+ * First link of the Modularity entity bases ({@code SavedEntity}, {@link DamageEntity}, {@link UsableEntity},
+ * {@link SolidEntity}, {@link BoundsEntity}, {@link InterpolatedEntity}); one concern per class, so a version layer replaces only the
  * link that changed. Maps saving and loading to one compound under {@link #DATA_KEY}.
  */
 public abstract class SavedEntity extends Entity {

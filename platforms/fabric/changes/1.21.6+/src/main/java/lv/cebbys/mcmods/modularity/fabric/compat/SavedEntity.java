@@ -8,8 +8,8 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * First link of the Modularity entity bases ({@code SavedEntity}, {@link DamageEntity}, {@link SolidEntity},
- * {@link BoundsEntity}, {@link InterpolatedEntity}); one concern per class, so a version layer replaces only the
+ * First link of the Modularity entity bases ({@code SavedEntity}, {@link DamageEntity}, {@link UsableEntity},
+ * {@link SolidEntity}, {@link BoundsEntity}, {@link InterpolatedEntity}); one concern per class, so a version layer replaces only the
  * link that changed. Maps saving and loading to one compound under {@link #DATA_KEY}. 1.21.6: save data is read and
  * written through {@code ValueInput}/{@code ValueOutput}; the compound is stored with its codec, same format.
  */

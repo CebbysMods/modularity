@@ -528,7 +528,7 @@ public class ModularEntity extends InterpolatedEntity {
     // ------------------------------------------------------------------ interaction
 
     @Override
-    public net.minecraft.world.InteractionResult interact(Player player, InteractionHand hand) {
+    protected net.minecraft.world.InteractionResult onInteract(Player player, InteractionHand hand) {
         if (hand != InteractionHand.MAIN_HAND) {
             return net.minecraft.world.InteractionResult.PASS;
         }

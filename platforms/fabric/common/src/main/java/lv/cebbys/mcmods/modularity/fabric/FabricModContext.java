@@ -12,6 +12,7 @@ import lv.cebbys.mcmods.modularity.fabric.block.Interceptors;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularBlock;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularBlockEntity;
 import lv.cebbys.mcmods.modularity.fabric.block.ModularEntityBlock;
+import lv.cebbys.mcmods.modularity.fabric.compat.CreativeTabs;
 import lv.cebbys.mcmods.modularity.fabric.compat.Ids;
 import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -33,7 +34,6 @@ import lv.cebbys.mcmods.modularity.api.sound.SoundHandle;
 import lv.cebbys.mcmods.modularity.fabric.entity.EntityTypes;
 import lv.cebbys.mcmods.modularity.fabric.item.ModularItem;
 import lv.cebbys.mcmods.modularity.fabric.network.FabricChannel;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
@@ -134,7 +134,7 @@ final class FabricModContext implements ModContext {
         Id id = id(name);
         ModularItem item = Registry.register(BuiltInRegistries.ITEM, Ids.rl(id), new ModularItem(id, definition));
         if (definition.creativeTab() != null) {
-            ItemGroupEvents.modifyEntriesEvent(tab(definition.creativeTab())).register(entries -> entries.accept(item));
+            CreativeTabs.add(tab(definition.creativeTab()), item);
         }
         return new ItemHandle() {
             @Override

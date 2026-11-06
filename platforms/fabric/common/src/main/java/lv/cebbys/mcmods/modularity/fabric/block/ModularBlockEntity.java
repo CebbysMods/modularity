@@ -2,8 +2,8 @@ package lv.cebbys.mcmods.modularity.fabric.block;
 
 import lv.cebbys.mcmods.modularity.api.data.BlockData;
 import lv.cebbys.mcmods.modularity.fabric.compat.Nbt;
+import lv.cebbys.mcmods.modularity.fabric.compat.RenderDataHolder;
 import lv.cebbys.mcmods.modularity.fabric.compat.SavedBlockEntity;
-import net.fabricmc.fabric.api.blockview.v2.RenderDataBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -23,7 +23,7 @@ import java.util.Optional;
  * Stores the portable {@link BlockData} of a block: persisted as NBT, synced to clients and exposed
  * as Fabric render data so models can read it while chunks are meshed (vanilla, Sodium, Iris).
  */
-public class ModularBlockEntity extends SavedBlockEntity implements RenderDataBlockEntity {
+public class ModularBlockEntity extends SavedBlockEntity implements RenderDataHolder {
 
     private final Map<BlockData<?>, Object> values = new LinkedHashMap<>();
     private volatile Map<BlockData<?>, Object> renderData = Map.of();

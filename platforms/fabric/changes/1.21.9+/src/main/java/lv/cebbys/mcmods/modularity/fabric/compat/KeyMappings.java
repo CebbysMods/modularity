@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.compat;
 
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 
 import java.util.Map;
@@ -15,10 +16,10 @@ public final class KeyMappings {
     private KeyMappings() {
     }
 
-    /** An (unregistered) key mapping with translation key {@code key.<modId>.<name>}. */
-    public static KeyMapping create(String modId, String name, int defaultKey) {
+    /** Registers a key mapping with translation key {@code key.<modId>.<name>}. */
+    public static KeyMapping register(String modId, String name, int defaultKey) {
         KeyMapping.Category category = CATEGORIES.computeIfAbsent(modId,
                 id -> KeyMapping.Category.register(Ids.of(id, "keys")));
-        return new KeyMapping("key." + modId + "." + name, defaultKey, category);
+        return KeyBindingHelper.registerKeyBinding(new KeyMapping("key." + modId + "." + name, defaultKey, category));
     }
 }

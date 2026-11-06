@@ -121,7 +121,7 @@ public final class ModularPart extends BoundsEntity {
     }
 
     @Override
-    public InteractionResult interact(Player player, InteractionHand hand) {
+    protected InteractionResult onInteract(Player player, InteractionHand hand) {
         return parent.interactPart(this, player, hand);
     }
 

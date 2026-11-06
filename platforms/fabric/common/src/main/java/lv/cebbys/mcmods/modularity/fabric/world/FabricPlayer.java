@@ -5,6 +5,7 @@ import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.api.transfer.FluidTank;
 import lv.cebbys.mcmods.modularity.api.world.Player;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
+import lv.cebbys.mcmods.modularity.fabric.compat.Messages;
 import lv.cebbys.mcmods.modularity.fabric.transfer.FabricFluidTank;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
@@ -72,6 +73,6 @@ public final class FabricPlayer extends NativeEntityRef implements Player {
 
     @Override
     public void displayMessage(String message, boolean actionBar) {
-        player.displayClientMessage(Component.literal(message), actionBar);
+        Messages.show(player, Component.literal(message), actionBar);
     }
 }
