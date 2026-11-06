@@ -130,4 +130,3 @@ smoke-client = true
 minecraft = "26.3"
 fabric-api = "0.165.2+26.3"
 java = 25
-enabled = false

@@ -171,3 +171,4 @@ What each version layer changes (oldest first). Version-specific calls sit behin
 | 26.1.1 | none | builds and runs from the 26.1+ layer unchanged |
 | 26.1.2 | none | builds and runs from the 26.1+ layer unchanged |
 | 26.2 | `changes/26.2+`: HudHook, EntityIds + ServerLevelAccessor (EntityAccessor `.removed`); smoke Screenshots | hidden state and screen moved to `Minecraft.gui`; entity id counter moved to `ServerLevel`; main render target in `GameRenderer` |
+| 26.3 | `changes/26.3+`: InterpolatedEntity, PoseOutput, ClientLevelMixin | InterpolationHandler is an interface made by `createInterpolationHandler`; `PoseStack.mulPose(Quaternionf)` replaced by `rotate`; breaking particles in `ClientLevel#addBreakingParticles` |
