@@ -6,6 +6,7 @@ import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.fabric.Props;
 import lv.cebbys.mcmods.modularity.fabric.Wrap;
 import lv.cebbys.mcmods.modularity.fabric.compat.LootCompat;
+import lv.cebbys.mcmods.modularity.fabric.compat.PushReactions;
 import lv.cebbys.mcmods.modularity.fabric.compat.RegistryCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +19,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
@@ -64,7 +64,7 @@ public class ModularBlock extends Block {
         var properties = RegistryCompat.blockProperties(id)
                 .strength(definition.hardness(), definition.resistance())
                 .sound(sound(definition))
-                .pushReaction(PushReaction.valueOf(definition.pushReaction().name()));
+                .pushReaction(PushReactions.toNative(definition.pushReaction()));
         if (definition.lightLevel() != null) {
             var light = definition.lightLevel();
             properties.lightLevel(state -> light.applyAsInt(Wrap.state(state)));
