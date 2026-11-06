@@ -1,0 +1,19 @@
+// Included build (see ../settings.gradle): the lv.cebbys.modularity Gradle plugins. docs/07-multi-version-build.md
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'build-logic'

@@ -1,0 +1,142 @@
+# Platforms built by the lv.cebbys.modularity plugins (build-logic/, docs/07-multi-version-build.md).
+# Values from meta.fabricmc.net and maven.fabricmc.net (newest Fabric API build per exact version) and
+# Mojang's version manifest (Java), checked 2026-11-06. Never guess them: re-check when adding a version.
+# enabled = false: not ported yet (still selectable with -Pmodularity.platforms=<name>).
+
+[defaults]
+loader = "0.20.1"
+
+[mod]
+id = "modularity"
+archive-prefix = "modularity"
+name = "Modularity"
+description = "Multi version, multi loader modding API."
+license = "MIT"
+authors = ["CebbyS"]
+mixin-package = "lv.cebbys.mcmods.modularity.fabric.mixin"
+# Nested in the jar and exposed as api.
+nested = [":modularity-api"]
+# Separate mods next to Modularity (not nested), see docs/06-utility-mods.md.
+mods = [":utilities:mvd:mvd-fabric", ":utilities:mpd:mpd-fabric"]
+
+[mod.entrypoints]
+main = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabric"]
+client = ["lv.cebbys.mcmods.modularity.fabric.client.ModularityFabricClient"]
+server = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabricServer"]
+
+[mod.depends]
+mvd = ">=4.0.0"
+mpd = ">=1.0.0"
+
+[[platform]]
+name = "21.1"
+minecraft = "1.21.1"
+fabric-api = "0.116.17+1.21.1"
+java = 21
+modmenu = "11.0.5"
+enabled = false
+
+[[platform]]
+name = "21.2"
+minecraft = "1.21.2"
+fabric-api = "0.106.1+1.21.2"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.3"
+minecraft = "1.21.3"
+fabric-api = "0.114.1+1.21.3"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.4"
+minecraft = "1.21.4"
+fabric-api = "0.119.4+1.21.4"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.5"
+minecraft = "1.21.5"
+fabric-api = "0.128.2+1.21.5"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.6"
+minecraft = "1.21.6"
+fabric-api = "0.128.2+1.21.6"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.7"
+minecraft = "1.21.7"
+fabric-api = "0.129.0+1.21.7"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.8"
+minecraft = "1.21.8"
+fabric-api = "0.136.1+1.21.8"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.9"
+minecraft = "1.21.9"
+fabric-api = "0.134.1+1.21.9"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.10"
+minecraft = "1.21.10"
+fabric-api = "0.138.4+1.21.10"
+java = 21
+enabled = false
+
+[[platform]]
+name = "21.11"
+minecraft = "1.21.11"
+fabric-api = "0.141.6+1.21.11"
+java = 21
+enabled = false
+
+[[platform]]
+name = "26.1"
+minecraft = "26.1"
+fabric-api = "0.145.1+26.1"
+java = 25
+enabled = false
+
+[[platform]]
+name = "26.1.1"
+minecraft = "26.1.1"
+fabric-api = "0.145.4+26.1.1"
+java = 25
+enabled = false
+
+[[platform]]
+name = "26.1.2"
+minecraft = "26.1.2"
+fabric-api = "0.155.3+26.1.2"
+java = 25
+enabled = false
+
+[[platform]]
+name = "26.2"
+minecraft = "26.2"
+fabric-api = "0.161.0+26.2"
+java = 25
+enabled = false
+
+[[platform]]
+name = "26.3"
+minecraft = "26.3"
+fabric-api = "0.165.2+26.3"
+java = 25
+enabled = false

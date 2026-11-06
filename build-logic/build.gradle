@@ -1,0 +1,46 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+group = 'lv.cebbys.modularity'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(25) }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 25  // Loom 1.19 is Java 25 bytecode; Gradle runs on Java 25
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:all', '-Xlint:-serial', '-Xlint:-processing']
+}
+
+dependencies {
+    // The one Loom of the whole build: both plugin ids (fabric-loom-remap, fabric-loom) are in this artifact,
+    // so applying lv.cebbys.modularity in the root project puts it on the shared plugin classpath.
+    implementation 'net.fabricmc:fabric-loom:1.19.3'
+
+    testImplementation platform('org.junit:junit-bom:5.10.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+gradlePlugin {
+    plugins {
+        settings {
+            id = 'lv.cebbys.modularity.settings'
+            implementationClass = 'lv.cebbys.modularity.gradle.ModularitySettingsPlugin'
+        }
+        platform {
+            id = 'lv.cebbys.modularity'
+            implementationClass = 'lv.cebbys.modularity.gradle.ModularityPlatformPlugin'
+        }
+        root {
+            id = 'lv.cebbys.modularity.root'
+            implementationClass = 'lv.cebbys.modularity.gradle.ModularityRootPlugin'
+        }
+    }
+}

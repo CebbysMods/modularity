@@ -1,4 +1,6 @@
 pluginManagement {
+    // Our own plugins (docs/07-multi-version-build.md).
+    includeBuild 'build-logic'
     repositories {
         maven {
             name = 'Fabric'
@@ -7,6 +9,11 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+}
+
+plugins {
+    // Includes one project per platform of gradle/platforms.toml.
+    id 'lv.cebbys.modularity.settings'
 }
 
 rootProject.name = 'modularity'
