@@ -162,10 +162,10 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Layers assembled into `build/layered/` | Java has no per-file source override; copying the winning file of each path is simple, cacheable and keeps the source layers clean. |
 | Additions allowed, only removals must point at an existing file | On disk an override and an addition look the same; requiring every file to exist below would forbid new classes in newer versions. |
 | Identical copies fail the build | Enforces "only the changes" mechanically. |
-| Project dir = `platforms/fabric/versions/<version>` | The only per-version folder; created by the settings plugin if missing. |
+| Project dir = `platforms/<loader>/versions/<version>`, grouped under `:platforms:<version>` | One folder per loader and version, created by the settings plugin; the parent project aggregates them. |
 | Loom loaded once in the root `plugins {}` (`apply false`), subprojects apply it without a version | One Loom classloader for the whole build; separate versions per project break Loom's shared services. |
 | Utility folders pass their `gradle.properties` values to subprojects explicitly | Gradle 9 deprecates the implicit lookup in parent projects (an error in Gradle 10). |
-| Smoke server without refabslab locally | The refabslab jar is only built in CI (`-PmodJar`); locally the slab placement lines report FAIL by design, the mod loading checks are what counts. |
+| refabslab integration smoke (`tools/smoke-fabric-1.21.1`) is local only | It builds CebbysMods/refabslab first, which is not a Modularity check; CI runs only the platforms of the table. |
 | Three plugins: `.settings` (includes projects), `.root` (applies the platform plugin to every included platform, `buildAll`, `collectJars`, `smokeAll`), `lv.cebbys.modularity` (one platform) | Platform projects need no build file at all; the version folder only holds sources. |
 | Mod metadata, nested module and runtime mods in `[mod]` of `platforms.toml` | The plugin stays free of Modularity paths and can later build mods on Modularity. |
 | `enabled = false` per table entry until the version is ported; `-Pmodularity.platforms=21.1,26.3` selects platforms | All versions are recorded once; ports switch one flag; fast builds of a few platforms while porting. |
@@ -200,8 +200,8 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Smoke mod as source set `smoke` of each platform, own Loom runs in `build/smoke/run` | Same classpath and mappings as the platform; no second build, no maven round trip; each source set is its own mod (Loom `mods {}`). |
 | Fresh flat world per server run; the client opens that world with `--quickPlaySingleplayer` | The client test needs no world creation UI; the world matches the version. |
 | Log checks in `SmokeCheck` (unit tested): the 3 mods loaded and not nested, `[mvd] Detected version <exact>`, `[mpd] Detected platform FABRIC … <SIDE>`, end marker, no crash or failed mixin | The goal's verification, done mechanically; matched lines go to `build/smoke/{server,client}.txt`. |
-| `tools/smoke-fabric-1.21.1` kept | It is the refabslab integration test (double slabs, KleeSlabs) in CI, not a platform test. |
-| CI: JDK 21 and 25, `buildAll collectJars`, `smokeAll` under xvfb | Loom 1.19 needs Gradle on 25; 1.21.x toolchains need 21. |
+| `tools/smoke-fabric-1.21.1` kept | It is the refabslab integration test (double slabs, KleeSlabs), separate from the platform smoke tests. |
+| CI: JDK 8, 21 and 25, `buildAll collectJars`, `smokeAll` under xvfb | Loom 1.19 needs Gradle on 25; 1.21.x toolchains need 21; ForgeGradle's slime launcher needs 8. setup-java writes all three to `~/.m2/toolchains.xml`, where Gradle finds them. |
 | mvd/mpd compiled against 1.21.1 | They use no Minecraft classes; the oldest target gives one jar for all. |
 | Version calls behind small classes in `fabric/compat` (seams), added to `common` in their own commits before the port that needs them | A layer then replaces a 20-line seam instead of a large file, so "only changes per version" holds and big classes stay in `common` once. |
 | Entity base as a chain, one concern per class (`SavedEntity` ← `DamageEntity` ← `UsableEntity` ← `SolidEntity` ← `BoundsEntity` ← `InterpolatedEntity`) | Saving, damage, use, collision, bounds and interpolation changed in different versions; one class per concern means one replaced file per change, without copying the others. |
