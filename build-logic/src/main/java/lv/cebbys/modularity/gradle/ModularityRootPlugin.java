@@ -59,11 +59,12 @@ public class ModularityRootPlugin implements Plugin<Project> {
 
         root.getTasks().register("collectJars", Sync.class, t -> {
             t.setGroup("build");
-            t.setDescription("Copies every platform jar and the extra jars (mvd, mpd) to build/libs-all/");
-            // Sync, not Copy: removes jars of renamed or removed platforms.
-            for (PlatformTable.Platform p : included.stream().filter(p -> p.loader().publishes()).toList()) {
-                t.from((Callable<Object>) () -> root.project(p.projectPath()).getTasks()
-                        .named(ModularityPlatformPlugin.modJarTask(p)));
+            t.setDescription("Copies the universal jar of every Minecraft version and the extra jars (mvd, mpd) to "
+                    + "build/libs-all/");
+            // Sync, not Copy: removes jars of renamed or removed versions.
+            // One jar per version, not one per loader: the parent's jar merges every loader of that version.
+            for (String parent : versions) {
+                t.from((Callable<Object>) () -> root.project(parent).getTasks().named("jar"));
             }
             t.from((Callable<Object>) () -> ext.getExtraJars().get().stream().map(s -> {
                 int i = s.lastIndexOf(':');

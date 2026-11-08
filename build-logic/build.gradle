@@ -22,6 +22,9 @@ dependencies {
     // 1.21.1 MDKs, on the same shared classpath, so platforms and utilities apply them without a version.
     implementation 'net.neoforged:moddev-gradle:2.0.148'
     implementation 'net.minecraftforge:forgegradle:7.0.40'
+    // Relocating the loader class sets into the universal jar (UniversalJarTask).
+    implementation 'org.ow2.asm:asm:9.7.1'
+    implementation 'org.ow2.asm:asm-commons:9.7.1'
 
     testImplementation platform('org.junit:junit-bom:5.10.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'

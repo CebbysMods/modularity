@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The tasks of a version parent project ({@code :platforms:21.1}). */
 class ModularityVersionPluginTest {
@@ -43,10 +44,12 @@ class ModularityVersionPluginTest {
     }
 
     @Test
-    void buildIsSourcesClassesTestsAndJars(@TempDir Path dir) {
+    void buildIsClassesTestsAndJars(@TempDir Path dir) {
         Project parent = withChildren(dir);
-        assertEquals(List.of(":21.1:21.1-fabric:build", ":21.1:21.1-fabric:genSources", ":21.1:21.1-forge:build",
-                ":21.1:collectJars"), dependencies(parent, "build"));
+        // One jar for the whole version, built from the platform jars. Sources are not part of it: the shared
+        // loom-cache makes decompiling and building in one parallel run unsafe (see genSources).
+        assertEquals(List.of(":21.1:21.1-fabric:build", ":21.1:21.1-forge:build", ":21.1:jar"),
+                dependencies(parent, "build"));
     }
 
     @Test
@@ -58,13 +61,19 @@ class ModularityVersionPluginTest {
     }
 
     @Test
-    void sourcesOfOnePlatformFollowCompilationOfAnother(@TempDir Path dir) {
+    void tasksOfOnePlatformWaitForTheDecompilationOfAnother(@TempDir Path dir) {
         Project parent = withChildren(dir);
-        ModularityVersionPlugin.orderSourcesAfterCompilation(parent);
-        // Loom's shared loom-cache: every genSourcesWithVineflower waits for every compileJava of the version.
-        Task sources = parent.getChildProjects().get("21.1-fabric").getTasks().getByName("genSourcesWithVineflower");
-        assertEquals(List.of(":21.1:21.1-fabric:compileJava", ":21.1:21.1-forge:compileJava"),
-                sources.getMustRunAfter().getDependencies(sources).stream().map(Task::getPath).sorted().toList());
+        ModularityVersionPlugin.orderBuildAfterSources(parent);
+        // Loom's shared loom-cache: the decompilation deletes and rewrites the Maven directory every other platform
+        // of the version reads, so their tasks wait for it.
+        for (String name : List.of("compileJava", "build")) {
+            Task task = parent.getChildProjects().get("21.1-forge").getTasks().getByName(name);
+            assertEquals(List.of(":21.1:21.1-fabric:genSourcesWithVineflower"),
+                    task.getMustRunAfter().getDependencies(task).stream().map(Task::getPath).sorted().toList());
+        }
+        // The platform that decompiles is ordered by its own dependency chain: ordering it would cycle.
+        Task compile = parent.getChildProjects().get("21.1-fabric").getTasks().getByName("compileJava");
+        assertTrue(compile.getMustRunAfter().getDependencies(compile).isEmpty());
     }
 
     private static List<String> dependencies(Project project, String taskName) {

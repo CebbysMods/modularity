@@ -152,6 +152,14 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
         return platforms.stream().filter(p -> p.id().equals(id)).findFirst();
     }
 
+    /**
+     * Any platform of this Minecraft version ({@code 21.1}): the version parent. Every loader of a version shares
+     * the Minecraft version and it is the first one in table order, so this is stable.
+     */
+    public Optional<Platform> version(String name) {
+        return platforms.stream().filter(p -> p.name().equals(name)).findFirst();
+    }
+
     /** The platform with this Gradle project name ({@code 21.1-fabric}). */
     public Optional<Platform> platformByProjectName(String projectName) {
         return platforms.stream().filter(p -> p.projectName().equals(projectName)).findFirst();

@@ -109,9 +109,12 @@ Two plugins in `build-logic/`:
   project per Minecraft version, `:platforms:<version>` (dir `platforms/versions/<version>`), and one
   project per platform, `:platforms:<version>:<version>-<loader>` (dir
   `platforms/<loader>/versions/<version>`). Each parent gets `compile` (the children's `compileJava`),
-  `build` (sources, classes, tests and the publishable jars in `build/libs`), `clean` and `smoke`, plus
-  `genSources` and `collectJars` as the individual steps, aggregating its loader projects; a child without the
-  task is skipped, so `genSources` only runs where Loom provides it.
+  `build` (classes and tests of every loader, then `jar`), `clean` and `smoke`, plus `genSources` and `jar`
+  as the individual steps, aggregating its loader projects; a child without the task is skipped.
+  `genSources` decompiles once for the version (the Fabric platform; see the decision on the shared
+  `loom-cache` below), since the mappings are the same for every loader, and it is **not** part of `build`:
+  Gradle deletes the shared Maven directory before decompiling, which breaks any other Loom project reading
+  it in the same parallel run. Run it on its own after a Minecraft or mappings change.
 * `lv.cebbys.modularity` (project plugin), applied to each platform project:
   * applies Loom (`net.fabricmc.fabric-loom-remap` with Mojang mappings up to 1.21.11,
     `net.fabricmc.fabric-loom` without mappings from 26.1) and the Java target of the version;
@@ -122,7 +125,26 @@ Two plugins in `build-logic/`:
     nested);
   * tasks per platform: `compile` (the Java plugin's `compileJava`), `runClient`, `runServer`, `smokeServer`,
     `smokeClient`;
-  * root tasks: `buildAll`, `collectJars` (Sync into `build/libs-all`), `smokeAll`.
+  * root tasks: `buildAll`, `collectJars` (Sync of the universal jars into `build/libs-all`), `smokeAll`.
+
+### The universal jar
+
+The parent's `jar` task (`UniversalJarTask`) writes the one artifact of a version,
+`build/libs/modularity-<minecraft>-<modversion>.jar` (`<archive-prefix>-<minecraft>-<version>`, the first
+two from `gradle/platforms.toml`), loadable by Fabric, Quilt, Forge and NeoForge. The per-loader jars stay
+build intermediates and are not published.
+
+Fabric/Quilt are remapped to intermediary, Forge/NeoForge run with Mojang names, so one compiled class set
+cannot serve both: the universal jar carries **one class set per mapping family**, each moved under
+`lv.cebbys.mcmods.modularity.universal.<loader>` with ASM `ClassRemapper`, and every class reference inside
+it follows. `fabric.mod.json` entry points and the mixin config's `package` are rewritten to the relocated
+Fabric tree. Metadata stays one file per loader (`fabric.mod.json`, `META-INF/mods.toml`,
+`META-INF/neoforge.mods.toml`), the Fabric API and `modularity-api` nested jars are copied as they are, and
+shared resources (the icon) are stored once.
+
+Quilt contributes no classes of its own here: it loads the Fabric set through Fabric compatibility. Native
+`quilt.mod.json` entry points are bean `modularity-yfl7`; the Mixin refmap and Forge/NeoForge mixins, which
+make the jar production-ready, are beans `modularity-dals` and `modularity-vk1z`.
 
 ## 7.5 mvd and mpd
 
@@ -204,7 +226,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Fresh flat world per server run; the client opens that world with `--quickPlaySingleplayer` | The client test needs no world creation UI; the world matches the version. |
 | Log checks in `SmokeCheck` (unit tested): the 3 mods loaded and not nested, `[mvd] Detected version <exact>`, `[mpd] Detected platform FABRIC … <SIDE>`, end marker, no crash or failed mixin | The goal's verification, done mechanically; matched lines go to `build/smoke/{server,client}.txt`. |
 | `tools/smoke-fabric-1.21.1` kept | It is the refabslab integration test (double slabs, KleeSlabs), separate from the platform smoke tests. |
-| `genSourcesWithVineflower` runs after every `compileJava` of its version (`mustRunAfter`) | Loom keeps one mapped Minecraft jar per version in the root `loom-cache`, which Gradle sees as the output of one platform's `genSourcesWithVineflower` and an input of another's `compileJava`; a parallel build rejects that unless the two are ordered. The other direction is a cycle (Loom's `genSources` already depends on its own `compileJava`). |
+| One decompilation per version, by the Fabric platform (the parent's `genSources` points there); it is not part of `build`, and the other platforms' tasks `mustRunAfter` it | Loom keeps one mapped Minecraft jar and one Maven directory per version in the root `loom-cache` and declares the directory an output of `genSourcesWithVineflower`; Gradle deletes declared outputs before running a task. Decompiling inside a parallel build therefore deletes files the other platforms of the version read, so they wait for it, and `build` leaves decompilation to an explicit `genSources` run. Sources after compilation is impossible (Loom's `genSources` depends on its own `remapJar`). The mappings are the same for every loader of a version, so one decompilation serves them all. The utilities are compile dependencies of the platforms, so they cannot wait for a decompilation without a cycle: `genSources` is run on its own. |
 | CI: JDK 8, 21 and 25, `buildAll collectJars`, `smokeAll` under xvfb | Loom 1.19 needs Gradle on 25; 1.21.x toolchains need 21; ForgeGradle's slime launcher needs 8. setup-java writes all three to `~/.m2/toolchains.xml`, where Gradle finds them. |
 | mvd/mpd compiled against 1.21.1 | They use no Minecraft classes; the oldest target gives one jar for all. |
 | Version calls behind small classes in `fabric/compat` (seams), added to `common` in their own commits before the port that needs them | A layer then replaces a 20-line seam instead of a large file, so "only changes per version" holds and big classes stay in `common` once. |
