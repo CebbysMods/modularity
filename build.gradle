@@ -1,0 +1,38 @@
+subprojects {
+    group = rootProject.group
+    version = rootProject.version
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+configure([project(':modularity-api'), project(':modularity-testkit')]) {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    java {
+        toolchain { languageVersion = JavaLanguageVersion.of(Integer.parseInt(rootProject.java_toolchain)) }
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        // Bytecode targets the lowest Java any supported Minecraft version runs on (see gradle.properties).
+        options.release = Integer.parseInt(rootProject.java_api_release)
+        options.encoding = 'UTF-8'
+        options.compilerArgs += ['-Xlint:all', '-Xlint:-serial']
+    }
+
+    tasks.withType(Javadoc).configureEach {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+}

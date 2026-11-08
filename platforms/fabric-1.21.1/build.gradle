@@ -1,0 +1,48 @@
+plugins {
+    id 'fabric-loom' version '1.10-SNAPSHOT'
+    id 'maven-publish'
+}
+
+def minecraftVersion = '1.21.1'
+
+base {
+    archivesName = "modularity-fabric-${minecraftVersion}"
+}
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Minecraft 1.21.1 runs on Java 21 - the lowest Java this platform can target.
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraftVersion}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    api project(':modularity-api')
+    include project(':modularity-api')
+}
+
+processResources {
+    def props = [version: project.version, minecraft_version: minecraftVersion]
+    inputs.properties(props)
+    filesMatching('fabric.mod.json') {
+        expand(props)
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = base.archivesName.get()
+            from components.java
+        }
+    }
+}

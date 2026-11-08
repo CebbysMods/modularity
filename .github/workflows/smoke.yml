@@ -1,0 +1,61 @@
+name: in-game smoke test
+on:
+  workflow_dispatch:
+    inputs:
+      refabslab_ref:
+        description: refabslab branch to test
+        default: feature/modularity-port
+  push:
+    branches: [feature/milestone-1-core-api]
+  pull_request:
+
+jobs:
+  smoke-fabric-1-21-1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      SMOKE: tools/smoke-fabric-1.21.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: CebbysMods/refabslab
+          ref: ${{ inputs.refabslab_ref || 'feature/modularity-port' }}
+          path: .refabslab
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install virtual display and software OpenGL
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1 libgl1-mesa-dri libglx-mesa0
+      - name: Publish modularity
+        run: ./gradlew publishToMavenLocal
+      - name: Build refabslab
+        working-directory: .refabslab
+        run: ./gradlew build
+      - name: Prepare game directory
+        run: |
+          echo "MOD_JAR=$(ls $PWD/.refabslab/refabslab-fabric-1.21.1/build/libs/*.jar | grep -v sources | head -1)" >> $GITHUB_ENV
+          mkdir -p $SMOKE/run/saves
+          echo "eula=true" > $SMOKE/run/eula.txt
+          printf 'level-name=smoke\nlevel-type=minecraft\\:flat\nonline-mode=false\nspawn-protection=0\ngenerate-structures=false\nspawn-monsters=false\nspawn-animals=false\n' > $SMOKE/run/server.properties
+          printf 'onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:6\nsimulationDistance:6\nfov:0.25\nskipMultiplayerWarning:true\njoinedFirstServer:true\ntutorialStep:none\nsoundCategory_master:0.0\n' > $SMOKE/run/options.txt
+      - name: Dedicated server places double slabs
+        run: ./gradlew -p $SMOKE runServer -PmodJar="$MOD_JAR" -PwithKleeSlabs
+      - name: Copy world to client saves
+        run: cp -r $SMOKE/run/smoke $SMOKE/run/saves/smoke
+      - name: Client renders and takes screenshots
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew -p $SMOKE runClient -PmodJar="$MOD_JAR" -PwithKleeSlabs
+      - name: Smoke log
+        if: always()
+        run: grep -h "\[smoke\]\|Modularity\|ERROR\|Exception" $SMOKE/run/logs/*.log | head -200 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-fabric-1.21.1
+          path: |
+            tools/smoke-fabric-1.21.1/run/screenshots/
+            tools/smoke-fabric-1.21.1/run/logs/

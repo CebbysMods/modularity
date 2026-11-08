@@ -1,0 +1,13 @@
+description = 'In-memory Modularity platform for unit testing mods without Minecraft'
+
+dependencies {
+    api project(':modularity-api')
+
+    testImplementation platform("org.junit:junit-bom:${junit_version}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}

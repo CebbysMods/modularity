@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'modularity'
+
+// Loader independent modules, buildable with nothing but Maven Central.
+include 'modularity-api'
+include 'modularity-testkit'
+
+// Platform implementations need Minecraft and loader mavens.
+// Skip them with -Pmodularity.platforms=none (e.g. in offline environments).
+def platforms = providers.gradleProperty('modularity.platforms').getOrElse('all')
+if (platforms != 'none') {
+    include 'platforms:fabric-1.21.1'
+}
