@@ -10,8 +10,9 @@ import java.util.concurrent.Callable;
 
 /**
  * Parent project of one Minecraft version ({@code :platforms:21.1}): tasks that aggregate its loader projects
- * ({@code :platforms:21.1:21.1-fabric}, ...). Tasks that a child does not have are skipped, e.g. {@code genSources},
- * which only Loom (Fabric and Quilt) provides.
+ * ({@code :platforms:21.1:21.1-fabric}, ...) — {@code compileAll}, {@code build}, {@code test}, {@code clean},
+ * {@code smoke} and {@code genSources}. A child without the task is skipped, e.g. {@code genSources}, which only
+ * Loom (Fabric and Quilt) provides.
  */
 public class ModularityVersionPlugin implements Plugin<Project> {
 
@@ -19,6 +20,8 @@ public class ModularityVersionPlugin implements Plugin<Project> {
     public void apply(Project project) {
         aggregate(project, "compileAll", "compileJava", "build", "Compiles every loader platform of " + project.getName());
         aggregate(project, "build", "build", "build", "Builds every loader platform of " + project.getName());
+        aggregate(project, "test", "test", "verification", "Runs the tests of every loader platform of " + project.getName());
+        aggregate(project, "clean", "clean", "build", "Cleans every loader platform of " + project.getName());
         aggregate(project, "smoke", "smoke", "verification",
                 "Runs the smoke tests of every loader platform of " + project.getName());
         aggregate(project, "genSources", "genSources", "modularity",

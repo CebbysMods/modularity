@@ -21,12 +21,10 @@ class ModularityVersionPluginTest {
         Project fabric = ProjectBuilder.builder().withParent(parent).withName("21.1-fabric").build();
         Project forge = ProjectBuilder.builder().withParent(parent).withName("21.1-forge").build();
         for (Project child : List.of(fabric, forge)) {
-            child.getTasks().register("compileJava", t -> {
-            });
-            child.getTasks().register("build", t -> {
-            });
-            child.getTasks().register("smoke", t -> {
-            });
+            for (String task : List.of("compileJava", "build", "test", "clean", "smoke")) {
+                child.getTasks().register(task, t -> {
+                });
+            }
         }
         // Only Loom (Fabric, Quilt) has genSources; the aggregate must skip the platforms without one.
         fabric.getTasks().register("genSources", t -> {
@@ -37,6 +35,8 @@ class ModularityVersionPluginTest {
         assertEquals(List.of(":21.1:21.1-fabric:compileJava", ":21.1:21.1-forge:compileJava"),
                 dependencies(parent, "compileAll"));
         assertEquals(List.of(":21.1:21.1-fabric:build", ":21.1:21.1-forge:build"), dependencies(parent, "build"));
+        assertEquals(List.of(":21.1:21.1-fabric:test", ":21.1:21.1-forge:test"), dependencies(parent, "test"));
+        assertEquals(List.of(":21.1:21.1-fabric:clean", ":21.1:21.1-forge:clean"), dependencies(parent, "clean"));
         assertEquals(List.of(":21.1:21.1-fabric:smoke", ":21.1:21.1-forge:smoke"), dependencies(parent, "smoke"));
         assertEquals(List.of(":21.1:21.1-fabric:genSources"), dependencies(parent, "genSources"));
     }
