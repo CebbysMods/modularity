@@ -62,6 +62,13 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
             t.getOptions().setEncoding("UTF-8");
         });
 
+        // The Java plugin calls it compileJava; the version parents and the docs use compile everywhere.
+        project.getTasks().register("compile", t -> {
+            t.setGroup("build");
+            t.setDescription("Compiles the Java sources of " + platform.id());
+            t.dependsOn("compileJava");
+        });
+
         // Layered sources: build/layered/main/{java,resources} + generated metadata.
         File layerBase = new File(rootDir, LAYER_BASE);
         TaskProvider<AssembleLayersTask> assemble = project.getTasks().register("assembleLayers", AssembleLayersTask.class, t -> {
