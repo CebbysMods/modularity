@@ -108,8 +108,9 @@ Two plugins in `build-logic/`:
 * `lv.cebbys.modularity.settings` (settings plugin): reads `gradle/platforms.toml`, includes one parent
   project per Minecraft version, `:platforms:<version>` (dir `platforms/versions/<version>`), and one
   project per platform, `:platforms:<version>:<version>-<loader>` (dir
-  `platforms/<loader>/versions/<version>`). Each parent gets `compileAll`, `build`, `smoke` and
-  `genSources` aggregating its loader projects; `genSources` only runs where Loom provides it.
+  `platforms/<loader>/versions/<version>`). Each parent gets `compileAll` (the children's `compileJava`),
+  `build`, `smoke` and `genSources` aggregating its loader projects; a child without the task is skipped, so
+  `genSources` only runs where Loom provides it.
 * `lv.cebbys.modularity` (project plugin), applied to each platform project:
   * applies Loom (`net.fabricmc.fabric-loom-remap` with Mojang mappings up to 1.21.11,
     `net.fabricmc.fabric-loom` without mappings from 26.1) and the Java target of the version;

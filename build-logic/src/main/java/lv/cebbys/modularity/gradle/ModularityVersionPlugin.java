@@ -17,18 +17,24 @@ public class ModularityVersionPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        aggregate(project, "compileAll", "build", "Compiles every loader platform of " + project.getName());
-        aggregate(project, "build", "build", "Builds every loader platform of " + project.getName());
-        aggregate(project, "smoke", "verification", "Runs the smoke tests of every loader platform of " + project.getName());
-        aggregate(project, "genSources", "modularity",
+        aggregate(project, "compileAll", "compileJava", "build", "Compiles every loader platform of " + project.getName());
+        aggregate(project, "build", "build", "build", "Builds every loader platform of " + project.getName());
+        aggregate(project, "smoke", "smoke", "verification",
+                "Runs the smoke tests of every loader platform of " + project.getName());
+        aggregate(project, "genSources", "genSources", "modularity",
                 "Generates Minecraft sources for the loader platforms of " + project.getName() + " that support it");
     }
 
-    private static void aggregate(Project project, String name, String group, String description) {
+    /**
+     * @param name      the task on this project
+     * @param childTask the task of the child projects it depends on; they do not share every name
+     *                  ({@code compileAll} runs each child's {@code compileJava})
+     */
+    private static void aggregate(Project project, String name, String childTask, String group, String description) {
         project.getTasks().register(name, task -> {
             task.setGroup(group);
             task.setDescription(description);
-            task.dependsOn((Callable<Object>) () -> childTasks(project, name));
+            task.dependsOn((Callable<Object>) () -> childTasks(project, childTask));
         });
     }
 
