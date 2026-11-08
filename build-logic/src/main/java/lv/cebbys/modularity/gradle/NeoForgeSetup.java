@@ -19,6 +19,14 @@ final class NeoForgeSetup {
     static void apply(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main) {
         NeoForgeExtension neoForge = project.getExtensions().getByType(NeoForgeExtension.class);
         neoForge.setVersion(platform.loaderVersion());
+        // Parchment (parameter names, javadoc) over the official mappings, compile time only.
+        if (platform.parchment() != null) {
+            ModularityPlatformPlugin.parchmentRepository(project);
+            neoForge.parchment(p -> {
+                p.getMinecraftVersion().set(platform.minecraft().toString());
+                p.getMappingsVersion().set(platform.parchment());
+            });
+        }
 
         DependencyHandler deps = project.getDependencies();
         for (String path : table.mod().nested()) {

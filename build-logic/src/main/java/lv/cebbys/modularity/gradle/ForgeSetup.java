@@ -36,7 +36,14 @@ final class ForgeSetup {
     static void apply(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main) {
         MinecraftExtensionForProject minecraft = project.getExtensions().getByType(MinecraftExtensionForProject.class);
         ForgeGradleExtension fg = project.getExtensions().getByType(ForgeGradleExtension.class);
-        minecraft.mappings("official", platform.minecraft().toString());
+        if (platform.parchment() == null) {
+            minecraft.mappings("official", platform.minecraft().toString());
+        } else {
+            // Parchment (parameter names, javadoc) over the official mappings, compile time only. ForgeGradle's own
+            // notation: <parchment timestamp>-<minecraft version>.
+            ModularityPlatformPlugin.parchmentRepository(project);
+            minecraft.mappings("parchment", platform.parchment() + "-" + platform.minecraft());
+        }
         minecraft.mavenizer(project.getRepositories());
         project.getRepositories().maven(fg.getForgeMaven());
         project.getRepositories().maven(fg.getMinecraftLibsMaven());

@@ -27,9 +27,11 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
      *
      * @param loaderVersion Fabric Loader, Quilt Loader, NeoForge or Forge version
      * @param fabricApi     Fabric API version (Fabric and Quilt), else {@code null}
+     * @param parchment     Parchment version of this Minecraft version ({@code [parchment]} in the table), else
+     *                      {@code null}: official Mojang mappings alone
      */
     public record Platform(String name, Loader loader, McVersion minecraft, String loaderVersion, String fabricApi,
-                           int java, String modmenu, boolean enabled, boolean smokeClient) {
+                           int java, String modmenu, boolean enabled, boolean smokeClient, String parchment) {
 
         /** {@code <loader>-<name>}, e.g. {@code fabric-21.1}: selection id and {@code -Pmodularity.platforms} value. */
         public String id() {
@@ -68,6 +70,15 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
 
         public boolean fabricLike() {
             return loader == Loader.FABRIC || loader == Loader.QUILT;
+        }
+
+        /**
+         * {@code org.parchmentmc.data:parchment-<minecraft>:<parchment>@zip}, the layered-mapping notation of Loom;
+         * {@code null} without Parchment (official Mojang mappings alone).
+         */
+        public String parchmentArtifact() {
+            return parchment == null ? null
+                    : "org.parchmentmc.data:parchment-" + minecraft + ":" + parchment + "@zip";
         }
     }
 
@@ -110,6 +121,9 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
                 (List<String>) mod.getOrDefault("nested", List.of()), (List<String>) mod.getOrDefault("mods", List.of()),
                 (String) mod.get("icon"));
 
+        // Parchment is published per Minecraft version, not per loader: one entry applies to every platform of it.
+        Map<String, Object> parchment = (Map<String, Object>) toml.getOrDefault("parchment", Map.of());
+
         List<Platform> platforms = new ArrayList<>();
         List<String> ids = new ArrayList<>();
         for (Map<String, Object> p : (List<Map<String, Object>>) toml.getOrDefault("platform", List.of())) {
@@ -139,7 +153,14 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
             platforms.add(new Platform(name, loader, minecraft, (String) loaderVersion, fabricApi,
                     (Integer) require(p, "java", where), (String) p.get("modmenu"),
                     (Boolean) p.getOrDefault("enabled", true),
-                    (Boolean) p.getOrDefault("smoke-client", false)));
+                    (Boolean) p.getOrDefault("smoke-client", false),
+                    (String) parchment.get(minecraft.toString())));
+        }
+        for (String version : parchment.keySet()) {
+            if (platforms.stream().noneMatch(p -> p.minecraft().toString().equals(version))) {
+                throw new IllegalArgumentException("[parchment] " + version + ": no platform of that Minecraft version in "
+                        + FILE);
+            }
         }
         platforms.sort(java.util.Comparator.comparing(Platform::loader).thenComparing(Platform::minecraft));
         String fabricLoader = (String) defaults.get("fabric-loader");

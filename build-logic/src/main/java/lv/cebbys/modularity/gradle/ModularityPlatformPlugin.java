@@ -122,7 +122,7 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         DependencyHandler deps = project.getDependencies();
         deps.add("minecraft", "com.mojang:minecraft:" + platform.minecraft());
         if (platform.remap()) {
-            deps.add("mappings", loom.officialMojangMappings());
+            deps.add("mappings", mappings(project, loom, platform));
         }
         String modConfig = platform.remap() ? "modImplementation" : "implementation";
         if (platform.loader() == Loader.QUILT) {
@@ -169,6 +169,37 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
             QuiltSetup.mainClasses(loom, project);
         }
 
+    }
+
+    /**
+     * The mappings of obfuscated Minecraft: official Mojang names, layered with Parchment (parameter names and
+     * javadoc) where the table has a Parchment version for it. Parchment is compile-time metadata only: class and
+     * member names, the remapped jar and the runtime are the same either way.
+     */
+    private static Object mappings(Project project, LoomGradleExtensionAPI loom, PlatformTable.Platform platform) {
+        if (platform.parchment() == null) {
+            return loom.officialMojangMappings();
+        }
+        parchmentRepository(project);
+        return loom.layered(builder -> {
+            builder.officialMojangMappings();
+            builder.parchment(platform.parchmentArtifact());
+        });
+    }
+
+    /**
+     * The repository Parchment is published to, filtered to it: it is a single artifact group, not a proxy for
+     * everything else. Shared with the NeoForge and Forge setups.
+     */
+    static void parchmentRepository(Project project) {
+        if (project.getRepositories().findByName("Parchment") != null) {
+            return;
+        }
+        project.getRepositories().maven(r -> {
+            r.setName("Parchment");
+            r.setUrl("https://maven.parchmentmc.org/");
+            r.content(c -> c.includeGroup("org.parchmentmc.data"));
+        });
     }
 
     /** The jar task that produces the mod jar: {@code remapJar} for obfuscated versions, else {@code jar}. */

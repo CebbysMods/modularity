@@ -118,6 +118,12 @@ Two plugins in `build-logic/`:
 * `lv.cebbys.modularity` (project plugin), applied to each platform project:
   * applies Loom (`net.fabricmc.fabric-loom-remap` with Mojang mappings up to 1.21.11,
     `net.fabricmc.fabric-loom` without mappings from 26.1) and the Java target of the version;
+  * adds Parchment over the official mappings where `[parchment]` in `gradle/platforms.toml` has a version
+    for the Minecraft version (Loom `layered`, ModDevGradle `neoForge.parchment`, ForgeGradle
+    `mappings("parchment", "<parchment>-<minecraft>")`), from `https://maven.parchmentmc.org`. Parchment is
+    compile-time metadata (parameter names, javadoc): class and member names, the remapped jar and the runtime
+    do not change, so the universal jar is the same with or without it. A version without a release builds
+    with the official mappings alone;
   * assembles the layers into `build/layered/` (task `assembleLayers`) and compiles from there;
   * generates `fabric.mod.json` (exact Minecraft version, depends on `mvd` and `mpd`) and the mixin
     config from the mixin classes actually present after layering;
@@ -227,6 +233,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Log checks in `SmokeCheck` (unit tested): the 3 mods loaded and not nested, `[mvd] Detected version <exact>`, `[mpd] Detected platform FABRIC … <SIDE>`, end marker, no crash or failed mixin | The goal's verification, done mechanically; matched lines go to `build/smoke/{server,client}.txt`. |
 | `tools/smoke-fabric-1.21.1` kept | It is the refabslab integration test (double slabs, KleeSlabs), separate from the platform smoke tests. |
 | One decompilation per version, by the Fabric platform (the parent's `genSources` points there); it is not part of `build`, and the other platforms' tasks `mustRunAfter` it | Loom keeps one mapped Minecraft jar and one Maven directory per version in the root `loom-cache` and declares the directory an output of `genSourcesWithVineflower`; Gradle deletes declared outputs before running a task. Decompiling inside a parallel build therefore deletes files the other platforms of the version read, so they wait for it, and `build` leaves decompilation to an explicit `genSources` run. Sources after compilation is impossible (Loom's `genSources` depends on its own `remapJar`). The mappings are the same for every loader of a version, so one decompilation serves them all. The utilities are compile dependencies of the platforms, so they cannot wait for a decompilation without a cycle: `genSources` is run on its own. |
+| Parchment layered over the official mappings, one entry per Minecraft version in `[parchment]` | Parameter names and javadoc in the Minecraft classes the platforms compile against, without changing names, remapping or runtime: the universal jar is byte-identical. It is published per Minecraft version, not per loader, so one entry covers Fabric, Quilt, Forge and NeoForge; versions without a release (1.21.2, 26.x) build with the official mappings alone. Each plugin has its own shape: Loom `layered`, ModDevGradle `neoForge.parchment`, ForgeGradle `mappings("parchment", …)`. |
 | CI: JDK 8, 21 and 25, `buildAll collectJars`, `smokeAll` under xvfb | Loom 1.19 needs Gradle on 25; 1.21.x toolchains need 21; ForgeGradle's slime launcher needs 8. setup-java writes all three to `~/.m2/toolchains.xml`, where Gradle finds them. |
 | mvd/mpd compiled against 1.21.1 | They use no Minecraft classes; the oldest target gives one jar for all. |
 | Version calls behind small classes in `fabric/compat` (seams), added to `common` in their own commits before the port that needs them | A layer then replaces a 20-line seam instead of a large file, so "only changes per version" holds and big classes stay in `common` once. |

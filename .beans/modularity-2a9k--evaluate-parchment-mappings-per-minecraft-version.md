@@ -1,25 +1,47 @@
 ---
 # modularity-2a9k
-title: Evaluate Parchment mappings per Minecraft version
-status: todo
-type: task
-priority: low
+title: Parchment mappings per Minecraft version
+status: in-progress
+type: feature
+priority: high
 tags:
     - build
     - tooling
 created_at: 2026-11-08T12:03:40Z
-updated_at: 2026-11-08T12:03:40Z
+updated_at: 2026-11-08T20:10:29Z
 ---
 
-`build-logic` maps Minecraft with `loom.officialMojangMappings()` only (ModularityPlatformPlugin.java:118). The abandoned Aug 2025 1.21.5 attempt pinned Parchment (`parchment_version=2025.04.19` in gradle.properties) for readable parameter names when working inside Minecraft code.
+Minecraft is mapped with official Mojang mappings; Parchment adds parameter names and javadoc on top. It is
+compile-time metadata: class and member names, the remapped output and runtime behaviour do not change, so
+it does not affect the universal jar or its relocation.
 
-## Scope
-- Check Parchment availability for every platform in gradle/platforms.toml (1.21.1 through 26.3, plus Quilt/NeoForge/Forge).
-- Prototype one platform; measure build time and remap impact.
-- Decide: enable everywhere, only for development/smoke runs, or keep official Mojang mappings.
-- Record the decision (and per-version coordinates, if adopted) in docs/07-multi-version-build.md.
+## Availability (maven.parchmentmc.org, checked 2026-11-08)
+Artifacts exist for 1.21.1, 1.21.3-1.21.11 (no 1.21.2 artifact; 1.21.3 covers that line) and none for
+26.x. 1.21.1 release: 2024.11.17.
+
+## Done
+- [x] `[parchment]` section in gradle/platforms.toml: Minecraft version -> Parchment version, only where a
+      release exists (an absent entry means official-only mappings for that version); a key without a platform
+      of that version is a table error. `1.21.1 = "2024.11.17"` added.
+- [x] `PlatformTable.Platform` carries the Parchment version (`null` = official only) and the Loom artifact
+      notation (`parchmentArtifact()`).
+- [x] Fabric/Quilt: `loom.layered { officialMojangMappings(); parchment(<artifact>) }`
+- [x] NeoForge (ModDevGradle): `neoForge.parchment.minecraftVersion` / `mappingsVersion`
+- [x] Forge (ForgeGradle 7): `minecraft.mappings("parchment", "<parchment>-<minecraft>")`
+- [x] parchmentmc Maven (`https://maven.parchmentmc.org`, content-filtered to `org.parchmentmc.data`) added
+      once per platform by `ModularityPlatformPlugin.parchmentRepository`: neither Loom, ModDevGradle nor
+      ForgeGradle adds it on its own.
+- [x] Parser test (`TableAndMetadataTest.parchmentIsPerMinecraftVersionAndOptional`); docs/07 7.4 and the
+      decisions table.
+- [x] Verify: `:platforms:21.1:21.1-{fabric,quilt,neoforge,forge}:compileJava` and `:platforms:21.1:build`
+      succeed with the Parchment artifact on the mappings; Forge recompiled with it (`--rerun`).
+
+## Remaining
+- [ ] Byte-compare the universal jar against one built without Parchment (expected identical: metadata only).
+- [ ] Readable parameter names in the IDE once `genSources` has run for the version.
 
 ## Acceptance
-- [ ] Availability reviewed for all platforms
-- [ ] Prototype build on one platform
-- [ ] Decision and trade-offs recorded in docs/07
+- [x] Every version in the table without a Parchment release builds with official mappings alone (code path
+      covered by the parser test; no such version is enabled today)
+- [ ] Parameter names in Minecraft classes are readable in the IDE on every 21.1 platform
+- [ ] The universal jar is byte-identical to the one built without Parchment (metadata only)

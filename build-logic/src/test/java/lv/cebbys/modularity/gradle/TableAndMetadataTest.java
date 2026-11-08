@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -179,6 +180,28 @@ class TableAndMetadataTest {
         assertTrue(json.contains("\"description\": \"API. Fabric 1.21.1 platform.\""), json);
         assertFalse(ModMetadata.fabricModJson(t.mod(), t.platform("fabric-26.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", false)
                 .contains("mixins"));
+    }
+
+    @Test
+    void parchmentIsPerMinecraftVersionAndOptional() {
+        PlatformTable t = PlatformTable.parse(TABLE + """
+
+                [parchment]
+                "1.21.1" = "2024.11.17"
+                """);
+        PlatformTable.Platform p = t.platform("fabric-21.1").orElseThrow();
+        assertEquals("2024.11.17", p.parchment());
+        assertEquals("org.parchmentmc.data:parchment-1.21.1:2024.11.17@zip", p.parchmentArtifact());
+        // Only where a release exists: 26.x has none and keeps the official mappings alone.
+        PlatformTable.Platform plain = t.platform("fabric-26.1").orElseThrow();
+        assertNull(plain.parchment());
+        assertNull(plain.parchmentArtifact());
+        // A section key that no platform builds is a typo, not a silent no-op.
+        assertThrows(IllegalArgumentException.class, () -> PlatformTable.parse(TABLE + """
+
+                [parchment]
+                "1.20.1" = "2024.11.17"
+                """), "no platform of that Minecraft version");
     }
 
     @Test
