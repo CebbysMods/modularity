@@ -9,6 +9,10 @@ public interface DataOutput {
 
     DataOutput putBoolean(String key, boolean value);
 
+    DataOutput putDouble(String key, double value);
+
+    DataOutput putLong(String key, long value);
+
     default DataOutput putId(String key, Id value) {
         return putString(key, value.toString());
     }

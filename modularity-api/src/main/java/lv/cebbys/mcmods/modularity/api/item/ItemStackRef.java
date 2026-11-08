@@ -15,4 +15,12 @@ public interface ItemStackRef extends Handle {
 
     /** The block this item places, when the item is a block item. */
     Optional<BlockRef> block();
+
+    /** A copy with another count. */
+    ItemStackRef withCount(int count);
+
+    int maxStackSize();
+
+    /** Removes {@code amount} items from this stack (in place). */
+    void shrink(int amount);
 }

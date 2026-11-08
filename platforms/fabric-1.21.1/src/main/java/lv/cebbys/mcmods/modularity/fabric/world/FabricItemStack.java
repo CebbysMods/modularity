@@ -32,6 +32,21 @@ public record FabricItemStack(ItemStack stack) implements ItemStackRef {
     }
 
     @Override
+    public ItemStackRef withCount(int count) {
+        return new FabricItemStack(stack.copyWithCount(count));
+    }
+
+    @Override
+    public int maxStackSize() {
+        return stack.getMaxStackSize();
+    }
+
+    @Override
+    public void shrink(int amount) {
+        stack.shrink(amount);
+    }
+
+    @Override
     public Object handle() {
         return stack;
     }
