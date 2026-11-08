@@ -60,6 +60,35 @@ public class ModularityVersionPlugin implements Plugin<Project> {
             // build of a version, after a Minecraft or mappings change.
             task.dependsOn((Callable<Object>) () -> childTasks(project, "genSources"));
         });
+
+        // Children are registered after this plugin (the root plugin applies it while evaluating the root).
+        project.getGradle().projectsEvaluated(gradle -> orderSourcesAfterCompilation(project));
+    }
+
+    /**
+     * Loom keeps one mapped Minecraft jar per version in the root {@code .gradle/loom-cache}, so the
+     * {@code compileJava} of one platform reads a file that the {@code genSourcesWithVineflower} of another (Fabric,
+     * Quilt) writes. A parallel build rejects that as an undeclared dependency, so the two are ordered within the
+     * version (every version has its own mappings and jar). Sources after compilation, not before: Loom's
+     * {@code genSourcesWithVineflower} already depends on its own {@code compileJava}, so the other direction is a
+     * cycle. {@code mustRunAfter}, not {@code dependsOn}: compiling does not force decompilation.
+     */
+    static void orderSourcesAfterCompilation(Project parent) {
+        // Paths, not tasks: creating a child's task here would resolve its configurations while the parent is
+        // still being configured, which Gradle forbids. The names are read without creating anything.
+        List<String> compilations = parent.getChildProjects().values().stream()
+                .filter(child -> child.getTasks().getNames().contains("compileJava"))
+                .map(child -> child.getPath() + ":compileJava")
+                .toList();
+        if (compilations.isEmpty()) {
+            return;
+        }
+        for (Project child : parent.getChildProjects().values()) {
+            if (child.getTasks().getNames().contains("genSourcesWithVineflower")) {
+                // configure, not configureEach: registration is all that happens now, realisation is deferred.
+                child.getTasks().named("genSourcesWithVineflower").configure(task -> task.mustRunAfter(compilations));
+            }
+        }
     }
 
     /**

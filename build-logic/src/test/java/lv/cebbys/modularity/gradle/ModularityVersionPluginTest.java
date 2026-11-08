@@ -20,13 +20,15 @@ class ModularityVersionPluginTest {
         Project fabric = ProjectBuilder.builder().withParent(parent).withName("21.1-fabric").build();
         Project forge = ProjectBuilder.builder().withParent(parent).withName("21.1-forge").build();
         for (Project child : List.of(fabric, forge)) {
-            for (String task : List.of("compile", "build", "clean", "smoke")) {
+            for (String task : List.of("compile", "compileJava", "build", "clean", "smoke")) {
                 child.getTasks().register(task, t -> {
                 });
             }
         }
         // Only Loom (Fabric, Quilt) has genSources; the aggregates must skip the platforms without one.
         fabric.getTasks().register("genSources", t -> {
+        });
+        fabric.getTasks().register("genSourcesWithVineflower", t -> {
         });
         parent.getPluginManager().apply(ModularityVersionPlugin.class);
         return parent;
@@ -53,6 +55,16 @@ class ModularityVersionPluginTest {
         assertEquals(List.of(":21.1:21.1-fabric:clean", ":21.1:21.1-forge:clean"), dependencies(parent, "clean"));
         assertEquals(List.of(":21.1:21.1-fabric:smoke", ":21.1:21.1-forge:smoke"), dependencies(parent, "smoke"));
         assertEquals(List.of(":21.1:21.1-fabric:genSources"), dependencies(parent, "genSources"));
+    }
+
+    @Test
+    void sourcesOfOnePlatformFollowCompilationOfAnother(@TempDir Path dir) {
+        Project parent = withChildren(dir);
+        ModularityVersionPlugin.orderSourcesAfterCompilation(parent);
+        // Loom's shared loom-cache: every genSourcesWithVineflower waits for every compileJava of the version.
+        Task sources = parent.getChildProjects().get("21.1-fabric").getTasks().getByName("genSourcesWithVineflower");
+        assertEquals(List.of(":21.1:21.1-fabric:compileJava", ":21.1:21.1-forge:compileJava"),
+                sources.getMustRunAfter().getDependencies(sources).stream().map(Task::getPath).sorted().toList());
     }
 
     private static List<String> dependencies(Project project, String taskName) {
