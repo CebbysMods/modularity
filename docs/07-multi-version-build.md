@@ -52,7 +52,9 @@ tools/smoke/fabric | neoforge | forge      smoke-test mods (same layering, see 7
 
 Range folder names: `1.21.5+` (that version and every later one) or `1.21.5-1.21.8` (inclusive).
 
-Platforms are `<loader>-<version>` (`fabric-21.1`, `neoforge-21.1`), projects `:platforms:<loader>-<version>`.
+Platforms are `<loader>-<version>` (`fabric-21.1`, `neoforge-21.1`) as selection ids; their projects are
+`:platforms:<version>:<version>-<loader>` (`:platforms:21.1:21.1-fabric`), grouped under one parent per
+Minecraft version.
 `-Pmodularity.platforms=fabric-21.1,neoforge-21.1` selects platforms by id, a bare version (`21.1`) every
 loader's platform of that version.
 
@@ -103,9 +105,11 @@ form. Never copy common code into a version folder.
 
 Two plugins in `build-logic/`:
 
-* `lv.cebbys.modularity.settings` (settings plugin): reads `gradle/platforms.toml` and includes one
-  project per platform, `:platforms:fabric-<version>` with project dir
-  `platforms/fabric/versions/<version>`.
+* `lv.cebbys.modularity.settings` (settings plugin): reads `gradle/platforms.toml`, includes one parent
+  project per Minecraft version, `:platforms:<version>` (dir `platforms/versions/<version>`), and one
+  project per platform, `:platforms:<version>:<version>-<loader>` (dir
+  `platforms/<loader>/versions/<version>`). Each parent gets `compileAll`, `build`, `smoke` and
+  `genSources` aggregating its loader projects; `genSources` only runs where Loom provides it.
 * `lv.cebbys.modularity` (project plugin), applied to each platform project:
   * applies Loom (`net.fabricmc.fabric-loom-remap` with Mojang mappings up to 1.21.11,
     `net.fabricmc.fabric-loom` without mappings from 26.1) and the Java target of the version;

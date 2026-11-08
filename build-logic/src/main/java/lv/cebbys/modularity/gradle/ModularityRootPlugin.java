@@ -7,12 +7,15 @@ import org.gradle.api.tasks.Sync;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
- * Root project: applies {@code lv.cebbys.modularity} to every included platform project and registers
- * {@code buildAll}, {@code collectJars} (Sync into {@code build/libs-all}) and {@code smokeAll}.
+ * Root project: applies {@code lv.cebbys.modularity} to every included platform project and the version plugin to
+ * their parents, and registers {@code buildAll}, {@code collectJars} (Sync into {@code build/libs-all}) and
+ * {@code smokeAll}.
  */
 public class ModularityRootPlugin implements Plugin<Project> {
 
@@ -28,6 +31,7 @@ public class ModularityRootPlugin implements Plugin<Project> {
         Extension ext = root.getExtensions().create("modularity", Extension.class);
 
         List<PlatformTable.Platform> included = new ArrayList<>();
+        Set<String> versions = new LinkedHashSet<>();
         for (PlatformTable.Platform p : table.platforms()) {
             Project project = root.findProject(p.projectPath());
             // Only projects the settings plugin placed in the layout (older hand-written platform projects
@@ -36,6 +40,12 @@ public class ModularityRootPlugin implements Plugin<Project> {
                     .equals(new File(root.getRootDir(), p.projectDir()).toPath().normalize())) {
                 included.add(p);
                 project.getPluginManager().apply(ModularityPlatformPlugin.class);
+                if (versions.add(p.parentPath())) {
+                    Project parent = root.findProject(p.parentPath());
+                    if (parent != null) {
+                        parent.getPluginManager().apply(ModularityVersionPlugin.class);
+                    }
+                }
             }
         }
 
@@ -65,8 +75,8 @@ public class ModularityRootPlugin implements Plugin<Project> {
         root.getTasks().register("smokeAll", t -> {
             t.setGroup("verification");
             t.setDescription("Runs the smoke tests of every included platform");
-            for (PlatformTable.Platform p : included) {
-                t.dependsOn(p.projectPath() + ":smoke");
+            for (String parent : versions) {
+                t.dependsOn(parent + ":smoke");
             }
         });
     }

@@ -22,7 +22,8 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
     public static final String FILE = "gradle/platforms.toml";
 
     /**
-     * One platform: one loader, one Minecraft version, one project ({@code :platforms:<loader>-<name>}).
+     * One platform: one loader, one Minecraft version, one project
+     * ({@code :platforms:<name>:<name>-<loader>}).
      *
      * @param loaderVersion Fabric Loader, Quilt Loader, NeoForge or Forge version
      * @param fabricApi     Fabric API version (Fabric and Quilt), else {@code null}
@@ -30,14 +31,29 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
     public record Platform(String name, Loader loader, McVersion minecraft, String loaderVersion, String fabricApi,
                            int java, String modmenu, boolean enabled, boolean smokeClient) {
 
-        /** {@code <loader>-<name>}, e.g. {@code fabric-21.1}: project name and {@code -Pmodularity.platforms} value. */
+        /** {@code <loader>-<name>}, e.g. {@code fabric-21.1}: selection id and {@code -Pmodularity.platforms} value. */
         public String id() {
             return loader.id() + "-" + name;
         }
 
-        /** Project path, e.g. {@code :platforms:fabric-21.1}. */
+        /** Gradle project name, version first, e.g. {@code 21.1-fabric}. */
+        public String projectName() {
+            return name + "-" + loader.id();
+        }
+
+        /** Parent project of every loader of this version, e.g. {@code :platforms:21.1}. */
+        public String parentPath() {
+            return ":platforms:" + name;
+        }
+
+        /** Directory of the parent project, e.g. {@code platforms/versions/21.1}. */
+        public String parentDir() {
+            return "platforms/versions/" + name;
+        }
+
+        /** Project path, e.g. {@code :platforms:21.1:21.1-fabric}. */
         public String projectPath() {
-            return ":platforms:" + id();
+            return parentPath() + ":" + projectName();
         }
 
         /** Project dir relative to the root, e.g. {@code platforms/fabric/versions/21.1}. */
@@ -134,6 +150,16 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
     /** The platform with this id ({@code fabric-21.1}). */
     public Optional<Platform> platform(String id) {
         return platforms.stream().filter(p -> p.id().equals(id)).findFirst();
+    }
+
+    /** The platform with this Gradle project name ({@code 21.1-fabric}). */
+    public Optional<Platform> platformByProjectName(String projectName) {
+        return platforms.stream().filter(p -> p.projectName().equals(projectName)).findFirst();
+    }
+
+    /** The parent projects of every platform ({@code :platforms:21.1}), in table order. */
+    public List<String> parentPaths() {
+        return platforms.stream().map(Platform::parentPath).distinct().toList();
     }
 
     public List<Platform> enabled() {
