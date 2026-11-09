@@ -13,7 +13,7 @@ public final class ModularityServer {
     }
 
     public static void init() {
-        ModularityCore.forEachMod("server initialization",
+        ModularityCommon.forEachMod("server initialization",
                 loaded -> loaded.mod().initServer(new Context(loaded.modId())));
     }
 

@@ -2,7 +2,7 @@ package lv.cebbys.mcmods.modularity.fabric.entrypoint;
 
 import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
-import lv.cebbys.mcmods.modularity.platform.ModularityCore;
+import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
 import lv.cebbys.mcmods.modularity.platform.compat.SyncedData;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderHooks;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderInfo;
@@ -19,6 +19,6 @@ public final class ModularityFabricCommon implements ModInitializer {
         EntryPoints.active(EntryPoint.COMMON, FabricLoaderName.get());
         Loaders.install(new FabricLoaderInfo(), new FabricRenderData(), new FabricStorageBackend(), new FabricLoaderHooks());
         SyncedData.init();
-        ModularityCore.initCommon(FabricLoaderName.get());
+        ModularityCommon.init(FabricLoaderName.get());
     }
 }

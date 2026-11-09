@@ -24,7 +24,7 @@ and safe before the loader seams are installed.
     `ModularityFabricServer.onInitializeServer` -> `server`; `guest/GuestMods.onPreLaunch` -> `launch`
   - Forge: `ModularityForge` constructor -> `mod-constructor`
   - NeoForge: `ModularityNeoForgeCommon` constructor -> `mod-constructor`
-- Pass `McRuntime.INSTANCE.loader()` to the existing `ModularityCore.initCommon` summary so Quilt reports `QUILT`
+- Pass `McRuntime.INSTANCE.loader()` to the existing `ModularityCommon.init` summary so Quilt reports `QUILT`
   instead of `Fabric`.
 
 ## Notes

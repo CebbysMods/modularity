@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /** Initializes the Modularity mods; the loader's entrypoint installs the seams ({@link Loaders}) first. */
-public final class ModularityCore {
+public final class ModularityCommon {
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
     private static final List<LoadedMod> MODS = new ArrayList<>();
 
@@ -22,7 +22,7 @@ public final class ModularityCore {
     public record LoadedMod(String modId, ModularMod mod) {
     }
 
-    private ModularityCore() {
+    private ModularityCommon() {
     }
 
     public static List<LoadedMod> mods() {
@@ -35,7 +35,7 @@ public final class ModularityCore {
     }
 
     /** Installs the runtime and runs {@code initCommon} of every mod with a Modularity entrypoint. */
-    public static void initCommon(String loaderName) {
+    public static void init(String loaderName) {
         ModularModRegistry.freeze();
         Modularity.install(McRuntime.INSTANCE);
         List<LoaderInfo.ModEntry> entries = Loaders.info().modularMods();

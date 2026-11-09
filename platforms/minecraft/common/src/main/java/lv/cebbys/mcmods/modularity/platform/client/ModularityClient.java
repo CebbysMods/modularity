@@ -16,7 +16,7 @@ import lv.cebbys.mcmods.modularity.api.client.ModelRef;
 import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.entity.EntityHandle;
 import lv.cebbys.mcmods.modularity.api.network.Channel;
-import lv.cebbys.mcmods.modularity.platform.ModularityCore;
+import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
 import lv.cebbys.mcmods.modularity.platform.Wrap;
 import lv.cebbys.mcmods.modularity.platform.compat.Ids;
 import lv.cebbys.mcmods.modularity.platform.entity.ModularEntity;
@@ -45,7 +45,7 @@ public final class ModularityClient {
 
     public static void init() {
         ClientHooks client = Loaders.client();
-        ModularityCore.forEachMod("client initialization", loaded -> loaded.mod().initClient(new Context(loaded.modId())));
+        ModularityCommon.forEachMod("client initialization", loaded -> loaded.mod().initClient(new Context(loaded.modId())));
         client.blockModels(ClientRegistry.MODELS);
         client.onClientTick(minecraft -> {
             if (minecraft.level == null) {

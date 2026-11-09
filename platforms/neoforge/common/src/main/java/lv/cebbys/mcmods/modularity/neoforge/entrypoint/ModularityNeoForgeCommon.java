@@ -6,7 +6,7 @@ import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeRenderData;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeStorageBackend;
 import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
-import lv.cebbys.mcmods.modularity.platform.ModularityCore;
+import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
 import lv.cebbys.mcmods.modularity.platform.compat.SyncedData;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
 import net.neoforged.bus.api.IEventBus;
@@ -31,7 +31,7 @@ public final class ModularityNeoForgeCommon {
         modBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
             EntryPoints.active(EntryPoint.COMMON, "neoforge");
             SyncedData.init();
-            ModularityCore.initCommon("neoforge");
+            ModularityCommon.init("neoforge");
         }));
         LOGGER.info("[modularity] NeoForge platform loaded");
     }
