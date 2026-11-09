@@ -99,14 +99,11 @@ public class ModularityVersionPlugin implements Plugin<Project> {
             table.platformByProjectName(child.getName()).ifPresent(p -> {
                 var jars = switch (p.loader()) {
                     case FABRIC -> task.getFabricJar();
+                    case QUILT -> task.getQuiltJar();
                     case FORGE -> task.getForgeJar();
                     case NEOFORGE -> task.getNeoForgeJar();
-                    // Quilt runs the Fabric jar's code: it contributes no classes of its own.
-                    case QUILT -> null;
                 };
-                if (jars != null) {
-                    jars.from(child.getTasks().named(p.modJarTask()));
-                }
+                jars.from(child.getTasks().named(p.modJarTask()));
             });
         }
     }

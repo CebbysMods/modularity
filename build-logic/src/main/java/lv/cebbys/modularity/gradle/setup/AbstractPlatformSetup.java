@@ -16,6 +16,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
@@ -112,6 +113,11 @@ abstract class AbstractPlatformSetup {
                         t.getIconFile().set(project.getRootProject().getLayout().getProjectDirectory()
                                 .file(ctx.mod().icon()));
                     }
+                    // Loom nests each module under META-INF/jars/<its jar archive name>; quilt.mod.json names that path.
+                    t.getNestedJars().set(project.provider(() -> ctx.mod().nested().stream()
+                            .map(path -> project.project(path).getTasks().named("jar", Jar.class)
+                                    .flatMap(jar -> jar.getArchiveFileName()).get())
+                            .toList()));
                 });
 
         SourceSet main = ctx.main();

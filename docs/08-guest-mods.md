@@ -48,7 +48,9 @@ layers (docs/07), where version changes are handled once for every mod.
 ## 8.3 Fabric
 
 `ModularityFabricLaunch` (`fabric/entrypoint`) is Modularity's pre-launch entrypoint (the `launch` role,
-Fabric key `preLaunch`). It runs after Fabric discovered and resolved all mods, before Minecraft starts:
+Fabric key `preLaunch`). It runs after Fabric discovered and resolved all mods, before Minecraft starts.
+The candidate scan and descriptor read are shared with Quilt in `loom/guest/GuestCandidates`; the Fabric
+launch adds the guests to Fabric Loader:
 
 1. Finds candidates: every `*.jar` in `mods/` and every path in the system property
    `modularity.guestMods` (separated by the path separator; jars or folders, for development). A
@@ -71,12 +73,17 @@ Fabric logs `Found 1 non-fabric mod: <jar>` during discovery, before Modularity 
 after discovery). Checked against Fabric Loader 0.20.1. A loader version that changes them needs a
 new `LoaderInjection` only, and the smoke test of every platform shows it at once.
 
+**Quilt.** `ModularityQuiltLaunch` (`quilt/entrypoint`) is the native `pre_launch` entrypoint. It uses
+`GuestCandidates` to find the guests, then logs an error naming them and loads none: Quilt Loader does
+not have the Fabric Loader internals that `LoaderInjection` uses. The Quilt smoke runs without a guest.
+
 ## 8.4 Verification
 
-The smoke tests of every platform (docs/07, 7.6) load a guest mod, `tools/smoke/guest` (Modularity
-API only, `modularity.mod.json`, not on the run class path). The checks require
+The smoke tests of every platform (docs/07, 7.6) load a guest mod on Fabric, `tools/smoke/guest`
+(Modularity API only, `modularity.mod.json`, not on the run class path). The checks require
 `[modularity] Loaded guest mod smoke_guest` and, once the server started,
-`[smoke] guest mod smoke_guest: loaded=true initialized=true`.
+`[smoke] guest mod smoke_guest: loaded=true initialized=true`. The Quilt platform runs the same smoke
+mod without the guest and expects neither line.
 
 Refabslab ran as a guest mod on 26.3: one jar with its classes, resources and a
 `modularity.mod.json`, no Fabric module.

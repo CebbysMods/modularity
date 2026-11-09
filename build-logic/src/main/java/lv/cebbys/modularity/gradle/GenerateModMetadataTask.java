@@ -3,6 +3,7 @@ package lv.cebbys.modularity.gradle;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
@@ -22,7 +23,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 
-/** Writes {@code fabric.mod.json} and the mixin config of one platform (see {@link ModMetadata}). */
+/** Writes the loader metadata and the mixin config of one platform (see {@link ModMetadata}). */
 @CacheableTask
 public abstract class GenerateModMetadataTask extends DefaultTask {
 
@@ -47,6 +48,10 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getIconFile();
 
+    /** Archive file names of the nested modules: Loom nests them as {@code META-INF/jars/<name>}. */
+    @Input
+    public abstract ListProperty<String> getNestedJars();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutputDir();
 
@@ -65,7 +70,8 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
                 Files.createDirectories(icon.getParent());
                 Files.copy(getIconFile().get().getAsFile().toPath(), icon, StandardCopyOption.REPLACE_EXISTING);
             }
-            if (!platform.fabricLike()) {
+            if (platform.metadataFormat() == PlatformTable.MetadataFormat.NEOFORGE
+                    || platform.metadataFormat() == PlatformTable.MetadataFormat.FORGE) {
                 // The shared Minecraft layer carries the mixins; NeoForge and Forge get a mixin config with their
                 // runtime (not written yet), until then the classes are in the jar unused.
                 if (!mixins.isEmpty()) {
@@ -77,11 +83,18 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
                 Files.writeString(toml, ModMetadata.modsToml(table.mod(), platform, getModVersion().get()));
                 return;
             }
-            getLogger().info("{}: entrypoints {}", platform.id(), ModMetadata.fabricEntrypoints(entrypoints));
-            Files.writeString(out.resolve("fabric.mod.json"),
-                    ModMetadata.fabricModJson(table.mod(), platform, table.fabricLoaderMin(), getModVersion().get(),
-                            !mixins.isEmpty(), entrypoints));
-            Path mixinFile = out.resolve(ModMetadata.mixinConfigName(table.mod()));
+            getLogger().info("{}: entrypoints {}", platform.id(),
+                    ModMetadata.loaderEntrypoints(entrypoints, platform.loader()));
+            if (platform.metadataFormat() == PlatformTable.MetadataFormat.QUILT) {
+                Files.writeString(out.resolve(ModMetadata.metadataPath(platform)),
+                        ModMetadata.quiltModJson(table.mod(), platform, getModVersion().get(), getNestedJars().get(),
+                                !mixins.isEmpty(), entrypoints));
+            } else {
+                Files.writeString(out.resolve(ModMetadata.metadataPath(platform)),
+                        ModMetadata.fabricModJson(table.mod(), platform, table.fabricLoaderMin(), getModVersion().get(),
+                                !mixins.isEmpty(), entrypoints));
+            }
+            Path mixinFile = out.resolve(ModMetadata.mixinConfigName(table.mod(), platform.loader()));
             if (mixins.isEmpty()) {
                 Files.deleteIfExists(mixinFile);
             } else {

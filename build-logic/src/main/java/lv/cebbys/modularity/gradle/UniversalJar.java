@@ -38,20 +38,24 @@ final class UniversalJar {
     private UniversalJar() {
     }
 
-    /** One platform jar and the loader whose relocated class tree it contributes. */
-    record Part(Path jar, Loader loader) {
+    /** One platform jar, the loader whose relocated class tree it contributes, and its generated mixin config. */
+    record Part(Path jar, Loader loader, String mixinConfigName) {
     }
 
     /**
-     * @param mixinPackage    the table's {@code [mod] mixin-package}, rewritten for the relocated Fabric tree
-     * @param mixinConfigName the generated mixin config ({@code <mod>.mixins.json})
+     * @param mixinPackage the table's {@code [mod] mixin-package}, rewritten for the relocated tree of each part
      */
-    static void write(Path output, List<Part> parts, String mixinPackage, String mixinConfigName) throws IOException {
+    static void write(Path output, List<Part> parts, String mixinPackage) throws IOException {
         Files.createDirectories(output.getParent());
         Set<String> written = new HashSet<>();
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(output))) {
             write(zip, written, MANIFEST, "Manifest-Version: 1.0\n".getBytes(StandardCharsets.UTF_8));
             for (Part part : parts) {
+                String metadata = switch (part.loader()) {
+                    case FABRIC -> "fabric.mod.json";
+                    case QUILT -> "quilt.mod.json";
+                    case NEOFORGE, FORGE -> null;
+                };
                 try (ZipFile in = new ZipFile(part.jar().toFile())) {
                     for (ZipEntry entry : Collections.list(in.entries())) {
                         String name = entry.getName();
@@ -61,15 +65,15 @@ final class UniversalJar {
                         byte[] bytes = in.getInputStream(entry).readAllBytes();
                         if (name.endsWith(".class") && name.startsWith(ROOT + "/")) {
                             write(zip, written, relocatedPath(name, part.loader()), relocate(bytes, part.loader()));
-                        } else if (name.equals(mixinConfigName)) {
-                            // Only the package moves; the classes in the config are relative to it. Applies to the
-                            // Fabric tree, the one Loom remaps (Quilt runs it through Fabric compatibility).
+                        } else if (name.equals(part.mixinConfigName())) {
+                            // Only the package moves; the classes in the config are relative to it.
                             write(zip, written, name, replace(bytes, mixinPackage,
-                                    relocatedPackage(mixinPackage, Loader.FABRIC)));
-                        } else if (name.equals("fabric.mod.json")) {
-                            // Entry points are the only class names in it; the mixin config is referenced by file.
+                                    relocatedPackage(mixinPackage, part.loader())));
+                        } else if (name.equals(metadata)) {
+                            // Entry points are the only class names in the metadata; the mixin config is referenced
+                            // by file name.
                             write(zip, written, name, replace(bytes, ROOT.replace('/', '.') + ".",
-                                    relocatedPackage(ROOT.replace('/', '.'), Loader.FABRIC) + "."));
+                                    relocatedPackage(ROOT.replace('/', '.'), part.loader()) + "."));
                         } else {
                             // Resources (icon, pack.mcmeta, mods.toml files, nested jars) are loader-neutral or have
                             // per-loader names; the first one wins, so a shared icon is stored once.

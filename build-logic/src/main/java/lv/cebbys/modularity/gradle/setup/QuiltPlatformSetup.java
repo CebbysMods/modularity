@@ -58,8 +58,8 @@ class QuiltPlatformSetup extends AbstractLoomPlatformSetup {
             }
         });
 
-        // Compile exactly what the Fabric jar compiles (the guest loader uses Fabric Loader classes, unused on
-        // Quilt); at runtime only Quilt Loader is present.
+        // The loom layer uses the Fabric Loader API (LoaderInfo, guest scan), which Quilt Loader provides; at
+        // runtime only Quilt Loader is present.
         ctx.dependencies().add("compileOnly", "net.fabricmc:fabric-loader:" + ctx.table().fabricLoader());
     }
 

@@ -35,8 +35,10 @@ class UniversalJarTest {
         Path forgeJar = platformJar(dir.resolve("forge.jar"));
         Path out = dir.resolve("universal.jar");
 
-        UniversalJar.write(out, List.of(new UniversalJar.Part(fabricJar, Loader.FABRIC),
-                new UniversalJar.Part(forgeJar, Loader.FORGE)), "lv.cebbys.mcmods.modularity.mixin", MIXIN_CONFIG);
+        UniversalJar.write(out, List.of(
+                new UniversalJar.Part(fabricJar, Loader.FABRIC, MIXIN_CONFIG),
+                new UniversalJar.Part(forgeJar, Loader.FORGE, "modularity.forge.mixins.json")),
+                "lv.cebbys.mcmods.modularity.mixin");
 
         Map<String, byte[]> entries = read(out);
         // Two class sets, one per mapping family: the same class in two packages, the original paths gone.
@@ -58,14 +60,61 @@ class UniversalJarTest {
     @Test
     void fabricEntrypointsAndMixinPackageFollowTheRelocatedTree(@TempDir Path dir) throws IOException {
         Path out = dir.resolve("universal.jar");
-        UniversalJar.write(out, List.of(new UniversalJar.Part(platformJar(dir.resolve("fabric.jar")), Loader.FABRIC)),
-                "lv.cebbys.mcmods.modularity.mixin", MIXIN_CONFIG);
+        UniversalJar.write(out, List.of(
+                new UniversalJar.Part(platformJar(dir.resolve("fabric.jar")), Loader.FABRIC, MIXIN_CONFIG)),
+                "lv.cebbys.mcmods.modularity.mixin");
 
         Map<String, byte[]> entries = read(out);
         String fabricMod = new String(entries.get("fabric.mod.json"), StandardCharsets.UTF_8);
         assertTrue(fabricMod.contains("\"lv.cebbys.mcmods.modularity.universal.fabric.Modularity\""), fabricMod);
         String mixins = new String(entries.get(MIXIN_CONFIG), StandardCharsets.UTF_8);
         assertTrue(mixins.contains("lv.cebbys.mcmods.modularity.universal.fabric.mixin"), mixins);
+    }
+
+    @Test
+    void quiltGetsItsOwnTreeMetadataAndMixinConfig(@TempDir Path dir) throws IOException {
+        Path fabricJar = platformJar(dir.resolve("fabric.jar"));
+        Path quiltJar = quiltPlatformJar(dir.resolve("quilt.jar"));
+        Path out = dir.resolve("universal.jar");
+
+        UniversalJar.write(out, List.of(
+                new UniversalJar.Part(fabricJar, Loader.FABRIC, MIXIN_CONFIG),
+                new UniversalJar.Part(quiltJar, Loader.QUILT, "modularity.quilt.mixins.json")),
+                "lv.cebbys.mcmods.modularity.mixin");
+
+        Map<String, byte[]> entries = read(out);
+        assertTrue(entries.containsKey(ROOT + "/universal/fabric/Target.class"));
+        assertTrue(entries.containsKey(ROOT + "/universal/quilt/Target.class"));
+        // Both metadata files and both mixin configs survive, each rewritten for its own tree.
+        assertTrue(entries.containsKey("fabric.mod.json"));
+        assertTrue(entries.containsKey("quilt.mod.json"));
+        assertTrue(entries.containsKey(MIXIN_CONFIG));
+        assertTrue(entries.containsKey("modularity.quilt.mixins.json"));
+        String fabricMod = new String(entries.get("fabric.mod.json"), StandardCharsets.UTF_8);
+        assertTrue(fabricMod.contains("\"lv.cebbys.mcmods.modularity.universal.fabric.Modularity\""), fabricMod);
+        String quiltMod = new String(entries.get("quilt.mod.json"), StandardCharsets.UTF_8);
+        assertTrue(quiltMod.contains("\"lv.cebbys.mcmods.modularity.universal.quilt.Modularity\""), quiltMod);
+        String fabricMixins = new String(entries.get(MIXIN_CONFIG), StandardCharsets.UTF_8);
+        assertTrue(fabricMixins.contains("lv.cebbys.mcmods.modularity.universal.fabric.mixin"), fabricMixins);
+        String quiltMixins = new String(entries.get("modularity.quilt.mixins.json"), StandardCharsets.UTF_8);
+        assertTrue(quiltMixins.contains("lv.cebbys.mcmods.modularity.universal.quilt.mixin"), quiltMixins);
+        // Shared resources are still stored once.
+        assertEquals(1, entries.keySet().stream().filter(n -> n.equals("assets/modularity/icon.png")).count());
+    }
+
+    /** A Quilt platform jar: its own metadata file and mixin config, plus one class and a shared resource. */
+    private static Path quiltPlatformJar(Path file) throws IOException {
+        Map<String, byte[]> entries = new LinkedHashMap<>();
+        entries.put(ROOT + "/Target.class", bytes("Target"));
+        entries.put("quilt.mod.json", """
+                {"quilt_loader":{"entrypoints":{"main":["lv.cebbys.mcmods.modularity.Modularity"]}}}"""
+                .getBytes(StandardCharsets.UTF_8));
+        entries.put("modularity.quilt.mixins.json", """
+                {"package":"lv.cebbys.mcmods.modularity.mixin"}
+                """.getBytes(StandardCharsets.UTF_8));
+        entries.put("assets/modularity/icon.png", new byte[] {1, 2, 3});
+        write(file, entries);
+        return file;
     }
 
     @Test
@@ -88,8 +137,9 @@ class UniversalJarTest {
                 // A platform class with a field of an API type: the reference must survive the relocation.
                 ROOT + "/platform/Core.class", classWithField(ROOT + "/platform/Core", "api", "L" + ROOT + "/api/Modularity;")));
         Path out = dir.resolve("universal.jar");
-        UniversalJar.write(out, List.of(new UniversalJar.Part(jar, Loader.FABRIC)),
-                "lv.cebbys.mcmods.modularity.mixin", MIXIN_CONFIG);
+        UniversalJar.write(out, List.of(
+                new UniversalJar.Part(jar, Loader.FABRIC, MIXIN_CONFIG)),
+                "lv.cebbys.mcmods.modularity.mixin");
 
         Map<String, byte[]> entries = read(out);
         assertTrue(entries.containsKey(ROOT + "/api/Modularity.class"));

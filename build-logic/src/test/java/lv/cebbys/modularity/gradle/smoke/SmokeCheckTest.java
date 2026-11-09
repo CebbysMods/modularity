@@ -57,6 +57,13 @@ class SmokeCheckTest {
     }
 
     @Test
+    void quiltServerPassesWithoutGuests() {
+        SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG.replace("platform FABRIC 0.20.1", "platform QUILT 0.30.2"),
+                "1.21.10", SmokeCheck.Side.SERVER, "QUILT", false);
+        assertTrue(r.ok(), r.problems().toString());
+    }
+
+    @Test
     void crashFails() {
         assertFalse(SmokeCheck.check(SERVER_LOG + "---- Minecraft Crash Report ----\n", "1.21.10", SmokeCheck.Side.SERVER).ok());
     }

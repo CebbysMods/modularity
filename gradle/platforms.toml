@@ -24,6 +24,7 @@ quilt-loader = "0.30.2"
 
 [mod]
 id = "modularity"
+group = "lv.cebbys.mcmods"
 archive-prefix = "modularity"
 name = "Modularity"
 description = "Multi version, multi loader modding API."

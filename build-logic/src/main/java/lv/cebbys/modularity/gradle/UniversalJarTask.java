@@ -42,6 +42,10 @@ public abstract class UniversalJarTask extends DefaultTask {
 
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
+    public abstract ConfigurableFileCollection getQuiltJar();
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
     public abstract ConfigurableFileCollection getForgeJar();
 
     @InputFiles
@@ -59,15 +63,16 @@ public abstract class UniversalJarTask extends DefaultTask {
                     + PlatformTable.FILE);
         }
         List<UniversalJar.Part> parts = new ArrayList<>();
-        add(parts, getFabricJar(), Loader.FABRIC);
-        add(parts, getForgeJar(), Loader.FORGE);
-        add(parts, getNeoForgeJar(), Loader.NEOFORGE);
+        add(parts, getFabricJar(), Loader.FABRIC, table.mod());
+        add(parts, getQuiltJar(), Loader.QUILT, table.mod());
+        add(parts, getForgeJar(), Loader.FORGE, table.mod());
+        add(parts, getNeoForgeJar(), Loader.NEOFORGE, table.mod());
         if (parts.isEmpty()) {
             throw new IllegalStateException("No platform jar for " + getPlatform().get());
         }
         Path output = getOutputJar().get().getAsFile().toPath();
         try {
-            UniversalJar.write(output, parts, table.mod().mixinPackage(), table.mod().id() + ".mixins.json");
+            UniversalJar.write(output, parts, table.mod().mixinPackage());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -75,9 +80,11 @@ public abstract class UniversalJarTask extends DefaultTask {
                 parts.stream().map(p -> p.loader().id()).toList());
     }
 
-    private static void add(List<UniversalJar.Part> parts, ConfigurableFileCollection jars, Loader loader) {
+    private static void add(List<UniversalJar.Part> parts, ConfigurableFileCollection jars, Loader loader,
+                            PlatformTable.Mod mod) {
         if (!jars.isEmpty()) {
-            parts.add(new UniversalJar.Part(jars.getSingleFile().toPath(), loader));
+            parts.add(new UniversalJar.Part(jars.getSingleFile().toPath(), loader,
+                    ModMetadata.mixinConfigName(mod, loader)));
         }
     }
 }

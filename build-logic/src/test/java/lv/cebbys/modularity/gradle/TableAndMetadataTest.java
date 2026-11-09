@@ -220,6 +220,10 @@ class TableAndMetadataTest {
         assertTrue(json.contains("\"versions\": \">=0.30.2\""), json);
         assertTrue(json.contains("\"contributors\": {\n        \"CebbyS\": \"Author\"\n      }"), json);
         assertTrue(json.contains("\"environment\": \"*\""), json);
+        assertEquals("modularity.mixins.json", ModMetadata.mixinConfigName(t.mod(), Loader.FABRIC));
+        assertEquals("modularity.quilt.mixins.json", ModMetadata.mixinConfigName(t.mod(), Loader.QUILT));
+        assertEquals("META-INF/jars/modularity-api-0.1.0.jar",
+                ModMetadata.nestedJarPath("modularity-api-0.1.0.jar"));
         // A 26.x platform has no intermediary mappings, so it cannot carry a native Quilt metadata file.
         assertThrows(IllegalArgumentException.class,
                 () -> ModMetadata.quiltModJson(t.mod(), new PlatformTable.Platform("26.1", Loader.QUILT,
