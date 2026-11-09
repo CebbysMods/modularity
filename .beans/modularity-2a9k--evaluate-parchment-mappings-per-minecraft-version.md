@@ -8,7 +8,7 @@ tags:
     - build
     - tooling
 created_at: 2026-11-08T12:03:40Z
-updated_at: 2026-11-09T08:17:01Z
+updated_at: 2026-11-09T11:45:00Z
 ---
 
 Minecraft is mapped with official Mojang mappings; Parchment adds parameter names and javadoc on top. It is
@@ -46,11 +46,21 @@ Artifacts exist for 1.21.1, 1.21.3-1.21.11 (no 1.21.2 artifact; 1.21.3 covers th
 - [ ] Parameter names in Minecraft classes are readable in the IDE on every 21.1 platform
 - [ ] The universal jar is byte-identical to the one built without Parchment (metadata only)
 
-## Revision (after merge): Forge excluded
+## Revision (2026-11-09): Forge included too
 
-Parchment on Forge broke ForgeGradle 7's run launcher: with both the official and the Parchment
-variants published for `net.minecraftforge:forge`, `smokeServer`/`smokeClient` fail to resolve the
-run class path ("Cannot choose between the available variants", through an attribute-less detached
-configuration that project configuration hooks cannot reach). Forge therefore builds with the official
-mappings only, for every version; Fabric/Quilt (Loom layered) and NeoForge (ModDevGradle parchment)
-keep Parchment. See ForgeSetup, gradle/platforms.toml and docs/07-multi-version-build.md.
+An earlier revision excluded Forge: with both the official and the Parchment variants published for
+`net.minecraftforge:forge`, `smokeServer`/`smokeClient` failed to resolve the run class path ("Cannot
+choose between the available variants", through the attribute-less detached configuration that
+ForgeGradle's `MinecraftDependencyImpl.init` creates for `minecraft_classpath`, which no project
+configuration hook can reach).
+
+Fix: the mappings are now also set as attributes (`net.minecraftforge.mappings.channel` /
+`.version`) on the Minecraft dependency itself, through the closure overload of
+`minecraft.dependency(...)`. The detached configuration resolves from the dependency's own requested
+attributes, so the run class path picks the Parchment variant. The Action overload cannot be used: it
+casts the created `ExternalModuleDependency` to `ClosureOwner.MinecraftDependency`, which it is not.
+
+Verified 2026-11-09: `:platforms:21.1:21.1-forge:smokeClient --rerun-tasks` (mavenizer cache deleted)
+resolves `net.minecraft:mappings_parchment:1.21.1-…-2024.11.17-1.21.1` on the compile class path and
+the client starts, joins the world and finishes the smoke. All four loaders now use Parchment where
+`[parchment]` has a version. See ForgeSetup, gradle/platforms.toml and docs/07-multi-version-build.md.

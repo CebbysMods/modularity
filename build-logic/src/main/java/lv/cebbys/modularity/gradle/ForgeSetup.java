@@ -1,11 +1,15 @@
 package lv.cebbys.modularity.gradle;
 
+import groovy.lang.Closure;
 import net.minecraftforge.gradle.ForgeGradleExtension;
+import net.minecraftforge.gradle.MavenizerInstance;
 import net.minecraftforge.gradle.MinecraftExtensionForProject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
@@ -24,11 +28,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Forge platform with ForgeGradle 7: official mappings, Forge from the Mavenizer repository, nested modules in
- * Forge's jar-in-jar format ({@code META-INF/jarjar}, which ForgeGradle 7 does not write), the Forge builds of the
- * separate mods, smoke runs.
+ * Forge platform with ForgeGradle 7: official Mojang mappings (layered with Parchment where the table has a version
+ * for the Minecraft version), Forge from the Mavenizer repository, nested modules in Forge's jar-in-jar format
+ * ({@code META-INF/jarjar}, which ForgeGradle 7 does not write), the Forge builds of the separate mods, smoke runs.
  */
 final class ForgeSetup {
+
+    /** The attributes ForgeGradle's Mavenizer puts on the variants of a Forge dependency (ForgeAttributes). */
+    private static final Attribute<String> MAPPINGS_CHANNEL =
+            Attribute.of("net.minecraftforge.mappings.channel", String.class);
+    private static final Attribute<String> MAPPINGS_VERSION =
+            Attribute.of("net.minecraftforge.mappings.version", String.class);
 
     private ForgeSetup() {
     }
@@ -36,17 +46,40 @@ final class ForgeSetup {
     static void apply(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main) {
         MinecraftExtensionForProject minecraft = project.getExtensions().getByType(MinecraftExtensionForProject.class);
         ForgeGradleExtension fg = project.getExtensions().getByType(ForgeGradleExtension.class);
-        // Official mappings only: with two mapping channels in the mavenizer metadata, ForgeGradle's run launcher
-        // cannot resolve its (attribute-less) detached class path configuration ("Cannot choose between the
-        // available variants"), which breaks smokeServer/smokeClient. Fabric, Quilt and NeoForge use Parchment.
-        minecraft.mappings("official", platform.minecraft().toString());
+        String parchment = platform.parchment();
+        if (parchment == null) {
+            minecraft.mappings("official", platform.minecraft().toString());
+        } else {
+            ModularityPlatformPlugin.parchmentRepository(project);
+            // ForgeGradle sanitizes the version to <timestamp>-<minecraft> (ParchmentVersion.toFriendly()).
+            minecraft.mappings("parchment", parchment + "-" + platform.minecraft());
+        }
         minecraft.mavenizer(project.getRepositories());
         project.getRepositories().maven(fg.getForgeMaven());
         project.getRepositories().maven(fg.getMinecraftLibsMaven());
 
         DependencyHandler deps = project.getDependencies();
-        deps.addProvider("implementation", minecraft.dependency("net.minecraftforge:forge:" + platform.minecraft() + "-"
-                + platform.loaderVersion()).asProvider());
+        String coordinates = "net.minecraftforge:forge:" + platform.minecraft() + "-" + platform.loaderVersion();
+        // ForgeGradle resolves the Minecraft dependency for the run class path in an attribute-less detached
+        // configuration; with only the official variants it resolves, with Parchment variants next to them every
+        // variant matches and resolution fails ("Cannot choose between the available variants"). Requesting the
+        // mappings on the dependency itself pins the channel for that configuration too. ForgeGradle invokes the
+        // closure as a Groovy DSL closure (doCall, delegate set to the dependency), so the Action overload cannot be
+        // used: it casts the dependency to a ClosureOwner it is not.
+        Closure<Object> configureMappings = new Closure<Object>(project) {
+            @SuppressWarnings("unused") // invoked by Groovy
+            public Object doCall(Object dependency) {
+                ((ExternalModuleDependency) dependency).attributes(attributes -> {
+                    attributes.attribute(MAPPINGS_CHANNEL, "parchment");
+                    attributes.attribute(MAPPINGS_VERSION, parchment + "-" + platform.minecraft());
+                });
+                return null;
+            }
+        };
+        MavenizerInstance minecraftDependency = parchment == null
+                ? minecraft.dependency(coordinates)
+                : minecraft.dependency((Object) coordinates, configureMappings);
+        deps.addProvider("implementation", minecraftDependency.asProvider());
 
         // Nested modules: Forge's jar-in-jar (same format NeoForge's ModDevGradle writes).
         Configuration nested = project.getConfigurations().create("modularityNested", c -> {

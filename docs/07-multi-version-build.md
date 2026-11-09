@@ -119,15 +119,16 @@ Two plugins in `build-logic/`:
   * applies Loom (`net.fabricmc.fabric-loom-remap` with Mojang mappings up to 1.21.11,
     `net.fabricmc.fabric-loom` without mappings from 26.1) and the Java target of the version;
   * adds Parchment over the official mappings where `[parchment]` in `gradle/platforms.toml` has a version
-    for the Minecraft version (Loom `layered`, ModDevGradle `neoForge.parchment`), from
+    for the Minecraft version (Loom `layered`, ModDevGradle `neoForge.parchment`, ForgeGradle
+    `minecraft.mappings("parchment", …)`), from
     `https://maven.parchmentmc.org`. Parchment is
     compile-time metadata (parameter names, javadoc): class and member names, the remapped jar and the runtime
     do not change, so the universal jar is the same with or without it. A version without a release builds
-    with the official mappings alone. **Forge is the exception**: it always builds with the official mappings,
-    because ForgeGradle 7's run launcher resolves its class path through an attribute-less detached
-    configuration and cannot choose between the official and Parchment variants of
-    `net.minecraftforge:forge` ("Cannot choose between the available variants"), which breaks
-    `smokeServer`/`smokeClient`;
+    with the official mappings alone. On Forge the mappings request must also be pinned as attributes on the
+    Minecraft dependency: ForgeGradle's run launcher resolves its class path through an attribute-less
+    detached configuration that project configuration hooks cannot reach, so with the Parchment variants
+    published next to the official ones it fails with "Cannot choose between the available variants" unless
+    the dependency itself asks for the Parchment channel;
   * assembles the layers into `build/layered/` (task `assembleLayers`) and compiles from there;
   * generates `fabric.mod.json` (exact Minecraft version, depends on `mvd` and `mpd`) and the mixin
     config from the mixin classes actually present after layering;
@@ -237,7 +238,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Log checks in `SmokeCheck` (unit tested): the 3 mods loaded and not nested, `[mvd] Detected version <exact>`, `[mpd] Detected platform FABRIC … <SIDE>`, end marker, no crash or failed mixin | The goal's verification, done mechanically; matched lines go to `build/smoke/{server,client}.txt`. |
 | `tools/smoke-fabric-1.21.1` kept | It is the refabslab integration test (double slabs, KleeSlabs), separate from the platform smoke tests. |
 | One decompilation per version, by the Fabric platform (the parent's `genSources` points there); it is not part of `build`, and the other platforms' tasks `mustRunAfter` it | Loom keeps one mapped Minecraft jar and one Maven directory per version in the root `loom-cache` and declares the directory an output of `genSourcesWithVineflower`; Gradle deletes declared outputs before running a task. Decompiling inside a parallel build therefore deletes files the other platforms of the version read, so they wait for it, and `build` leaves decompilation to an explicit `genSources` run. Sources after compilation is impossible (Loom's `genSources` depends on its own `remapJar`). The mappings are the same for every loader of a version, so one decompilation serves them all. The utilities are compile dependencies of the platforms, so they cannot wait for a decompilation without a cycle: `genSources` is run on its own. |
-| Parchment layered over the official mappings, one entry per Minecraft version in `[parchment]` | Parameter names and javadoc in the Minecraft classes the platforms compile against, without changing names, remapping or runtime: the universal jar is byte-identical. It is published per Minecraft version, not per loader, so one entry covers Fabric, Quilt and NeoForge; versions without a release (1.21.2, 26.x) build with the official mappings alone. Shape: Loom `layered` for Fabric/Quilt, ModDevGradle `neoForge.parchment` for NeoForge. Forge is excluded: ForgeGradle 7 publishes a Parchment variant next to the official one, and its run launcher resolves through an attribute-less detached configuration, so it fails with "Cannot choose between the available variants" — Forge always builds with the official mappings. |
+| Parchment layered over the official mappings, one entry per Minecraft version in `[parchment]` | Parameter names and javadoc in the Minecraft classes the platforms compile against, without changing names, remapping or runtime: the universal jar is byte-identical. It is published per Minecraft version, not per loader, so one entry covers Fabric, Quilt, NeoForge and Forge; versions without a release (1.21.2, 26.x) build with the official mappings alone. Shape: Loom `layered` for Fabric/Quilt, ModDevGradle `neoForge.parchment` for NeoForge, ForgeGradle `minecraft.mappings("parchment", …)` for Forge. ForgeGradle's run launcher resolves the run class path in an attribute-less detached configuration that no project configuration hook can reach, so on Forge the mappings channel and version are additionally set as attributes on the Minecraft dependency; that is what makes the two published variants of `net.minecraftforge:forge` resolvable there. |
 | CI: JDK 8, 21 and 25, `buildAll collectJars`, `smokeAll` under xvfb | Loom 1.19 needs Gradle on 25; 1.21.x toolchains need 21; ForgeGradle's slime launcher needs 8. setup-java writes all three to `~/.m2/toolchains.xml`, where Gradle finds them. |
 | mvd/mpd compiled against 1.21.1 | They use no Minecraft classes; the oldest target gives one jar for all. |
 | Version calls behind small classes in `fabric/compat` (seams), added to `common` in their own commits before the port that needs them | A layer then replaces a 20-line seam instead of a large file, so "only changes per version" holds and big classes stay in `common` once. |
