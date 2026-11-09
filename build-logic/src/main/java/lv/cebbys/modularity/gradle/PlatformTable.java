@@ -82,15 +82,34 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
         }
     }
 
-    /** Values for the generated {@code fabric.mod.json}. */
+    /**
+     * Values for the generated {@code fabric.mod.json}.
+     *
+     * @param companionMods the mods that sit next to Modularity, named once and without a loader
+     *                      ({@code :utilities:mvd:mvd}); {@link #companionProject} gives the build of one
+     */
     public record Mod(String id, String name, String description, String license, List<String> authors,
                       String sources, String mixinPackage, Map<String, List<String>> entrypoints,
                       Map<String, String> depends, String archivePrefix, List<String> nested,
-                      List<String> mods, String icon) {
+                      List<String> companionMods, String icon) {
 
         /** Jar path of the icon ({@code assets/<id>/icon.png}), or null without {@code icon}. */
         public String iconPath() {
             return icon == null ? null : "assets/" + id + "/icon.png";
+        }
+
+        /** The loader's build of a companion mod: {@code :utilities:mvd:mvd} and {@code NEOFORGE} give {@code -neoforge}. */
+        public static String companionProject(String companionMod, Loader loader) {
+            return companionMod + "-" + loader.id();
+        }
+
+        /**
+         * The loader independent API of a companion mod ({@code :utilities:mvd:mvd} gives {@code -core}): the NeoForge
+         * and Forge builds pack it inside and do not export it, as its packages would otherwise be split between two
+         * module jars at run time.
+         */
+        public static String companionApi(String companionMod) {
+            return companionMod + "-core";
         }
     }
 
@@ -118,7 +137,8 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
                 str(mod, "license", "mod"), (List<String>) require(mod, "authors", "mod"),
                 (String) mod.get("sources"), str(mod, "mixin-package", "mod"), entrypoints, depends,
                 (String) mod.getOrDefault("archive-prefix", mod.get("id")),
-                (List<String>) mod.getOrDefault("nested", List.of()), (List<String>) mod.getOrDefault("mods", List.of()),
+                (List<String>) mod.getOrDefault("nested", List.of()),
+                (List<String>) mod.getOrDefault("companion-mods", List.of()),
                 (String) mod.get("icon"));
 
         // Parchment is published per Minecraft version, not per loader: one entry applies to every platform of it.

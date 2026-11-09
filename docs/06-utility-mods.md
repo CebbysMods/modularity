@@ -130,7 +130,10 @@ Priorities: loader sources 1000, `version-json` 100, `reflection` and `marker-cl
   `implementation project(path: ':utilities:mvd:mvd-fabric', configuration: 'namedElements')`
   (plain `implementation`: with `modImplementation` Loom remaps and caches the jar by version, so
   dev runs kept loading stale builds)
-  (same for mpd), so `runClient` loads all three as separate mods.
+  (same for mpd), so `runClient` loads all three as separate mods. `gradle/platforms.toml` names
+  each companion mod once, without a loader (`:utilities:mvd:mvd`); a platform uses its build for
+  its own loader and compiles against its `-core` API
+  (`PlatformTable.Mod.companionProject` / `companionApi`).
 * `McRuntime` (shared layer; `FabricRuntime` before the split) maps `VersionDetector.detect()` to `McVersion` and
   `PlatformDetector.detect().platform()` to `Loader`. `modularity-api` stays dependency-free.
 * A root `collectJars` task copies the 3 jars to `build/libs-all/`.

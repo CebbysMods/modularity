@@ -42,10 +42,12 @@ abstract class AbstractLoomPlatformSetup extends AbstractPlatformSetup {
             deps.add("api", deps.project(Map.of("path", path)));
             deps.add("include", deps.project(Map.of("path", path)));
         }
-        // Separate mods, not nested: declared in fabric.mod.json "depends". Same build and already named,
+        // Companion mods, not nested: declared in fabric.mod.json "depends". Same build and already named,
         // so Loom must not remap (and cache) them.
-        for (String path : ctx.mod().mods()) {
-            deps.add("implementation", deps.project(Map.of("path", path, "configuration", "namedElements")));
+        for (String companion : ctx.mod().companionMods()) {
+            deps.add("implementation", deps.project(Map.of(
+                    "path", companionProject(project, PlatformTable.Mod.companionProject(companion, platform.loader())),
+                    "configuration", "namedElements")));
         }
 
         if (platform.modmenu() != null) {

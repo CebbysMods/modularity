@@ -3,6 +3,7 @@ package lv.cebbys.modularity.gradle.setup;
 import lv.cebbys.modularity.gradle.AssembleLayersTask;
 import lv.cebbys.modularity.gradle.GenerateModMetadataTask;
 import lv.cebbys.modularity.gradle.PlatformTable;
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -138,6 +139,17 @@ abstract class AbstractPlatformSetup {
     private static Object layered(Project project, TaskProvider<AssembleLayersTask> assemble, String dir) {
         // Fixed paths (Loom reads source dirs while configuring, before task outputs may be queried).
         return project.files(project.getLayout().getBuildDirectory().dir("layered/main/" + dir)).builtBy(assemble);
+    }
+
+    /**
+     * A project path derived from the table's {@code companion-mods}, checked against the build: a companion mod that
+     * has no build for this loader fails here, naming the file, instead of failing later as a missing project.
+     */
+    protected static String companionProject(Project project, String path) {
+        if (project.findProject(path) == null) {
+            throw new GradleException(PlatformTable.FILE + " names a companion mod that has no project " + path);
+        }
+        return path;
     }
 
     /** What every stage context reads: the project it configures and the platform it builds. */

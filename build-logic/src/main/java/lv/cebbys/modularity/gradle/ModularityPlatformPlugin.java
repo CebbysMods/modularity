@@ -35,22 +35,14 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         PlatformTable.Platform platform = table.platformByProjectName(project.getName())
                 .orElseThrow(() -> new GradleException(project.getPath() + " is not in " + PlatformTable.FILE));
         PlatformTable.Mod mod = table.mod();
-        if (List.of(Loader.FABRIC, Loader.QUILT).contains(platform.loader())) {
-            // Fabric and Quilt are configured by their own setups (gradle.setup); NeoForge and Forge keep the legacy
-            // path until their setups are filled in.
+        if (platform.loader() != Loader.FORGE) {
+            // Every loader but Forge is configured by its own setup (gradle.setup); Forge keeps the legacy path until
+            // its setup is filled in.
             new PlatformSetup().apply(project, table, platform);
             return;
         }
-        switch (platform.loader()) {
-            case NEOFORGE -> {
-                project.getPluginManager().apply("java-library");
-                project.getPluginManager().apply("net.neoforged.moddev");
-            }
-            case FORGE -> {
-                project.getPluginManager().apply("java-library");
-                project.getPluginManager().apply("net.minecraftforge.gradle");
-            }
-        }
+        project.getPluginManager().apply("java-library");
+        project.getPluginManager().apply("net.minecraftforge.gradle");
         project.getPluginManager().apply("maven-publish");
 
         String archivesName = mod.archivePrefix() + "-" + platform.id();
@@ -104,11 +96,7 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         main.getResources().srcDir(project.files(project.getLayout().getBuildDirectory().dir("generated/modularity"))
                 .builtBy(metadata));
 
-        switch (platform.loader()) {
-            case NEOFORGE -> NeoForgeSetup.apply(project, table, platform, main);
-            case FORGE -> ForgeSetup.apply(project, table, platform, main);
-            default -> throw new GradleException("unexpected loader " + platform.loader());
-        }
+        ForgeSetup.apply(project, table, platform, main);
 
         project.getExtensions().getByType(PublishingExtension.class).getPublications()
                 .create("maven", MavenPublication.class, pub -> {
@@ -119,7 +107,7 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
 
     /**
      * The repository Parchment is published to, filtered to it: it is a single artifact group, not a proxy for
-     * everything else. Shared with the NeoForge and Forge setups.
+     * everything else. Shared with the platform setups.
      */
     public static void parchmentRepository(Project project) {
         if (project.getRepositories().findByName("Parchment") != null) {

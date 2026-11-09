@@ -35,6 +35,31 @@ verified.
       repository is LF (a scripting edit wrote it back with Windows endings). Normalise it in one
       whitespace-only commit so later diffs stay readable.
 
+## Open design question — fold the companion mods into Modularity?
+
+Decide before closing this feature: the setup code exists only to wire these mods in, so the answer
+either deletes that code or keeps it.
+
+- [ ] **Review whether `mvd` and `mpd` should become part of Modularity's core instead of staying
+      separate mods.** They are never used outside Modularity, so the separate mod ids, jars and
+      publications may be pure overhead.
+      - What folding in means: the detection code moves into the Modularity layers (`minecraft`/loader
+        layers, or `modularity-api` where it has no Minecraft dependency); `utilities/mvd/{mvd-core,
+        mvd-fabric, mvd-neoforge, mvd-forge}` and the `mpd` equivalents (eight projects) disappear, and
+        with them `companion-mods` in `gradle/platforms.toml`, `PlatformTable.Mod.companionProject` /
+        `companionApi`, `AbstractPlatformSetup.companionProject` and the companion blocks in
+        `AbstractLoomPlatformSetup` / `AbstractForgeFamilyPlatformSetup`.
+      - What else changes: the `fabric.mod.json` / `mods.toml` `"depends"` entries for `mvd`/`mpd`, the
+        `META-INF/services` wiring in `mvd-fabric`, `docs/06-utility-mods.md` (whole document),
+        `docs/08` where it describes guest/companion mods, the smoke expectations (`[mvd]` / `[mpd]`
+        lines in `SmokeCheck`), and the publishing of the `-fabric`/`-neoforge`/`-forge` artifacts.
+      - What is gained: no version skew between Modularity and its detectors, no separate downloads,
+        no split packages or `-core` shading workaround, a much smaller build graph.
+      - What is lost: standalone `mvd`/`mpd` builds (only useful if someone else consumes them),
+        independent versioning, and a smaller per-concern jar.
+      - Do this as its own feature, not inside the setup refactor; the refactor should only make sure
+        nothing hidden depends on them.
+
 ## S3 — NeoForge first
 
 Order: NeoForge before Forge, because `NeoForgeSetup` owns `loaderModule`/`coreModule` (shared by
@@ -43,6 +68,7 @@ both) and because it leaves the plugin's legacy body holding Forge alone.
 - [x] Companion mods are named once in the table (`companion-mods`); `PlatformTable.Mod.companionProject`
       and `companionApi` derive the loader's build and its `-core` API, and `AbstractPlatformSetup.companionProject`
       checks the derived project exists. `ModModules` is gone.
+      *(In the working tree; not compiled yet — the S3 verify run below is still outstanding.)*
 - [ ] Add `AbstractForgeFamilyPlatformSetup` (package-private, `gradle.setup`):
       - `loaderPlugins` → `java-library` + `loaderPluginId()`
       - `dependencies` → `prepareSourceSet(main)` → `loaderDependencies()` → shared `api` deps for

@@ -28,7 +28,7 @@ class TableAndMetadataTest {
             license = "MIT"
             authors = ["CebbyS"]
             mixin-package = "lv.example.mixin"
-            mods = [":a", ":b"]
+            companion-mods = [":a", ":b"]
 
             [mod.entrypoints]
             main = ["lv.example.Main"]
@@ -62,7 +62,7 @@ class TableAndMetadataTest {
         assertFalse(p.enabled());
         assertFalse(t.platform("fabric-26.1").orElseThrow().remap());
         assertEquals(List.of("fabric-26.1"), t.enabled().stream().map(PlatformTable.Platform::id).toList());
-        assertEquals(List.of(":a", ":b"), t.mod().mods());
+        assertEquals(List.of(":a", ":b"), t.mod().companionMods());
         assertEquals("modularity", t.mod().archivePrefix());
         assertEquals(":platforms:21.1:21.1-fabric", p.projectPath());
         assertEquals("21.1-fabric", p.projectName());
@@ -152,7 +152,9 @@ class TableAndMetadataTest {
         assertEquals("[0,)", ModMetadata.mavenRange("*"));
         assertEquals("[1.2.3]", ModMetadata.mavenRange("1.2.3"));
         assertThrows(IllegalArgumentException.class, () -> ModMetadata.mavenRange("~1.2"));
-        assertEquals(":utilities:mvd:mvd-neoforge", NeoForgeSetup.loaderModule(":utilities:mvd:mvd-fabric", Loader.NEOFORGE));
+        assertEquals(":utilities:mvd:mvd-neoforge",
+                PlatformTable.Mod.companionProject(":utilities:mvd:mvd", Loader.NEOFORGE));
+        assertEquals(":utilities:mvd:mvd-core", PlatformTable.Mod.companionApi(":utilities:mvd:mvd"));
     }
 
     @Test

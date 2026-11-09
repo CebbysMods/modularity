@@ -33,8 +33,10 @@ icon = "images/modularity.png"
 mixin-package = "lv.cebbys.mcmods.modularity.platform.mixin"
 # Nested in the jar and exposed as api.
 nested = [":modularity-api"]
-# Separate mods next to Modularity (not nested), see docs/06-utility-mods.md.
-mods = [":utilities:mvd:mvd-fabric", ":utilities:mpd:mpd-fabric"]
+# Companion mods: they sit next to Modularity (not nested), see docs/06-utility-mods.md. A companion mod is named
+# once, without a loader (:utilities:mvd:mvd); each platform uses its build for that loader (mvd-fabric, mvd-neoforge,
+# mvd-forge) and compiles against its mvd-core API (see PlatformTable.Mod.companionProject).
+companion-mods = [":utilities:mvd:mvd", ":utilities:mpd:mpd"]
 
 [mod.entrypoints]
 main = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabric"]
