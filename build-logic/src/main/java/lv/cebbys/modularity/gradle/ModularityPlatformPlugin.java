@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One platform project ({@code :platforms:<loader>-<name>}), configured from {@code gradle/platforms.toml}: the
- * loader's Gradle plugin, Java target, layered sources from the loader's layer roots under {@code platforms/},
+ * One platform project ({@code :platforms:<name>:<name>-<loader>}), configured from {@code gradle/platforms.toml}:
+ * the loader's Gradle plugin, Java target, layered sources from the loader's layer roots under {@code platforms/},
  * generated mod metadata, dependencies, publication. Fabric and Quilt use Loom (remap with Mojang mappings for
  * obfuscated Minecraft, plain from 26.1).
  */
@@ -34,7 +34,7 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         File rootDir = project.getRootDir();
         File tableFile = new File(rootDir, PlatformTable.FILE);
         PlatformTable table = PlatformTable.read(tableFile.toPath());
-        PlatformTable.Platform platform = table.platform(project.getName())
+        PlatformTable.Platform platform = table.platformByProjectName(project.getName())
                 .orElseThrow(() -> new GradleException(project.getPath() + " is not in " + PlatformTable.FILE));
         PlatformTable.Mod mod = table.mod();
         switch (platform.loader()) {
@@ -60,6 +60,13 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         project.getTasks().withType(JavaCompile.class).configureEach(t -> {
             t.getOptions().getRelease().set(platform.java());
             t.getOptions().setEncoding("UTF-8");
+        });
+
+        // The Java plugin calls it compileJava; the version parents and the docs use compile everywhere.
+        project.getTasks().register("compile", t -> {
+            t.setGroup("build");
+            t.setDescription("Compiles the Java sources of " + platform.id());
+            t.dependsOn("compileJava");
         });
 
         // Layered sources: build/layered/main/{java,resources} + generated metadata.

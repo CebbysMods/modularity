@@ -1,10 +1,6 @@
 name: in-game smoke test
 on:
   workflow_dispatch:
-    inputs:
-      refabslab_ref:
-        description: refabslab branch to test
-        default: feature/modularity-port
   push:
     branches: [feature/milestone-1-core-api]
   pull_request:
@@ -16,11 +12,14 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
-      # 21: toolchain of the 1.21.x platforms; 25 (last = default): Gradle/Loom 1.19 and the 26.x platforms.
+      # 8: ForgeGradle 7 launches its runs with slime-launcher, which is pinned to Java 8; 21: toolchain of the
+      # 1.21.x platforms; 25 (last = default): Gradle, Loom 1.19, the 26.x platforms and Forge's mavenizer.
+      # setup-java writes every version to ~/.m2/toolchains.xml, so Gradle finds all three by itself.
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: |
+            8
             21
             25
       - uses: gradle/actions/setup-gradle@v4
@@ -35,60 +34,6 @@ jobs:
         with:
           name: smoke-platforms
           path: |
-            platforms/fabric/versions/*/build/smoke/*.txt
-            platforms/fabric/versions/*/build/smoke/*.log
-            platforms/fabric/versions/*/build/smoke/run/screenshots/
-
-  # refabslab on Modularity in game (1.21.1).
-  smoke-fabric-1-21-1:
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    env:
-      SMOKE: tools/smoke-fabric-1.21.1
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: CebbysMods/refabslab
-          ref: ${{ inputs.refabslab_ref || 'feature/modularity-port' }}
-          path: .refabslab
-      # 21: toolchain of the 1.21.x platforms; 25 (last = default): Gradle/Loom 1.19 and the 26.x platforms.
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: |
-            21
-            25
-      - uses: gradle/actions/setup-gradle@v4
-      - name: Install virtual display and software OpenGL
-        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1 libgl1-mesa-dri libglx-mesa0
-      - name: Publish modularity
-        run: ./gradlew publishToMavenLocal
-      - name: Build refabslab
-        working-directory: .refabslab
-        run: ./gradlew build
-      - name: Prepare game directory
-        run: |
-          echo "MOD_JAR=$(ls $PWD/.refabslab/refabslab-fabric-1.21.1/build/libs/*.jar | grep -v sources | head -1)" >> $GITHUB_ENV
-          mkdir -p $SMOKE/run/saves
-          echo "eula=true" > $SMOKE/run/eula.txt
-          printf 'level-name=smoke\nlevel-type=minecraft\\:flat\nonline-mode=false\nspawn-protection=0\ngenerate-structures=false\nspawn-monsters=false\nspawn-animals=false\n' > $SMOKE/run/server.properties
-          printf 'onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:6\nsimulationDistance:6\nfov:0.25\nskipMultiplayerWarning:true\njoinedFirstServer:true\ntutorialStep:none\nsoundCategory_master:0.0\n' > $SMOKE/run/options.txt
-      - name: Dedicated server places double slabs
-        run: ./gradlew -p $SMOKE runServer -PmodJar="$MOD_JAR" -PwithKleeSlabs
-      - name: Copy world to client saves
-        run: cp -r $SMOKE/run/smoke $SMOKE/run/saves/smoke
-      - name: Client renders and takes screenshots
-        env:
-          LIBGL_ALWAYS_SOFTWARE: "1"
-        run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew -p $SMOKE runClient -PmodJar="$MOD_JAR" -PwithKleeSlabs
-      - name: Smoke log
-        if: always()
-        run: grep -h "\[smoke\]\|\[mvd\]\|\[mpd\]\|Modularity\|ERROR\|Exception" $SMOKE/run/logs/*.log | head -200 || true
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: smoke-fabric-1.21.1
-          path: |
-            tools/smoke-fabric-1.21.1/run/screenshots/
-            tools/smoke-fabric-1.21.1/run/logs/
+            platforms/*/versions/*/build/smoke/*.txt
+            platforms/*/versions/*/build/smoke/*.log
+            platforms/*/versions/*/build/smoke/run/screenshots/

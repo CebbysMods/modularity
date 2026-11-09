@@ -63,7 +63,12 @@ class TableAndMetadataTest {
         assertEquals(List.of("fabric-26.1"), t.enabled().stream().map(PlatformTable.Platform::id).toList());
         assertEquals(List.of(":a", ":b"), t.mod().mods());
         assertEquals("modularity", t.mod().archivePrefix());
-        assertEquals(":platforms:fabric-21.1", p.projectPath());
+        assertEquals(":platforms:21.1:21.1-fabric", p.projectPath());
+        assertEquals("21.1-fabric", p.projectName());
+        assertEquals(":platforms:21.1", p.parentPath());
+        assertEquals("platforms/versions/21.1", p.parentDir());
+        assertTrue(t.platformByProjectName("21.1-fabric").isPresent());
+        assertEquals(List.of(":platforms:21.1", ":platforms:26.1"), t.parentPaths());
     }
 
     @Test

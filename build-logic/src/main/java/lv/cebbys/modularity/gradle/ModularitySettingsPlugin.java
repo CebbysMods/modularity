@@ -6,11 +6,14 @@ import org.gradle.api.initialization.Settings;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Includes one project per platform of {@code gradle/platforms.toml}: {@code :platforms:<loader>-<name>} with project
- * dir {@code platforms/<loader>/versions/<name>}.
+ * Includes one parent project per Minecraft version and one project per platform of {@code gradle/platforms.toml}:
+ * {@code :platforms:<name>} with project dir {@code platforms/versions/<name>} and
+ * {@code :platforms:<name>:<name>-<loader>} with project dir {@code platforms/<loader>/versions/<name>}.
  *
  * <p>{@code -Pmodularity.platforms=none} includes no platform, {@code =fabric-21.1,neoforge-21.1} only those, a bare
  * version ({@code =21.1}) every loader's platform of that version (also when not enabled in the table), the default
@@ -43,10 +46,19 @@ public class ModularitySettingsPlugin implements Plugin<Settings> {
                     .toList();
         }
 
+        Set<String> parents = new HashSet<>();
         for (PlatformTable.Platform p : selected) {
             File dir = new File(root, p.projectDir());
             if (!dir.isDirectory() && !dir.mkdirs()) {
                 throw new IllegalStateException("Cannot create " + dir);
+            }
+            if (parents.add(p.parentPath())) {
+                File parentDir = new File(root, p.parentDir());
+                if (!parentDir.isDirectory() && !parentDir.mkdirs()) {
+                    throw new IllegalStateException("Cannot create " + parentDir);
+                }
+                settings.include(p.parentPath());
+                settings.project(p.parentPath()).setProjectDir(parentDir);
             }
             settings.include(p.projectPath());
             ProjectDescriptor descriptor = settings.project(p.projectPath());

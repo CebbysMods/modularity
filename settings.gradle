@@ -12,6 +12,9 @@ pluginManagement {
 }
 
 plugins {
+    // Provisions a toolchain the machine does not have (JDK 8 for ForgeGradle's slime launcher, 21 and 25 for the
+    // platforms). CI installs those itself and Gradle finds them through ~/.m2/toolchains.xml.
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
     // Includes one project per platform of gradle/platforms.toml.
     id 'lv.cebbys.modularity.settings'
 }
