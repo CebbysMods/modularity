@@ -136,6 +136,10 @@ Two plugins in `build-logic/`:
     published next to the official ones it fails with "Cannot choose between the available variants" unless
     the dependency itself asks for the Parchment channel;
   * assembles the layers into `build/layered/` (task `assembleLayers`) and compiles from there;
+  * adds IDE-only source sets `ideLayers0…` to each platform project: one per layer root, with the files
+    that a higher layer replaces or removes excluded, so IntelliJ indexes the layer folders themselves.
+    These source sets are never compiled (their compile and resources tasks are disabled) and nothing
+    depends on them;
   * generates `fabric.mod.json` (exact Minecraft version, depends on `mvd` and `mpd`) and the mixin
     config from the mixin classes actually present after layering;
   * dependencies: Fabric Loader, Fabric API, `modularity-api` (nested), mvd and mpd (runtime, not

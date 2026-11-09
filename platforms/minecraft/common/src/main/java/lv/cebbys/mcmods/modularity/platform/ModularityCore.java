@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.platform;
 
 import lv.cebbys.mcmods.modularity.api.ModularMod;
+import lv.cebbys.mcmods.modularity.api.ModularModRegistry;
 import lv.cebbys.mcmods.modularity.api.Modularity;
 import lv.cebbys.mcmods.modularity.platform.loader.LoaderInfo;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
@@ -28,8 +29,14 @@ public final class ModularityCore {
         return Collections.unmodifiableList(MODS);
     }
 
+    /** Registers a mod discovered by a generated loader adapter; call it before common initialization. */
+    public static void register(String modId, ModularMod mod) {
+        ModularModRegistry.register(modId, mod);
+    }
+
     /** Installs the runtime and runs {@code initCommon} of every mod with a Modularity entrypoint. */
     public static void initCommon(String loaderName) {
+        ModularModRegistry.freeze();
         Modularity.install(McRuntime.INSTANCE);
         List<LoaderInfo.ModEntry> entries = Loaders.info().modularMods();
         LOGGER.info("Modularity {} on {}, Minecraft {}: initializing {} mod(s)",

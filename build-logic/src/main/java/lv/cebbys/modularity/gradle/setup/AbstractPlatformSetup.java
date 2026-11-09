@@ -2,6 +2,7 @@ package lv.cebbys.modularity.gradle.setup;
 
 import lv.cebbys.modularity.gradle.AssembleLayersTask;
 import lv.cebbys.modularity.gradle.GenerateModMetadataTask;
+import lv.cebbys.modularity.gradle.Layers;
 import lv.cebbys.modularity.gradle.PlatformTable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -19,7 +20,15 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * One platform project, configured in fixed stages. Every stage receives its own context record, so a stage can gain
@@ -110,6 +119,90 @@ abstract class AbstractPlatformSetup {
         main.getResources().setSrcDirs(List.of(layered(project, assemble, "resources")));
         main.getResources().srcDir(project.files(project.getLayout().getBuildDirectory().dir("generated/modularity"))
                 .builtBy(metadata));
+
+        ideLayerSources(project, platform, main);
+    }
+
+    /**
+     * IDE-only source sets so IntelliJ indexes the layer folders themselves, not only the assembled copy under
+     * {@code build/}. One source set per layer root, with the files a higher layer replaces or removes excluded, so
+     * the IDE sees each path once. The sets are never compiled: their compile and resources tasks are disabled, and
+     * nothing depends on them.
+     */
+    private static void ideLayerSources(Project project, PlatformTable.Platform platform, SourceSet main) {
+        Path base = project.getRootDir().toPath().resolve(LAYER_BASE);
+        List<Layers.Layer> layers;
+        Map<String, String> winners = new HashMap<>();
+        try {
+            layers = Layers.resolve(base, platform.loader().layerRoots(), platform.minecraft(), "src/main");
+            Layers.merge(layers).forEach((path, origin) -> winners.put(path, origin.layer()));
+        } catch (Layers.LayerException e) {
+            // The layer check runs again in assembleLayers, which fails the build; the IDE wiring is optional.
+            project.getLogger().warn("{}: IDE layer sources skipped: {}", platform.id(), e.getMessage());
+            return;
+        }
+
+        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+        int index = 0;
+        for (Layers.Layer layer : layers) {
+            String name = "ideLayers" + index++;
+            SourceSet ide = sourceSets.create(name);
+            Path javaDir = layer.dir().resolve("java");
+            Path resourcesDir = layer.dir().resolve("resources");
+            List<String> javaExcludes = new ArrayList<>();
+            List<String> resourceExcludes = new ArrayList<>();
+            if (Files.isDirectory(javaDir)) {
+                ide.getJava().setSrcDirs(List.of(javaDir.toFile()));
+            }
+            if (Files.isDirectory(resourcesDir)) {
+                ide.getResources().setSrcDirs(List.of(resourcesDir.toFile()));
+            }
+            collectReplaced(layer, winners, javaExcludes, resourceExcludes);
+            ide.getJava().exclude(javaExcludes.toArray(new String[0]));
+            ide.getResources().exclude(resourceExcludes.toArray(new String[0]));
+
+            // The IDE analyses these sources with the main class path; the set itself is never compiled.
+            var configs = project.getConfigurations();
+            configs.getByName(ide.getImplementationConfigurationName())
+                    .extendsFrom(configs.getByName(main.getImplementationConfigurationName()));
+            configs.getByName(ide.getCompileOnlyConfigurationName())
+                    .extendsFrom(configs.getByName(main.getCompileOnlyConfigurationName()));
+            configs.getByName(ide.getRuntimeOnlyConfigurationName())
+                    .extendsFrom(configs.getByName(main.getRuntimeOnlyConfigurationName()));
+            // Loom wires Minecraft and the remapped mods into the class path configurations only, not into
+            // implementation, so copy the resolved class paths as well.
+            configs.getByName(ide.getCompileClasspathConfigurationName())
+                    .extendsFrom(configs.getByName(main.getCompileClasspathConfigurationName()));
+            configs.getByName(ide.getRuntimeClasspathConfigurationName())
+                    .extendsFrom(configs.getByName(main.getRuntimeClasspathConfigurationName()));
+            // A source set sees neither its sibling source sets nor the assembled sources. Give it the compiled
+            // main output so a symbol from another layer (e.g. platform.EntryPoints) resolves in the IDE.
+            project.getDependencies().add(ide.getImplementationConfigurationName(), main.getOutput());
+            String capitalized = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+            project.getTasks().matching(t -> t.getName().equals("compile" + capitalized + "Java")
+                            || t.getName().equals("process" + capitalized + "Resources"))
+                    .configureEach(t -> t.setEnabled(false));
+        }
+    }
+
+    /** Adds every file of {@code layer} that a higher layer replaces or removes to the exclusion lists. */
+    private static void collectReplaced(Layers.Layer layer, Map<String, String> winners,
+                                        List<String> javaExcludes, List<String> resourceExcludes) {
+        try (Stream<Path> walk = Files.walk(layer.dir())) {
+            for (Path file : walk.filter(Files::isRegularFile).toList()) {
+                String path = layer.dir().relativize(file).toString().replace('\\', '/');
+                if (layer.label().equals(winners.get(path))) {
+                    continue;
+                }
+                if (path.startsWith("java/")) {
+                    javaExcludes.add(path.substring("java/".length()));
+                } else if (path.startsWith("resources/")) {
+                    resourceExcludes.add(path.substring("resources/".length()));
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /** S3: Minecraft and its mappings, the loader, the APIs, the nested modules, the separate mods. */

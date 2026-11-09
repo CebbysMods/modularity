@@ -18,7 +18,10 @@ public interface LoaderInfo {
 
     boolean isDevelopment();
 
-    /** Mods with a {@code "modularity"} entrypoint, in load order. */
+    /**
+     * The mods built on Modularity, in load order: loader entrypoint order on Fabric, registration (mod
+     * construction) order on NeoForge and Forge. The order is not the same on every loader.
+     */
     List<ModEntry> modularMods();
 
     /** A mod id and how to create its entrypoint (may throw; the caller names the mod). */
