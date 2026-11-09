@@ -1,5 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.guest;
 
+import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderName;
+import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.guest.GuestDescriptor;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -32,6 +34,7 @@ public final class GuestMods implements PreLaunchEntrypoint {
 
     @Override
     public void onPreLaunch() {
+        EntryPoints.active("preLaunch", FabricLoaderName.get());
         List<GuestDescriptor> guests = new ArrayList<>();
         for (Path candidate : candidates()) {
             try {
@@ -40,7 +43,7 @@ public final class GuestMods implements PreLaunchEntrypoint {
                 throw new IllegalStateException("Modularity: cannot read guest mod " + candidate, e);
             }
         }
-        if (!guests.isEmpty() && onQuilt()) {
+        if (!guests.isEmpty() && FabricLoaderName.isQuilt()) {
             // LoaderInjection uses Fabric Loader internals, which Quilt Loader does not have (docs/08).
             LOGGER.error("[modularity] Guest mods are not supported on Quilt yet; not loaded: {}",
                     guests.stream().map(GuestDescriptor::id).toList());
@@ -64,15 +67,6 @@ public final class GuestMods implements PreLaunchEntrypoint {
                     guest.origin().getFileName());
         }
         byId.values().forEach(GuestMods::checkDependencies);
-    }
-
-    private static boolean onQuilt() {
-        try {
-            Class.forName("org.quiltmc.loader.api.QuiltLoader", false, GuestMods.class.getClassLoader());
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     /** Fabric resolved dependencies before guests existed; the same rules, checked here. */

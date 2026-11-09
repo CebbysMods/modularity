@@ -1,5 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric;
 
+import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderName;
+import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.ModularityCore;
 import lv.cebbys.mcmods.modularity.api.Modularity;
 import lv.cebbys.mcmods.modularity.api.Platform;
@@ -10,6 +12,7 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 public final class ModularityFabricServer implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
+        EntryPoints.active("server", FabricLoaderName.get());
         ModularityCore.forEachMod("server initialization", loaded -> loaded.mod().initServer(new Context(loaded.modId())));
     }
 

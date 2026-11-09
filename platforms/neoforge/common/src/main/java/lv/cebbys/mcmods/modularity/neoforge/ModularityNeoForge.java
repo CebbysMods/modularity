@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.neoforge;
 
+import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ public final class ModularityNeoForge {
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
 
     public ModularityNeoForge() {
+        EntryPoints.active("mod-constructor", "neoforge");
         LOGGER.info("[modularity] NeoForge platform loaded");
     }
 }

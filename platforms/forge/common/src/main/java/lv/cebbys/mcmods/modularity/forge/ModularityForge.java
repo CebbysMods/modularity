@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.forge;
 
+import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import net.minecraftforge.fml.common.Mod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ public final class ModularityForge {
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
 
     public ModularityForge() {
+        EntryPoints.active("mod-constructor", "forge");
         LOGGER.info("[modularity] Forge platform loaded");
     }
 }

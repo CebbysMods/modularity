@@ -1,5 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.client;
 
+import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderName;
+import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.client.ModularityClient;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
 import net.fabricmc.api.ClientModInitializer;
@@ -8,6 +10,7 @@ import net.fabricmc.api.ClientModInitializer;
 public final class ModularityFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        EntryPoints.active("client", FabricLoaderName.get());
         Loaders.installClient(new FabricClientHooks());
         ModularityClient.init();
     }
