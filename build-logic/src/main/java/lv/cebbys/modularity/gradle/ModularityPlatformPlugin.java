@@ -1,5 +1,6 @@
 package lv.cebbys.modularity.gradle;
 
+import lv.cebbys.modularity.gradle.setup.PlatformSetup;
 import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import net.fabricmc.loom.api.LoomGradleExtensionAPI;
 import org.gradle.api.GradleException;
@@ -38,8 +39,14 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
         PlatformTable.Platform platform = table.platformByProjectName(project.getName())
                 .orElseThrow(() -> new GradleException(project.getPath() + " is not in " + PlatformTable.FILE));
         PlatformTable.Mod mod = table.mod();
+        if (platform.loader() == Loader.FABRIC) {
+            // Fabric is configured by its own setup (gradle.setup); the other loaders keep the legacy path until their
+            // setups are filled in.
+            new PlatformSetup().apply(project, table, platform);
+            return;
+        }
         switch (platform.loader()) {
-            case FABRIC, QUILT -> project.getPluginManager()
+            case QUILT -> project.getPluginManager()
                     .apply(platform.remap() ? "net.fabricmc.fabric-loom-remap" : "net.fabricmc.fabric-loom");
             case NEOFORGE -> {
                 project.getPluginManager().apply("java-library");
@@ -104,9 +111,10 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
                 .builtBy(metadata));
 
         switch (platform.loader()) {
-            case FABRIC, QUILT -> fabric(project, table, platform, main);
+            case QUILT -> fabric(project, table, platform, main);
             case NEOFORGE -> NeoForgeSetup.apply(project, table, platform, main);
             case FORGE -> ForgeSetup.apply(project, table, platform, main);
+            default -> throw new GradleException("unexpected loader " + platform.loader());
         }
 
         project.getExtensions().getByType(PublishingExtension.class).getPublications()
@@ -192,7 +200,7 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
      * The repository Parchment is published to, filtered to it: it is a single artifact group, not a proxy for
      * everything else. Shared with the NeoForge and Forge setups.
      */
-    static void parchmentRepository(Project project) {
+    public static void parchmentRepository(Project project) {
         if (project.getRepositories().findByName("Parchment") != null) {
             return;
         }

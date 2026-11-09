@@ -2,7 +2,6 @@ package lv.cebbys.modularity.gradle.setup;
 
 import lv.cebbys.modularity.gradle.PlatformTable;
 import org.gradle.api.Project;
-import org.gradle.api.tasks.SourceSet;
 
 /** Dispatches one platform project to the setup of its loader. */
 public class PlatformSetup {
@@ -18,8 +17,8 @@ public class PlatformSetup {
         this.quilt = new QuiltPlatformSetup();
     }
 
-    public void apply(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main) {
-        var ctx = new AbstractPlatformSetup.PlatformSetupContext(project, table, platform, main);
+    public void apply(Project project, PlatformTable table, PlatformTable.Platform platform) {
+        var ctx = new AbstractPlatformSetup.PlatformSetupContext(project, table, platform);
         AbstractPlatformSetup setup = switch (platform.loader()) {
             case NEOFORGE -> this.neoforge;
             case FABRIC -> this.fabric;
