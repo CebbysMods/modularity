@@ -13,6 +13,11 @@ public final class EntryPoints {
     private EntryPoints() {
     }
 
+    public static void active(EntryPoint entryPoint, String loader) {
+        active(entryPoint.label(), loader);
+    }
+
+    /** For a loader entry point that is not one of the four roles, such as the mod constructor. */
     public static void active(String entryPoint, String loader) {
         LOGGER.info("[modularity] entrypoint {} active ({})", entryPoint, loader);
     }

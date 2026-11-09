@@ -20,10 +20,10 @@ and safe before the loader seams are installed.
   `platforms/minecraft/common/src/main/java/lv/cebbys/mcmods/modularity/platform/`, logging
   `[modularity] entrypoint <name> active (<loader>)`. No dependency on `Loaders` or `McRuntime`.
 - Call it first thing in:
-  - Fabric: `ModularityFabric.onInitialize` -> `main`; `ModularityFabricClient.onInitializeClient` -> `client`;
-    `ModularityFabricServer.onInitializeServer` -> `server`; `guest/GuestMods.onPreLaunch` -> `preLaunch`
+  - Fabric: `ModularityFabricCommon.onInitialize` -> `common`; `ModularityFabricClient.onInitializeClient` -> `client`;
+    `ModularityFabricServer.onInitializeServer` -> `server`; `guest/GuestMods.onPreLaunch` -> `launch`
   - Forge: `ModularityForge` constructor -> `mod-constructor`
-  - NeoForge: `ModularityNeoForge` constructor -> `mod-constructor`
+  - NeoForge: `ModularityNeoForgeCommon` constructor -> `mod-constructor`
 - Pass `McRuntime.INSTANCE.loader()` to the existing `ModularityCore.initCommon` summary so Quilt reports `QUILT`
   instead of `Fabric`.
 

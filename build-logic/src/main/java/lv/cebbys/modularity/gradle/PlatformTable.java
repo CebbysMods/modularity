@@ -94,7 +94,7 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
      *                      ({@code :utilities:mvd:mvd}); {@link #companionProject} gives the build of one
      */
     public record Mod(String id, String name, String description, String license, List<String> authors,
-                      String sources, String mixinPackage, Map<String, List<String>> entrypoints,
+                      String sources, String mixinPackage,
                       Map<String, String> depends, String archivePrefix, List<String> nested,
                       List<String> companionMods, String icon) {
 
@@ -136,15 +136,12 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
         Map<String, Object> defaults = (Map<String, Object>) toml.getOrDefault("defaults", Map.of());
         Map<String, Object> mod = (Map<String, Object>) require(toml, "mod", "");
 
-        Map<String, List<String>> entrypoints = new LinkedHashMap<>();
-        ((Map<String, Object>) mod.getOrDefault("entrypoints", Map.of()))
-                .forEach((k, v) -> entrypoints.put(k, (List<String>) v));
         Map<String, String> depends = new LinkedHashMap<>();
         ((Map<String, Object>) mod.getOrDefault("depends", Map.of())).forEach((k, v) -> depends.put(k, (String) v));
 
         Mod m = new Mod(str(mod, "id", "mod"), str(mod, "name", "mod"), str(mod, "description", "mod"),
                 str(mod, "license", "mod"), (List<String>) require(mod, "authors", "mod"),
-                (String) mod.get("sources"), str(mod, "mixin-package", "mod"), entrypoints, depends,
+                (String) mod.get("sources"), str(mod, "mixin-package", "mod"), depends,
                 (String) mod.getOrDefault("archive-prefix", mod.get("id")),
                 (List<String>) mod.getOrDefault("nested", List.of()),
                 (List<String>) mod.getOrDefault("companion-mods", List.of()),

@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.fabric.guest;
 
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderName;
+import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.guest.GuestDescriptor;
 import net.fabricmc.loader.api.FabricLoader;
@@ -34,7 +35,7 @@ public final class GuestMods implements PreLaunchEntrypoint {
 
     @Override
     public void onPreLaunch() {
-        EntryPoints.active("preLaunch", FabricLoaderName.get());
+        EntryPoints.active(EntryPoint.LAUNCH, FabricLoaderName.get());
         List<GuestDescriptor> guests = new ArrayList<>();
         for (Path candidate : candidates()) {
             try {

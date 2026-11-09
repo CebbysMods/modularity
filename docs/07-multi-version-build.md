@@ -70,12 +70,18 @@ Each loader assembles a stack of layer roots, lowest first:
 Code that needs a loader API goes through the seams in `platform.loader`, installed by the loader's entrypoint
 through `Loaders.install` (client: `installClient`):
 
-| Seam | Covers | Fabric implementation |
-|---|---|---|
-| `LoaderInfo` | side, loaded mods and versions, development mode, mods with a `modularity` entrypoint | `FabricLoaderInfo` |
-| `RenderDataAccess` | block entity render data for models, also off the game thread | `FabricRenderData` |
-| `StorageBackend` | fluid unit, exposing entity tanks and inventories, filling from a held item | `FabricStorageBackend` |
-| `LoaderHooks` / `ClientHooks` | registration, block entity types, creative tabs, payloads; key mappings, entity renderers, dynamic block models, HUD, reload, client tick | `FabricLoaderHooks` / `FabricClientHooks` |
+| Seam | Covers | Fabric implementation | NeoForge implementation |
+|---|---|---|---|
+| `LoaderInfo` | side, loaded mods and versions, development mode, mods with a `modularity` entrypoint | `FabricLoaderInfo` | `NeoForgeLoaderInfo` |
+| `RenderDataAccess` | block entity render data for models, also off the game thread | `FabricRenderData` | `NeoForgeRenderData` |
+| `StorageBackend` | fluid unit, exposing entity tanks and inventories, filling from a held item | `FabricStorageBackend` | `NeoForgeStorageBackend` |
+| `LoaderHooks` / `ClientHooks` | registration, block entity types, creative tabs, payloads; key mappings, entity renderers, dynamic block models, HUD, reload, client tick | `FabricLoaderHooks` / `FabricClientHooks` | `NeoForgeLoaderHooks` / `NeoForgeClientHooks` |
+
+The NeoForge seam is wired for the lifecycle only: content registration, payloads, render data and storage
+fail with an `UnsupportedOperationException` that names the method, and dynamic block models and HUD layers
+log a warning when a mod passes a non-empty collection. NeoForge constructs the mod entry points as three
+`@Mod` classes — common, `Dist.CLIENT` and `Dist.DEDICATED_SERVER` — so a dedicated server never loads client
+types. Each class registers its setup event and runs the init in `enqueueWork`.
 
 A loader layer may also replace a shared file at the same path (Fabric does for `SyncedData` from 1.21.9 and
 for `RenderDataHolder`).
@@ -141,7 +147,10 @@ Two plugins in `build-logic/`:
     These source sets are never compiled (their compile and resources tasks are disabled) and nothing
     depends on them;
   * generates `fabric.mod.json` (exact Minecraft version, depends on `mvd` and `mpd`) and the mixin
-    config from the mixin classes actually present after layering;
+    config from what is actually present after layering: the mixin classes, and the entrypoints — every
+    class that directly implements a Fabric entrypoint interface. The build calls the roles `common`,
+    `client`, `server` and `launch`, and maps them to the keys Fabric reads: `main`, `client`, `server`
+    and `preLaunch`;
   * dependencies: Fabric Loader, Fabric API, `modularity-api` (nested), mvd and mpd (runtime, not
     nested);
   * tasks per platform: `compile` (the Java plugin's `compileJava`), `runClient`, `runServer`, `smokeServer`,
@@ -259,7 +268,7 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | Remap tasks limited to 2 at a time (`RemapService`), daemon heap 4 GB | A cold `buildAll` of 11 obfuscated versions in parallel ran out of heap; the limit keeps the build parallel elsewhere. |
 | 26.2 part ids reserved from `ServerLevel`'s counter, only on the server | The counter moved from `Entity` to `ServerLevel` (which skips ids in use); client entities take their id from the spawn packet. |
 | One icon for every loader: `[mod] icon` in `platforms.toml`, copied to `assets/<id>/icon.png` | Generated with the metadata, so Fabric (`icon`) and NeoForge/Forge (`logoFile`) point at the same file in every jar; the 256×256 source is `images/modularity.png`. |
-| Shared helpers instead of copies in the 1.21.1 base (`GameCompat.result`, `NbtData.encode/decode/writeAll/readAll`, `ModularityFabric.forEachMod`, handle records, `PartShape.slab`, `Props.with`) | Each copy existed once per caller; one helper is one place to fix and one place for the later shared Minecraft layer. Tolerances and error texts kept, so no behaviour change. |
+| Shared helpers instead of copies in the 1.21.1 base (`GameCompat.result`, `NbtData.encode/decode/writeAll/readAll`, `ModularityCore.forEachMod`, handle records, `PartShape.slab`, `Props.with`) | Each copy existed once per caller; one helper is one place to fix and one place for the later shared Minecraft layer. Tolerances and error texts kept, so no behaviour change. |
 | Loader seams `LoaderInfo`, `RenderDataAccess`, `StorageBackend`, `LoaderHooks` + `ClientHooks`, installed through `Loaders` | Everything the shared code needs from a loader goes through four interfaces; a new loader implements them (Fabric: ~400 lines) instead of copying the runtime. |
 | Tank amounts in the loader's unit (`McFluidTank`, Fabric droplets) | Other mods move fluid in that unit; keeping it avoids rounding at the boundary and keeps the saved NBT unchanged. |
 | Classes without `net.fabricmc` imports live in `platforms/minecraft`, package `lv.cebbys.mcmods.modularity.platform.*`; `Fabric*` names that held no Fabric code became `Mc*` | One copy for every loader; the package says which code is shared. NeoForge and Forge compile it already. |
@@ -267,6 +276,10 @@ Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.
 | `DynamicUnbakedModel` stays in the Fabric layer | It only feeds Fabric's model loading plugin and creates the Fabric renderer's baked model. |
 | NeoForge and Forge jars carry the shared mixins without a mixin config | Wiring them belongs to those runtimes (not written yet); the metadata task only logs it instead of failing. |
 | NeoForge and Forge compile against `mvd-core` / `mpd-core` (`compileOnly`) | Their utility mods pack the core without exporting it (split packages); the shared runtime calls the detectors directly. |
+| NeoForge entry points: three `@Mod` classes (`common`, `Dist.CLIENT`, `Dist.DEDICATED_SERVER`), each taking `IEventBus`; init runs in `enqueueWork` | This is the documented NeoForge sides pattern: the loader constructs only the class whose dist matches, so no client type reaches a dedicated server. `enqueueWork` runs the init on the main thread after the parallel setup phase. |
+| `ModularModRegistry` lives in `modularity-api`, not in `platform` | `UniversalJar` relocates `platform.*`; an adapter of another mod links only against the unrelocated API. |
+| NeoForge and Forge seam stubs throw `UnsupportedOperationException` naming the method instead of registering nothing | NeoForge and Forge register content before common setup; a silent no-op would hide a lost registration. The follow-up (`modularity-m23h`) replays registrations. |
+| Fabric entrypoints found in the assembled sources, not listed in `platforms.toml`: a class that directly implements `ModInitializer`, `ClientModInitializer`, `DedicatedServerModInitializer` or `PreLaunchEntrypoint`. Roles are `common`, `client`, `server`, `launch`; Fabric's keys are `main`, `client`, `server`, `preLaunch` | The class says that it is an entrypoint, so a rename or a version layer that adds or removes one needs no table edit. Fabric defines its keys, so the role names are internal and the mapping happens once, when the metadata is written. Direct implementation only: a class that inherits an interface from a base class is not found; the same limit as the mixin scan. |
 
 ## 7.9 Port log
 

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,9 +30,6 @@ class TableAndMetadataTest {
             authors = ["CebbyS"]
             mixin-package = "lv.example.mixin"
             companion-mods = [":a", ":b"]
-
-            [mod.entrypoints]
-            main = ["lv.example.Main"]
 
             [mod.depends]
             mvd = ">=4.0.0"
@@ -149,7 +147,8 @@ class TableAndMetadataTest {
         assertEquals("assets/modularity/icon.png", withIcon.mod().iconPath());
         assertTrue(ModMetadata.modsToml(withIcon.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0")
                 .contains("logoFile=\"assets/modularity/icon.png\""));
-        assertTrue(ModMetadata.fabricModJson(withIcon.mod(), t.platform("fabric-21.1").orElseThrow(), "0.16.0", "0.1.0", false)
+        assertTrue(ModMetadata.fabricModJson(withIcon.mod(), t.platform("fabric-21.1").orElseThrow(), "0.16.0", "0.1.0", false,
+                Map.of())
                 .contains("\"icon\": \"assets/modularity/icon.png\""));
 
         assertEquals("[0,)", ModMetadata.mavenRange("*"));
@@ -178,14 +177,17 @@ class TableAndMetadataTest {
     @Test
     void modJsonHasExactMinecraftAndDependencies() {
         PlatformTable t = PlatformTable.parse(TABLE);
-        String json = ModMetadata.fabricModJson(t.mod(), t.platform("fabric-21.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", true);
+        String json = ModMetadata.fabricModJson(t.mod(), t.platform("fabric-21.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", true,
+                Map.of(EntryPoint.COMMON, List.of("lv.example.Main")));
         assertTrue(json.contains("\"minecraft\": \"1.21.1\""), json);
         assertTrue(json.contains("\"mvd\": \">=4.0.0\""), json);
         assertTrue(json.contains("\"fabricloader\": \">=0.16.0\""), json);
         assertTrue(json.contains("\"java\": \">=21\""), json);
+        assertTrue(json.contains("\"entrypoints\": {\n    \"main\": [\n      \"lv.example.Main\"\n    ]\n  }"), json);
         assertTrue(json.contains("\"mixins\": [\n    \"modularity.mixins.json\"\n  ]"), json);
         assertTrue(json.contains("\"description\": \"API. Fabric 1.21.1 platform.\""), json);
-        assertFalse(ModMetadata.fabricModJson(t.mod(), t.platform("fabric-26.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", false)
+        assertFalse(ModMetadata.fabricModJson(t.mod(), t.platform("fabric-26.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", false,
+                Map.of())
                 .contains("mixins"));
     }
 
@@ -209,6 +211,44 @@ class TableAndMetadataTest {
                 [parchment]
                 "1.20.1" = "2024.11.17"
                 """), "no platform of that Minecraft version");
+    }
+
+    @Test
+    void entrypointsFromSources(@TempDir Path dir) throws IOException {
+        Path pkg = dir.resolve("lv/example/entrypoint");
+        Files.createDirectories(pkg.resolve("client"));
+        Files.writeString(pkg.resolve("Common.java"),
+                "package lv.example.entrypoint;\npublic final class Common implements ModInitializer {}");
+        Files.writeString(pkg.resolve("Second.java"),
+                "package lv.example.entrypoint;\npublic final class Second\n        implements net.fabricmc.api.ModInitializer {}");
+        Files.writeString(pkg.resolve("Server.java"),
+                "package lv.example.entrypoint;\npublic final class Server implements DedicatedServerModInitializer {}");
+        Files.writeString(pkg.resolve("client/Client.java"),
+                "package lv.example.entrypoint.client;\npublic final class Client implements ClientModInitializer {}");
+        Files.writeString(pkg.resolve("Launch.java"),
+                "package lv.example.entrypoint;\npublic final class Launch implements PreLaunchEntrypoint {}");
+        Files.writeString(pkg.resolve("NotAnEntrypoint.java"),
+                "package lv.example.entrypoint;\npublic final class NotAnEntrypoint extends Common {}");
+        Files.writeString(pkg.resolve("NotAClass.java"),
+                "package lv.example.entrypoint;\npublic interface NotAClass extends ModInitializer {}");
+        Files.writeString(dir.resolve("package-info.java"), "package lv.example;");
+
+        Map<EntryPoint, List<String>> roles = ModMetadata.findEntrypoints(dir);
+        assertEquals(List.of("lv.example.entrypoint.Common", "lv.example.entrypoint.Second"),
+                roles.get(EntryPoint.COMMON));
+        assertEquals(List.of("lv.example.entrypoint.client.Client"), roles.get(EntryPoint.CLIENT));
+        assertEquals(List.of("lv.example.entrypoint.Server"), roles.get(EntryPoint.SERVER));
+        assertEquals(List.of("lv.example.entrypoint.Launch"), roles.get(EntryPoint.LAUNCH));
+
+        Map<String, List<String>> fabric = ModMetadata.fabricEntrypoints(roles);
+        assertEquals(List.of("lv.example.entrypoint.Common", "lv.example.entrypoint.Second"),
+                fabric.get(EntryPoint.COMMON.fabricKey()));
+        assertEquals(List.of("lv.example.entrypoint.client.Client"), fabric.get(EntryPoint.CLIENT.fabricKey()));
+        assertEquals(List.of("lv.example.entrypoint.Server"), fabric.get(EntryPoint.SERVER.fabricKey()));
+        assertEquals(List.of("lv.example.entrypoint.Launch"), fabric.get(EntryPoint.LAUNCH.fabricKey()));
+        assertEquals(4, fabric.size());
+
+        assertEquals(Map.of(), ModMetadata.findEntrypoints(dir.resolve("missing")));
     }
 
     @Test

@@ -15,7 +15,9 @@ import lv.cebbys.mcmods.modularity.api.server.ServerContext;
  *
  * <ul>
  *     <li>Fabric/Quilt: declare it as a {@code "modularity"} entrypoint in {@code fabric.mod.json}.</li>
- *     <li>NeoForge: (milestone 2) generated {@code @Mod} adapter.</li>
+ *     <li>NeoForge/Forge: call {@link Modularity#registerMod(String, ModularMod)} from the mod's {@code @Mod}
+ *     constructor. A generated adapter will do this once the generator exists; until then a mod calls it
+ *     directly. Registration must happen before common initialization starts.</li>
  * </ul>
  */
 public interface ModularMod {

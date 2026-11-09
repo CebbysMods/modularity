@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 
 /** Writes {@code fabric.mod.json} and the mixin config of one platform (see {@link ModMetadata}). */
 @CacheableTask
@@ -53,7 +54,9 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
     public void generate() {
         PlatformTable table = PlatformTable.read(getTableFile().get().getAsFile().toPath());
         PlatformTable.Platform platform = table.platform(getPlatform().get()).orElseThrow();
-        List<String> mixins = ModMetadata.findMixins(getJavaDir().get().getAsFile().toPath(), table.mod().mixinPackage());
+        Path javaDir = getJavaDir().get().getAsFile().toPath();
+        List<String> mixins = ModMetadata.findMixins(javaDir, table.mod().mixinPackage());
+        Map<EntryPoint, List<String>> entrypoints = ModMetadata.findEntrypoints(javaDir);
         Path out = getOutputDir().get().getAsFile().toPath();
         try {
             Files.createDirectories(out);
@@ -74,9 +77,10 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
                 Files.writeString(toml, ModMetadata.modsToml(table.mod(), platform, getModVersion().get()));
                 return;
             }
+            getLogger().info("{}: entrypoints {}", platform.id(), ModMetadata.fabricEntrypoints(entrypoints));
             Files.writeString(out.resolve("fabric.mod.json"),
                     ModMetadata.fabricModJson(table.mod(), platform, table.fabricLoaderMin(), getModVersion().get(),
-                            !mixins.isEmpty()));
+                            !mixins.isEmpty(), entrypoints));
             Path mixinFile = out.resolve(ModMetadata.mixinConfigName(table.mod()));
             if (mixins.isEmpty()) {
                 Files.deleteIfExists(mixinFile);

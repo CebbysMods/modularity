@@ -24,37 +24,19 @@ both) and because it left the plugin's legacy body holding Forge alone.
 
 - [ ] Run `smokeAll` across the four loaders and `:platforms:21.1:jar`.
 
-## NeoForge/Forge lifecycle — risks to resolve
+## One verification pass
 
-Each item is a decision or a check that the lifecycle change must leave settled; none is verified yet.
+The S3, S4 and S5 runs and the lifecycle checks (`modularity-8ywo`, `modularity-lw0r`) use the same
+Gradle tasks. Run them after `modularity-r133` (NeoForge) and `modularity-g420` (Forge), so one pass
+covers the platform-setup refactor and the lifecycle wiring. Until then, every item above stays open.
 
-- [ ] **Content registration timing (largest).** `FMLCommonSetupEvent` fires after the loader's registry
-      events, and `LoaderHooks.register` returns the registered value immediately. Today the NeoForge/
-      Forge hooks therefore throw instead of silently not registering. Do not make them no-ops: design
-      the follow-up (replay registrations from `RegisterEvent`, or collect `DeferredRegister`s made
-      during `initCommon`) and track it in a bean. Until then, a mod that calls `block()`/`item()`/
-      `entity()`/`sound()`/`channel()` on these loaders must fail loudly.
-- [ ] **Registry location vs universal-jar relocation.** `ModularModRegistry` must stay in
-      `modularity-api`, because `UniversalJar` relocates `platform.*` to
-      `universal.<loader>.platform.*` and adapters of other mods can only link against unrelocated API
-      classes. Verify on the built universal jar that an adapter class would still resolve the registry.
-- [ ] **NeoForge dist classes.** Each of the three `@Mod` classes must have exactly one public
-      constructor taking `IEventBus`, and the common class must not hold or reference client types.
-      Check the dedicated-server smoke log for `NoClassDefFoundError` and for a `client` entry-point line
-      that must not appear.
-- [ ] **Forge constructor injection.** Forge 52.1.21 injects only `FMLJavaModLoadingContext`; there is
-      no `IEventBus` injection and no `FMLModLoadingContext` class. Use
-      `FMLJavaModLoadingContext.get().getModEventBus()` (or the injected context). Do not copy the
-      NeoForge constructor signature.
-- [ ] **Event-bus mismatch.** Setup events and reload listeners are mod-bus events; `ClientTickEvent`
-      (NeoForge) and `TickEvent.ClientTickEvent` (Forge) are game-bus events. Verify a registered client
-      tick handler actually runs and that a reload listener fires, not just that registration compiles.
-- [ ] **Lazy `LoaderInfo`.** `ModList.get()` is only valid from common setup onward; the NeoForge/Forge
-      `LoaderInfo` must not be called earlier, and `McRuntime.INSTANCE` is constructed inside
-      `initCommon`. Check the constructor installs seams without touching mod lists.
-- [ ] **Parallel dispatch.** `FMLCommonSetupEvent` runs listeners in parallel; run
-      `initCommon`/`initServer` through `enqueueWork` so they execute on the main thread after the
-      parallel phase, and register the listeners themselves outside the enqueued work.
-- [ ] **Entry-point log compatibility.** Keep `entrypoint mod-constructor active (neoforge|forge)`
-      verbatim (beans `modularity-8bjy` and `modularity-jzqc` match it); the new `common`, `client` and
-      `server` lines are additive and must not replace it.
+## NeoForge/Forge lifecycle — decisions moved to beans
+
+The risks are now decisions and checks inside the tracker; they are no longer tracked here.
+
+- Content registration timing → `modularity-m23h`.
+- Registry location vs universal-jar relocation → recorded in `modularity-ibbd`.
+- NeoForge dist classes, parallel dispatch, entry-point log lines → recorded in `modularity-r133`.
+- Forge constructor injection, event-bus mismatch → recorded in `modularity-g420`.
+- Lazy `LoaderInfo` → recorded in `modularity-co2j` and `modularity-v53p`.
+- The runtime checks run with `modularity-8ywo` and `modularity-lw0r`.

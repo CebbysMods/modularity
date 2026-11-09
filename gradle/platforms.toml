@@ -37,13 +37,8 @@ nested = [":modularity-api"]
 # once, without a loader (:utilities:mvd:mvd); each platform uses its build for that loader (mvd-fabric, mvd-neoforge,
 # mvd-forge) and compiles against its mvd-core API (see PlatformTable.Mod.companionProject).
 companion-mods = [":utilities:mvd:mvd", ":utilities:mpd:mpd"]
-
-[mod.entrypoints]
-main = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabric"]
-client = ["lv.cebbys.mcmods.modularity.fabric.client.ModularityFabricClient"]
-server = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabricServer"]
-# Guest mods (modularity.mod.json only) become Fabric mods before the game starts.
-preLaunch = ["lv.cebbys.mcmods.modularity.fabric.guest.GuestMods"]
+# No entrypoints here: the build finds them in the assembled sources by the Fabric entrypoint interface each
+# class implements (common, client, server, launch; docs/07, 7.4).
 
 [mod.depends]
 mvd = ">=4.0.0"

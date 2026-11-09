@@ -47,8 +47,8 @@ layers (docs/07), where version changes are handled once for every mod.
 
 ## 8.3 Fabric
 
-`GuestMods` (`fabric/guest`) is Modularity's `preLaunch` entrypoint. It runs after Fabric discovered
-and resolved all mods, before Minecraft starts:
+`GuestMods` (`fabric/guest`) is Modularity's pre-launch entrypoint (the `launch` role, Fabric key
+`preLaunch`). It runs after Fabric discovered and resolved all mods, before Minecraft starts:
 
 1. Finds candidates: every `*.jar` in `mods/` and every path in the system property
    `modularity.guestMods` (separated by the path separator; jars or folders, for development). A
@@ -60,7 +60,7 @@ and resolved all mods, before Minecraft starts:
    game class path, a mod container joins the loader's mod list and its entrypoints are registered.
    From then on Fabric treats it like any other mod: `FabricLoader.isModLoaded`, mod lists, crash
    reports, its assets as a resource pack, its data as a data pack, and its `modularity` entrypoint
-   called by `ModularityFabric` with every other Modularity mod.
+   called by `ModularityFabricCommon` with every other Modularity mod.
 4. Checks `depends` and `breaks` with Fabric's version predicates (Fabric resolved the other mods
    before the guests existed) and stops the game with a clear message when one fails. Two mods with
    the same id are an error too.

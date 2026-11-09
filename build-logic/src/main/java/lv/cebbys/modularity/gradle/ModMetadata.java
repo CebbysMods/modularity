@@ -5,9 +5,11 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -18,6 +20,9 @@ import java.util.stream.Stream;
 public final class ModMetadata {
 
     private static final Pattern MIXIN = Pattern.compile("^\\s*@Mixin\\s*\\(", Pattern.MULTILINE);
+    private static final Pattern PACKAGE = Pattern.compile("^\\s*package\\s+([\\w.]+)\\s*;", Pattern.MULTILINE);
+    /** A class, record or enum declaration that reaches an {@code implements} clause; stops at the class body. */
+    private static final String IMPLEMENTS = "\\b(?:class|record|enum)\\s+\\w+[^{;]*\\bimplements\\b[^{]*";
 
     private ModMetadata() {
     }
@@ -28,7 +33,8 @@ public final class ModMetadata {
     }
 
     public static String fabricModJson(PlatformTable.Mod mod, PlatformTable.Platform platform, String fabricLoader,
-                                       String version, boolean hasMixins) {
+                                       String version, boolean hasMixins,
+                                       Map<EntryPoint, List<String>> entrypoints) {
         Map<String, Object> json = new LinkedHashMap<>();
         json.put("schemaVersion", 1);
         json.put("id", mod.id());
@@ -44,7 +50,7 @@ public final class ModMetadata {
             json.put("icon", mod.iconPath());
         }
         json.put("environment", "*");
-        json.put("entrypoints", mod.entrypoints());
+        json.put("entrypoints", fabricEntrypoints(entrypoints));
         if (hasMixins) {
             json.put("mixins", List.of(mixinConfigName(mod)));
         }
@@ -148,6 +154,63 @@ public final class ModMetadata {
         json.put("client", client);
         json.put("injectors", Map.of("defaultRequire", 1));
         return Json.write(json) + "\n";
+    }
+
+    /**
+     * The entrypoints of one platform, from its assembled sources: every class that directly implements one of
+     * Fabric's entrypoint interfaces. The roles are Modularity's names ({@code common}, {@code client},
+     * {@code server}, {@code launch}); {@link #fabricEntrypoints} maps them to the keys Fabric reads. Each list is
+     * sorted, so the generated file is identical on every OS.
+     */
+    public static Map<EntryPoint, List<String>> findEntrypoints(Path javaDir) {
+        Map<EntryPoint, List<String>> roles = new EnumMap<>(EntryPoint.class);
+        Map<EntryPoint, Pattern> patterns = new EnumMap<>(EntryPoint.class);
+        for (EntryPoint type : EntryPoint.values()) {
+            roles.put(type, new ArrayList<>());
+            patterns.put(type, Pattern.compile(IMPLEMENTS + "\\b" + type.interfaceName() + "\\b"));
+        }
+        if (Files.isDirectory(javaDir)) {
+            try (Stream<Path> walk = Files.walk(javaDir)) {
+                for (Path file : walk.filter(p -> p.toString().endsWith(".java")).sorted().toList()) {
+                    String fileName = file.getFileName().toString();
+                    String simple = fileName.substring(0, fileName.length() - ".java".length());
+                    if (simple.equals("package-info") || simple.equals("module-info")) {
+                        continue;
+                    }
+                    String text = Files.readString(file);
+                    Matcher pkg = PACKAGE.matcher(text);
+                    String fqcn = pkg.find() ? pkg.group(1) + "." + simple : simple;
+                    for (EntryPoint type : EntryPoint.values()) {
+                        if (patterns.get(type).matcher(text).find()) {
+                            roles.get(type).add(fqcn);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        Map<EntryPoint, List<String>> result = new EnumMap<>(EntryPoint.class);
+        for (EntryPoint role : EntryPoint.values()) {
+            List<String> classes = roles.get(role);
+            if (!classes.isEmpty()) {
+                classes.sort(null);
+                result.put(role, List.copyOf(classes));
+            }
+        }
+        return result;
+    }
+
+    /** The {@code entrypoints} map of {@code fabric.mod.json}: role to the key Fabric calls its classes under. */
+    public static Map<String, List<String>> fabricEntrypoints(Map<EntryPoint, List<String>> roles) {
+        Map<String, List<String>> result = new LinkedHashMap<>();
+        for (EntryPoint role : EntryPoint.values()) {
+            List<String> classes = roles.get(role);
+            if (classes != null && !classes.isEmpty()) {
+                result.put(role.fabricKey(), classes);
+            }
+        }
+        return result;
     }
 
     /** Mixin class names relative to the mixin package, sorted, found in {@code javaDir}. */
