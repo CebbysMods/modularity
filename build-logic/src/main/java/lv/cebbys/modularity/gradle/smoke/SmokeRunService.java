@@ -1,4 +1,4 @@
-package lv.cebbys.modularity.gradle;
+package lv.cebbys.modularity.gradle.smoke;
 
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;

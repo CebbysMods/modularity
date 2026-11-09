@@ -1,6 +1,7 @@
 package lv.cebbys.modularity.gradle;
 
 import groovy.lang.Closure;
+import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import net.minecraftforge.gradle.ForgeGradleExtension;
 import net.minecraftforge.gradle.MavenizerInstance;
 import net.minecraftforge.gradle.MinecraftExtensionForProject;

@@ -1,5 +1,6 @@
 package lv.cebbys.modularity.gradle;
 
+import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import net.fabricmc.loom.api.LoomGradleExtensionAPI;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;

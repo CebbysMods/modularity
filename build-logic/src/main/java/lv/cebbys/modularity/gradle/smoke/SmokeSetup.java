@@ -1,5 +1,8 @@
-package lv.cebbys.modularity.gradle;
+package lv.cebbys.modularity.gradle.smoke;
 
+import lv.cebbys.modularity.gradle.AssembleLayersTask;
+import lv.cebbys.modularity.gradle.Loader;
+import lv.cebbys.modularity.gradle.PlatformTable;
 import net.fabricmc.loom.api.LoomGradleExtensionAPI;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
@@ -24,10 +27,10 @@ import java.util.stream.Stream;
  * {@code runSmokeServer} / {@code runSmokeClient} in {@code build/smoke/run}, and the checks {@code smokeServer},
  * {@code smokeClient} and {@code smoke} (server, plus client where the table asks for it).
  */
-final class SmokeSetup {
+public final class SmokeSetup {
 
     static final String SMOKE_ROOT = "tools/smoke";
-    static final String RUN_DIR = "build/smoke/run";
+    public static final String RUN_DIR = "build/smoke/run";
 
     private SmokeSetup() {
     }
@@ -36,7 +39,7 @@ final class SmokeSetup {
      * The loader's two game runs, in {@code build/smoke/run}; the client opens the world {@code smoke}
      * ({@code --quickPlaySingleplayer}).
      */
-    interface Runs {
+    public interface Runs {
         /**
          * @param guestMods jar for the system property {@code modularity.guestMods}, or {@code null}
          * @return names of the server and the client run task
@@ -45,8 +48,8 @@ final class SmokeSetup {
                           String guestMods);
     }
 
-    record RunTasks(String server, String client) {
-        static final RunTasks SMOKE = new RunTasks("runSmokeServer", "runSmokeClient");
+    public record RunTasks(String server, String client) {
+        public static final RunTasks SMOKE = new RunTasks("runSmokeServer", "runSmokeClient");
     }
 
     /**
@@ -55,7 +58,7 @@ final class SmokeSetup {
      * without a replacement.
      */
     @SuppressWarnings("deprecation")
-    static Runs loom(LoomGradleExtensionAPI loom) {
+    public static Runs loom(LoomGradleExtensionAPI loom) {
         return (project, platform, main, smoke, guestMods) -> {
             loom.getMods().register("modularity", m -> m.sourceSet(main));
             loom.getMods().register("modularity_smoke", m -> m.sourceSet(smoke));
@@ -84,10 +87,10 @@ final class SmokeSetup {
         };
     }
 
-    static final List<String> CLIENT_ARGS = List.of("--quickPlaySingleplayer", "smoke", "--width", "854", "--height",
+    public static final List<String> CLIENT_ARGS = List.of("--quickPlaySingleplayer", "smoke", "--width", "854", "--height",
             "480");
 
-    static void apply(Project project, PlatformTable.Platform platform, SourceSet main, Runs gameRuns) {
+    public static void apply(Project project, PlatformTable.Platform platform, SourceSet main, Runs gameRuns) {
         TaskProvider<AssembleLayersTask> assemble = project.getTasks().register("assembleSmokeLayers",
                 AssembleLayersTask.class, t -> {
                     t.setGroup("modularity");

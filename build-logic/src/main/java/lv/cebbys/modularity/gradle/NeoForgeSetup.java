@@ -1,5 +1,6 @@
 package lv.cebbys.modularity.gradle;
 
+import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import net.neoforged.moddevgradle.dsl.NeoForgeExtension;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.DependencyHandler;

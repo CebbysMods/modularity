@@ -1,4 +1,4 @@
-package lv.cebbys.modularity.gradle;
+package lv.cebbys.modularity.gradle.smoke;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
