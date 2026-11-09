@@ -54,7 +54,7 @@ Status values: `met` — verified by its check; `partial` — true where checked
 | ID | Requirement | Verified by | Status |
 |---|---|---|---|
 | PR-14 | `-p build-logic test` is green: the table, layering, metadata, version and universal-jar rules have unit tests. | `LayersTest`, `ModularityVersionPluginTest`, `TableAndMetadataTest`, `UniversalJarTest`, `VersionsTest` | met |
-| PR-15 | CI builds every version (`buildAll collectJars`) and runs every smoke (`smokeAll`). A change is complete only when both are green. | `.github/workflows/build.yml`, `.github/workflows/smoke.yml` | configured; not verified green after the setup refactor |
+| PR-15 | CI builds every enabled platform in a parallel job (`buildAll` with `-Pmodularity.platforms`), collects the universal jar of every version in a final job (`collectJars`), and runs each platform's smoke tests in a parallel job (`smoke`, or `smokeServer` when the table sets no client). A change is complete only when both workflows are green. | `.github/workflows/build.yml`, `.github/workflows/smoke.yml` | configured; not verified green after the CI matrix rewrite |
 | PR-16 | Decisions are recorded in docs/07 §7.8 and unfinished work in the bean tracker (`.beans`), so no requirement depends on unwritten history. | review | convention |
 
 ## Known limits — not requirements

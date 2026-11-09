@@ -1,21 +1,42 @@
 name: in-game smoke test
+
 on:
-  workflow_dispatch:
   push:
-    branches: [feature/milestone-1-core-api]
+    branches: [release/1.0.0]
   pull_request:
+  workflow_dispatch:
+
+# No step needs to write to the repository.
+permissions:
+  contents: read
+
+# A newer run of the same branch or pull request replaces the older one.
+concurrency:
+  group: smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # Every platform of gradle/platforms.toml: dedicated server; client where smoke-client = true (docs/07, 7.6).
-  platforms:
+  discover:
+    name: Discover platforms
+    uses: ./.github/workflows/discover-platforms.yml
+
+  # One job per enabled platform. Each job runs one Gradle invocation for that platform, so the game runs of
+  # different platforms never share a Gradle process.
+  smoke:
+    name: ${{ matrix.id }}
+    needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       # 8: ForgeGradle 7 launches its runs with slime-launcher, which is pinned to Java 8; 21: toolchain of the
-      # 1.21.x platforms; 25 (last = default): Gradle, Loom 1.19, the 26.x platforms and Forge's mavenizer.
-      # setup-java writes every version to ~/.m2/toolchains.xml, so Gradle finds all three by itself.
-      - uses: actions/setup-java@v4
+      # 1.21.x platforms; 25 (last = default): Gradle, Loom 1.19 and the 26.x platforms. setup-java writes every
+      # version to ~/.m2/toolchains.xml, so Gradle finds all three by itself.
+      - name: Set up JDK 8, 21 and 25
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: |
@@ -23,17 +44,68 @@ jobs:
             21
             25
       - uses: gradle/actions/setup-gradle@v4
+      # The client needs a virtual display and software OpenGL; the dedicated server does not.
       - name: Install virtual display and software OpenGL
+        if: matrix.client
         run: sudo apt-get update && sudo apt-get install -y xvfb libgl1 libgl1-mesa-dri libglx-mesa0
-      - name: Smoke tests
+      # smoke = server, plus client when the table sets smoke-client = true (docs/07, 7.6).
+      - name: Smoke tests (server and client)
+        if: matrix.client
         env:
           LIBGL_ALWAYS_SOFTWARE: "1"
-        run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew smokeAll --continue
-      - uses: actions/upload-artifact@v4
+        run: xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew -Pmodularity.platforms=${{ matrix.id }} ${{ matrix.project }}:smoke --continue
+      - name: Smoke tests (server only)
+        if: ${{ !matrix.client }}
+        run: ./gradlew -Pmodularity.platforms=${{ matrix.id }} ${{ matrix.project }}:smokeServer --continue
+      # Keep the paths of today's artifact: platforms/<loader>/versions/<name>/build/smoke/...
+      - name: Stage logs and screenshots
         if: always()
+        shell: bash
+        run: |
+          dir="${{ matrix.dir }}/build/smoke"
+          dest="smoke-out/${{ matrix.dir }}/build/smoke"
+          mkdir -p "$dest/run"
+          shopt -s nullglob
+          files=("$dir"/*.txt "$dir"/*.log)
+          if [ ${#files[@]} -gt 0 ]; then
+            cp "${files[@]}" "$dest/"
+          fi
+          if [ -d "$dir/run/screenshots" ]; then
+            cp -r "$dir/run/screenshots" "$dest/run/"
+          fi
+      - name: Upload logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-log-${{ matrix.id }}
+          path: smoke-out/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # One artifact with every platform's logs and screenshots, and one run result. It fails when any platform failed,
+  # but it still uploads what the platform jobs produced.
+  merge:
+    name: Smoke results
+    needs: smoke
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download platform results
+        if: ${{ !cancelled() }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: smoke-log-*
+          path: smoke-platforms
+          merge-multiple: true
+      - name: Upload smoke-platforms
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-platforms
-          path: |
-            platforms/*/versions/*/build/smoke/*.txt
-            platforms/*/versions/*/build/smoke/*.log
-            platforms/*/versions/*/build/smoke/run/screenshots/
+          path: smoke-platforms/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Fail when a platform smoke test failed
+        if: ${{ !cancelled() && needs.smoke.result != 'success' }}
+        run: exit 1
