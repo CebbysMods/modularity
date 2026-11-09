@@ -6,34 +6,25 @@ verified.
 
 ## Review notes — worth knowing, not bugs yet
 
-- [ ] **Unreachable `default -> throw` in `ModularityPlatformPlugin`.** After the
-      `usesLoom`/`List.of(FABRIC, QUILT)` early return, the second switch can only see `NEOFORGE`
-      and `FORGE`, so `default -> throw new GradleException("unexpected loader …")` is dead. Drop it
-      when the legacy body goes (S5).
-- [ ] **`LAYER_BASE` is declared twice** — `ModularityPlatformPlugin.LAYER_BASE` (public, still used
-      by the legacy NeoForge path) and `AbstractPlatformSetup.LAYER_BASE` (package-private). One
-      constant, one home, after S5.
-- [ ] **`layered(Project, TaskProvider<AssembleLayersTask>, String)` is duplicated** in
-      `ModularityPlatformPlugin` and `AbstractPlatformSetup`. Same reasoning: it survives in the
-      plugin only for the NeoForge legacy path.
-- [ ] **The legacy body of `ModularityPlatformPlugin.apply` duplicates the shared stages.** Lines
-      ~44–117 re-implement `javaSetup` (maven-publish, archive name, toolchain, sources jar, compile
-      options, `compile` alias), `sources` (`assembleLayers`, `generateModMetadata`, source dirs) and
-      `publication`. Every change to a shared stage currently has to be made twice. Removed in S5
-      once NeoForge is migrated.
+- [x] **Unreachable `default -> throw` in `ModularityPlatformPlugin`.** Removed with the legacy body
+      in S4; `apply` no longer has a switch of its own.
+- [x] **`LAYER_BASE` is declared twice.** Only `AbstractPlatformSetup.LAYER_BASE` remains; the
+      plugin's public copy is gone.
+- [x] **`layered(Project, TaskProvider<AssembleLayersTask>, String)` is duplicated.** The plugin's
+      copy is gone; `AbstractPlatformSetup` owns it.
+- [x] **The legacy body of `ModularityPlatformPlugin.apply` duplicates the shared stages.** Deleted in
+      S4: `apply` is now the table read plus `new PlatformSetup().apply(project, table, platform)`.
 - [ ] **`parchmentRepository` is a `public static` on a `Plugin` class.** It is public only so the
       `gradle.setup` package can reach it; the natural home is `AbstractPlatformSetup` (or a small
       repository helper next to it). Move it when the plugin's own copy is deleted (S5).
-- [ ] **Empty setup classes are silently valid.** `NeoForgePlatformSetup` and `ForgePlatformSetup`
-      extend the scaffold with no bodies; if the plugin were routed to one before its hooks are
-      implemented, the project would configure "successfully" and build nothing. Either implement
-      them (S3/S4) or make the unimplemented stages fail loudly — decide before closing.
+- [x] **Empty setup classes are silently valid.** Every loader now implements the abstract stages
+      (`loaderPlugins`, `dependencies`, `runs`); a setup that leaves an optional stage empty (Forge's
+      `smokeDependencies`, Fabric's `runtimeConfigurations`) is a deliberate no-op, not a gap.
 - [ ] **`ModularityPlatformPlugin.parchmentRepository` / `modJarTask` remain the public API of a
       `Plugin` class.** `ModularityVersionPlugin` calls `modJarTask`; keep it public wherever it
       ends up.
-- [ ] **`ModularityPlatformPlugin.java` is committed with CRLF line endings** while the rest of the
-      repository is LF (a scripting edit wrote it back with Windows endings). Normalise it in one
-      whitespace-only commit so later diffs stay readable.
+- [x] **`ModularityPlatformPlugin.java` was committed with CRLF line endings** while the rest of the
+      repository is LF. Rewritten with LF as part of the S4 rewrite.
 
 ## Open design question — fold the companion mods into Modularity?
 
@@ -92,6 +83,8 @@ both) and because it leaves the plugin's legacy body holding Forge alone.
 
 ## S4 — Forge last (and it finishes the job)
 
+*Implemented in the working tree as of the Forge pass; the verify run below is outstanding, so the boxes stay open.*
+
 - [ ] Implement `ForgePlatformSetup` on the base:
       - `loaderPluginId()` → `net.minecraftforge.gradle`
       - `prepareSourceSet` → `oneOutputDir(sourceSet)`
@@ -118,6 +111,8 @@ both) and because it leaves the plugin's legacy body holding Forge alone.
       `layered()`, the duplicated legacy stages) and fix the rest: move `parchmentRepository` to
       its final home, decide the "empty setup is silently valid" item (every loader now has a body —
       does any stage still need to fail loudly?).
-- [ ] Add the Forge line to `.beans/modularity-2a9k` (it still names `ForgeSetup`).
+- [x] Add the Forge line to `.beans/modularity-2a9k` (it named `ForgeSetup`): now points at
+      `ForgePlatformSetup` and `AbstractLoomPlatformSetup`.
 - [ ] Run `smokeAll` across the four loaders and `:platforms:21.1:jar`.
-- [ ] Review `docs/07-multi-version-build.md` for anything that described the old plugin layout.
+- [x] Review `docs/07-multi-version-build.md` for anything that described the old plugin layout: §7.4 now
+      names the per-loader setups and the shared stage order instead of "applies Loom …".

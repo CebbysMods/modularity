@@ -63,4 +63,5 @@ casts the created `ExternalModuleDependency` to `ClosureOwner.MinecraftDependenc
 Verified 2026-11-09: `:platforms:21.1:21.1-forge:smokeClient --rerun-tasks` (mavenizer cache deleted)
 resolves `net.minecraft:mappings_parchment:1.21.1-…-2024.11.17-1.21.1` on the compile class path and
 the client starts, joins the world and finishes the smoke. All four loaders now use Parchment where
-`[parchment]` has a version. See ForgeSetup, gradle/platforms.toml and docs/07-multi-version-build.md.
+`[parchment]` has a version. See `ForgePlatformSetup` (was `ForgeSetup` before the setup refactor),
+`AbstractLoomPlatformSetup`, gradle/platforms.toml and docs/07-multi-version-build.md.

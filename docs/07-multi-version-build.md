@@ -115,9 +115,15 @@ Two plugins in `build-logic/`:
   `loom-cache` below), since the mappings are the same for every loader, and it is **not** part of `build`:
   Gradle deletes the shared Maven directory before decompiling, which breaks any other Loom project reading
   it in the same parallel run. Run it on its own after a Minecraft or mappings change.
-* `lv.cebbys.modularity` (project plugin), applied to each platform project:
-  * applies Loom (`net.fabricmc.fabric-loom-remap` with Mojang mappings up to 1.21.11,
-    `net.fabricmc.fabric-loom` without mappings from 26.1) and the Java target of the version;
+* `lv.cebbys.modularity` (project plugin), applied to each platform project: reads the table and hands the
+  project to its loader's setup in `lv.cebbys.modularity.gradle.setup` — `FabricPlatformSetup` and
+  `QuiltPlatformSetup` over the shared Loom base, `NeoForgePlatformSetup` and `ForgePlatformSetup` over the
+  shared Forge-family base. Every setup runs the same stages in the same order (loader plugins, Java setup,
+  layered sources, dependencies, tasks, runs, publication); the bases own the stages the loaders share and
+  each loader fills in only its own:
+  * applies the loader's Gradle plugin (Loom, `net.fabricmc.fabric-loom-remap` with Mojang mappings up to
+    1.21.11 and `net.fabricmc.fabric-loom` without mappings from 26.1, ModDevGradle or ForgeGradle) and the
+    Java target of the version;
   * adds Parchment over the official mappings where `[parchment]` in `gradle/platforms.toml` has a version
     for the Minecraft version (Loom `layered`, ModDevGradle `neoForge.parchment`, ForgeGradle
     `minecraft.mappings("parchment", …)`), from
