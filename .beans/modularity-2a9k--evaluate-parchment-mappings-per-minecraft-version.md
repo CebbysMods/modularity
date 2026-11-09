@@ -1,14 +1,14 @@
 ---
 # modularity-2a9k
 title: Parchment mappings per Minecraft version
-status: in-progress
+status: completed
 type: feature
 priority: high
 tags:
     - build
     - tooling
 created_at: 2026-11-08T12:03:40Z
-updated_at: 2026-11-08T20:10:29Z
+updated_at: 2026-11-09T08:17:01Z
 ---
 
 Minecraft is mapped with official Mojang mappings; Parchment adds parameter names and javadoc on top. It is
@@ -45,3 +45,12 @@ Artifacts exist for 1.21.1, 1.21.3-1.21.11 (no 1.21.2 artifact; 1.21.3 covers th
       covered by the parser test; no such version is enabled today)
 - [ ] Parameter names in Minecraft classes are readable in the IDE on every 21.1 platform
 - [ ] The universal jar is byte-identical to the one built without Parchment (metadata only)
+
+## Revision (after merge): Forge excluded
+
+Parchment on Forge broke ForgeGradle 7's run launcher: with both the official and the Parchment
+variants published for `net.minecraftforge:forge`, `smokeServer`/`smokeClient` fail to resolve the
+run class path ("Cannot choose between the available variants", through an attribute-less detached
+configuration that project configuration hooks cannot reach). Forge therefore builds with the official
+mappings only, for every version; Fabric/Quilt (Loom layered) and NeoForge (ModDevGradle parchment)
+keep Parchment. See ForgeSetup, gradle/platforms.toml and docs/07-multi-version-build.md.

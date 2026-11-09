@@ -18,7 +18,9 @@ quilt-loader = "0.30.2"
 # Parchment (https://parchmentmc.org), from maven.parchmentmc.org, checked 2026-11-08: parameter names and javadoc
 # layered over the official Mojang mappings. Compile time only: names, the remapped jar and the runtime do not change.
 # Minecraft version -> Parchment version; a version without a release here builds with the official mappings alone
-# (there is none for 1.21.2, 1.21.3's covers that line, and none for 26.x).
+# (there is none for 1.21.2, 1.21.3's covers that line, and none for 26.x). Forge is the exception: it always builds
+# with the official mappings, for every version, because ForgeGradle cannot launch with two mapping channels in its
+# mavenizer metadata (see ForgeSetup).
 [parchment]
 "1.21.1" = "2024.11.17"
 
