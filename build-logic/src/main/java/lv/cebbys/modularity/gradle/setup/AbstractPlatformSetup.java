@@ -34,14 +34,14 @@ abstract class AbstractPlatformSetup {
     static final String LAYER_BASE = "platforms";
 
     /** The stages, in order. The only entry point; never overridden. */
-    final void apply(PlatformSetupContext root) {
-        loaderPlugins(new LoaderPluginsContext(root));
-        javaSetup(new JavaSetupContext(root));
-        sources(new SourcesContext(root));
-        dependencies(new DependenciesContext(root));
-        tasks(new TasksContext(root));
-        runs(new RunsContext(root));
-        publication(new PublicationsContext(root));
+    final void apply(Project project, PlatformTable table, PlatformTable.Platform platform) {
+        loaderPlugins(new LoaderPluginsContext(project, table, platform));
+        javaSetup(new JavaSetupContext(project, table, platform));
+        sources(new SourcesContext(project, table, platform, mainSourceSet(project)));
+        dependencies(new DependenciesContext(project, table, platform, mainSourceSet(project)));
+        tasks(new TasksContext(project, table, platform, mainSourceSet(project)));
+        runs(new RunsContext(project, table, platform, mainSourceSet(project)));
+        publication(new PublicationsContext(project, table, platform));
     }
 
     /** S1a: the loader's Gradle plugin(s). */
@@ -167,79 +167,45 @@ abstract class AbstractPlatformSetup {
     }
 
     /**
-     * Everything one platform project is built from; each stage context is built from this. The main source set is
-     * looked up when a stage first needs it: it exists only once the loader's plugins (which apply the Java plugin)
-     * have been applied by {@link #loaderPlugins}.
+     * The main source set, looked up when the stage that needs it is built: it exists only once the loader's plugins
+     * (which apply the Java plugin) have been applied by {@link #loaderPlugins}.
      */
-    record PlatformSetupContext(Project project, PlatformTable table, PlatformTable.Platform platform)
-            implements PlatformView {
-
-        SourceSet main() {
-            return project().getExtensions().getByType(SourceSetContainer.class)
-                    .getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        }
+    private static SourceSet mainSourceSet(Project project) {
+        return project.getExtensions().getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
     /** S1a: the loader's Gradle plugin(s) and nothing else. */
     record LoaderPluginsContext(Project project, PlatformTable table, PlatformTable.Platform platform)
             implements PlatformView {
-
-        LoaderPluginsContext(PlatformSetupContext root) {
-            this(root.project(), root.table(), root.platform());
-        }
     }
 
     /** S1b: the common Java setup (publication plugin, archive name, toolchain, compile options). */
     record JavaSetupContext(Project project, PlatformTable table, PlatformTable.Platform platform)
             implements PlatformView {
-
-        JavaSetupContext(PlatformSetupContext root) {
-            this(root.project(), root.table(), root.platform());
-        }
     }
 
     /** S2: the layered sources and the generated mod metadata of the main source set. */
     record SourcesContext(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main)
             implements PlatformView {
-
-        SourcesContext(PlatformSetupContext root) {
-            this(root.project(), root.table(), root.platform(), root.main());
-        }
     }
 
     /** S3: Minecraft, the loader, the APIs, the nested modules and the separate mods. */
     record DependenciesContext(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main)
             implements PlatformView {
-
-        DependenciesContext(PlatformSetupContext root) {
-            this(root.project(), root.table(), root.platform(), root.main());
-        }
     }
 
     /** S4: the loader-specific task wiring (Forge's jar-in-jar, Quilt's launch properties). */
     record TasksContext(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main)
             implements PlatformView {
-
-        TasksContext(PlatformSetupContext root) {
-            this(root.project(), root.table(), root.platform(), root.main());
-        }
     }
 
     /** S5: the development and smoke runs. */
     record RunsContext(Project project, PlatformTable table, PlatformTable.Platform platform, SourceSet main)
             implements PlatformView {
-
-        RunsContext(PlatformSetupContext root) {
-            this(root.project(), root.table(), root.platform(), root.main());
-        }
     }
 
     /** S6: the {@code maven} publication of the platform jar. */
     record PublicationsContext(Project project, PlatformTable table, PlatformTable.Platform platform)
             implements PlatformView {
-
-        PublicationsContext(PlatformSetupContext root) {
-            this(root.project(), root.table(), root.platform());
-        }
     }
 }

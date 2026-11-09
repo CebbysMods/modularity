@@ -18,13 +18,12 @@ public class PlatformSetup {
     }
 
     public void apply(Project project, PlatformTable table, PlatformTable.Platform platform) {
-        var ctx = new AbstractPlatformSetup.PlatformSetupContext(project, table, platform);
         AbstractPlatformSetup setup = switch (platform.loader()) {
             case NEOFORGE -> this.neoforge;
             case FABRIC -> this.fabric;
             case FORGE -> this.forge;
             case QUILT -> this.quilt;
         };
-        setup.apply(ctx);
+        setup.apply(project, table, platform);
     }
 }
