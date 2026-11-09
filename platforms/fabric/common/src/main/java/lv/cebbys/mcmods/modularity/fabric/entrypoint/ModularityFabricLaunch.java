@@ -1,5 +1,7 @@
-package lv.cebbys.mcmods.modularity.fabric.guest;
+package lv.cebbys.mcmods.modularity.fabric.entrypoint;
 
+import lv.cebbys.mcmods.modularity.fabric.guest.FabricGuestJson;
+import lv.cebbys.mcmods.modularity.fabric.guest.LoaderInjection;
 import lv.cebbys.mcmods.modularity.fabric.loader.FabricLoaderName;
 import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
@@ -25,11 +27,12 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Loads guest mods: jars (or folders) with a {@code modularity.mod.json} and no {@code fabric.mod.json}, from the mods
- * folder and from the paths in the system property {@code modularity.guestMods} (development). Each becomes a real
- * Fabric mod before the game starts; its {@code modularity} entrypoints then run with all other Modularity mods.
+ * Fabric launch entrypoint: loads guest mods, jars (or folders) with a {@code modularity.mod.json} and no
+ * {@code fabric.mod.json}, from the mods folder and from the paths in the system property
+ * {@code modularity.guestMods} (development). Each becomes a real Fabric mod before the game starts; its
+ * {@code modularity} entrypoints then run with all other Modularity mods.
  */
-public final class GuestMods implements PreLaunchEntrypoint {
+public final class ModularityFabricLaunch implements PreLaunchEntrypoint {
     public static final String PROPERTY = "modularity.guestMods";
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
 
@@ -67,7 +70,7 @@ public final class GuestMods implements PreLaunchEntrypoint {
             LOGGER.info("[modularity] Loaded guest mod {} {} from {}", guest.id(), guest.version(),
                     guest.origin().getFileName());
         }
-        byId.values().forEach(GuestMods::checkDependencies);
+        byId.values().forEach(ModularityFabricLaunch::checkDependencies);
     }
 
     /** Fabric resolved dependencies before guests existed; the same rules, checked here. */

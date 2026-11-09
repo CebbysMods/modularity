@@ -47,8 +47,8 @@ layers (docs/07), where version changes are handled once for every mod.
 
 ## 8.3 Fabric
 
-`GuestMods` (`fabric/guest`) is Modularity's pre-launch entrypoint (the `launch` role, Fabric key
-`preLaunch`). It runs after Fabric discovered and resolved all mods, before Minecraft starts:
+`ModularityFabricLaunch` (`fabric/entrypoint`) is Modularity's pre-launch entrypoint (the `launch` role,
+Fabric key `preLaunch`). It runs after Fabric discovered and resolved all mods, before Minecraft starts:
 
 1. Finds candidates: every `*.jar` in `mods/` and every path in the system property
    `modularity.guestMods` (separated by the path separator; jars or folders, for development). A

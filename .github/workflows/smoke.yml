@@ -31,19 +31,19 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # 8: ForgeGradle 7 launches its runs with slime-launcher, which is pinned to Java 8; 21: toolchain of the
       # 1.21.x platforms; 25 (last = default): Gradle, Loom 1.19 and the 26.x platforms. setup-java writes every
       # version to ~/.m2/toolchains.xml, so Gradle finds all three by itself.
       - name: Set up JDK 8, 21 and 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
             8
             21
             25
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       # The client needs a virtual display and software OpenGL; the dedicated server does not.
       - name: Install virtual display and software OpenGL
         if: matrix.client
@@ -75,7 +75,7 @@ jobs:
           fi
       - name: Upload logs and screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-log-${{ matrix.id }}
           path: smoke-out/
@@ -93,14 +93,14 @@ jobs:
     steps:
       - name: Download platform results
         if: ${{ !cancelled() }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: smoke-log-*
           path: smoke-platforms
           merge-multiple: true
       - name: Upload smoke-platforms
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: smoke-platforms
           path: smoke-platforms/
