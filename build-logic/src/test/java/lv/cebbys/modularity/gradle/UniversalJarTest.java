@@ -71,10 +71,34 @@ class UniversalJarTest {
     @Test
     void onlyClassesOfTheModAreRelocated() {
         assertEquals(ROOT + "/universal/fabric/Target", UniversalJar.relocatedPath(ROOT + "/Target", Loader.FABRIC));
+        // The API is a separate nested mod: its package must not move, or the platform classes would point at a
+        // package nothing provides (the production client then fails with NoClassDefFoundError).
+        assertEquals(ROOT + "/api/Modularity", UniversalJar.relocatedPath(ROOT + "/api/Modularity", Loader.FABRIC));
         // Other roots and the loader's own metadata are copied as they are.
         assertEquals("net/minecraft/class_1", UniversalJar.relocatedPath("net/minecraft/class_1", Loader.FABRIC));
         assertEquals("lv.cebbys.mcmods.modularity.universal.neoforge.mixin",
                 UniversalJar.relocatedPackage("lv.cebbys.mcmods.modularity.mixin", Loader.NEOFORGE));
+    }
+
+    @Test
+    void apiClassesAndReferencesKeepTheirPackage(@TempDir Path dir) throws IOException {
+        Path jar = dir.resolve("fabric.jar");
+        write(jar, Map.of(
+                ROOT + "/api/Modularity.class", plainClass(ROOT + "/api/Modularity"),
+                // A platform class with a field of an API type: the reference must survive the relocation.
+                ROOT + "/platform/Core.class", classWithField(ROOT + "/platform/Core", "api", "L" + ROOT + "/api/Modularity;")));
+        Path out = dir.resolve("universal.jar");
+        UniversalJar.write(out, List.of(new UniversalJar.Part(jar, Loader.FABRIC)),
+                "lv.cebbys.mcmods.modularity.mixin", MIXIN_CONFIG);
+
+        Map<String, byte[]> entries = read(out);
+        assertTrue(entries.containsKey(ROOT + "/api/Modularity.class"));
+        assertFalse(entries.containsKey(ROOT + "/universal/fabric/api/Modularity.class"));
+        assertTrue(entries.containsKey(ROOT + "/universal/fabric/platform/Core.class"));
+        String core = new String(entries.get(ROOT + "/universal/fabric/platform/Core.class"), StandardCharsets.ISO_8859_1);
+        assertTrue(core.contains("L" + ROOT + "/api/Modularity;"), core);
+        assertFalse(core.contains("universal/fabric/api"), core);
+        assertTrue(entries.keySet().stream().noneMatch(name -> name.startsWith(ROOT + "/universal/") && name.contains("/api/")));
     }
 
     /** A platform jar with one class of the mod, a class referring to it, both metadata files and a resource. */
@@ -111,6 +135,32 @@ class UniversalJarTest {
         }
         writer.visitEnd();
         return writer.toByteArray();
+    }
+
+    private static byte[] plainClass(String internalName) {
+        ClassWriter writer = new ClassWriter(0);
+        writer.visit(Opcodes.V17, Opcodes.ACC_PUBLIC, internalName, null, "java/lang/Object", null);
+        writer.visitEnd();
+        return writer.toByteArray();
+    }
+
+    private static byte[] classWithField(String internalName, String fieldName, String fieldType) {
+        ClassWriter writer = new ClassWriter(0);
+        writer.visit(Opcodes.V17, Opcodes.ACC_PUBLIC, internalName, null, "java/lang/Object", null);
+        writer.visitField(Opcodes.ACC_PRIVATE, fieldName, fieldType, null, null);
+        writer.visitEnd();
+        return writer.toByteArray();
+    }
+
+    private static void write(Path file, Map<String, byte[]> entries) throws IOException {
+        Files.createDirectories(file.getParent());
+        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(file))) {
+            for (Map.Entry<String, byte[]> entry : entries.entrySet()) {
+                zip.putNextEntry(new ZipEntry(entry.getKey()));
+                zip.write(entry.getValue());
+                zip.closeEntry();
+            }
+        }
     }
 
     private static Map<String, byte[]> read(Path jar) throws IOException {

@@ -27,6 +27,12 @@ final class UniversalJar {
     /** Package root of the mod's own classes in every platform jar. */
     static final String ROOT = "lv/cebbys/mcmods/modularity";
     private static final String RELOCATED = ROOT + "/universal/";
+    /**
+     * The API lives in its own module, nested in the universal jar and loaded as a mod under this real package
+     * (Fabric: {@code META-INF/jars}, Forge/NeoForge: {@code META-INF/jarjar}). Relocating it would leave the
+     * platform classes referring to a package nothing provides.
+     */
+    private static final String API = ROOT + "/api/";
     private static final String MANIFEST = "META-INF/MANIFEST.MF";
 
     private UniversalJar() {
@@ -77,7 +83,13 @@ final class UniversalJar {
 
     /** {@code lv/cebbys/mcmods/modularity/fabric/X} -> {@code lv/cebbys/mcmods/modularity/universal/<loader>/fabric/X}. */
     static String relocatedPath(String path, Loader loader) {
-        return path.startsWith(ROOT) ? RELOCATED + loader.id() + path.substring(ROOT.length()) : path;
+        return relocatable(path) ? RELOCATED + loader.id() + path.substring(ROOT.length()) : path;
+    }
+
+    /** Only the platform's own classes move: the API keeps its package, the nested jar provides it. */
+    private static boolean relocatable(String internalName) {
+        return (internalName.equals(ROOT) || internalName.startsWith(ROOT + "/"))
+                && !internalName.startsWith(API);
     }
 
     /** Dotted package of one loader's relocated tree, e.g. the mixin package of the Fabric classes. */
@@ -94,9 +106,7 @@ final class UniversalJar {
         new ClassReader(classBytes).accept(new ClassRemapper(writer, new Remapper() {
             @Override
             public String map(String internalName) {
-                return internalName.equals(from) || internalName.startsWith(from + "/")
-                        ? to + internalName.substring(from.length())
-                        : internalName;
+                return relocatable(internalName) ? to + internalName.substring(from.length()) : internalName;
             }
         }), 0);
         return writer.toByteArray();
