@@ -4,15 +4,6 @@ Notes that must be resolved **before this feature (the platform-setup refactor) 
 "Now" is not "this session" — it is "not left behind". Tick a box only when the change is in and
 verified.
 
-## Review notes — worth knowing, not bugs yet
-
-- [ ] **`parchmentRepository` is a `public static` on a `Plugin` class.** It is public only so the
-      `gradle.setup` package can reach it; the natural home is `AbstractPlatformSetup` (or a small
-      repository helper next to it). Move it when the plugin's own copy is deleted (S5).
-- [ ] **`ModularityPlatformPlugin.parchmentRepository` / `modJarTask` remain the public API of a
-      `Plugin` class.** `ModularityVersionPlugin` calls `modJarTask`; keep it public wherever it
-      ends up.
-
 ## S3 — NeoForge first
 
 *Implemented and committed (`834d24f`); the verify run below is outstanding.*
@@ -31,6 +22,4 @@ both) and because it left the plugin's legacy body holding Forge alone.
 
 ## S5 — sweep and close
 
-- [ ] Move `parchmentRepository` to its final home (the two open review notes above); `modJarTask`
-      can become a method on `PlatformTable.Platform`, which leaves the plugin as a pure dispatcher.
 - [ ] Run `smokeAll` across the four loaders and `:platforms:21.1:jar`.

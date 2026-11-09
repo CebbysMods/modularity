@@ -2,7 +2,6 @@ package lv.cebbys.modularity.gradle.setup;
 
 import groovy.lang.Closure;
 import lv.cebbys.modularity.gradle.JarJarMetadataTask;
-import lv.cebbys.modularity.gradle.ModularityPlatformPlugin;
 import lv.cebbys.modularity.gradle.PlatformTable;
 import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import net.minecraftforge.gradle.ForgeGradleExtension;
@@ -57,7 +56,7 @@ class ForgePlatformSetup extends AbstractForgeFamilyPlatformSetup {
         if (parchment == null) {
             minecraft.mappings("official", platform.minecraft().toString());
         } else {
-            ModularityPlatformPlugin.parchmentRepository(project);
+            parchmentRepository(project);
             // ForgeGradle sanitizes the version to <timestamp>-<minecraft> (ParchmentVersion.toFriendly()).
             minecraft.mappings("parchment", parchment + "-" + platform.minecraft());
         }

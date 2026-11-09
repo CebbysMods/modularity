@@ -152,6 +152,21 @@ abstract class AbstractPlatformSetup {
         return path;
     }
 
+    /**
+     * The repository Parchment is published to, filtered to it: it is a single artifact group, not a proxy for
+     * everything else.
+     */
+    protected static void parchmentRepository(Project project) {
+        if (project.getRepositories().findByName("Parchment") != null) {
+            return;
+        }
+        project.getRepositories().maven(r -> {
+            r.setName("Parchment");
+            r.setUrl("https://maven.parchmentmc.org/");
+            r.content(c -> c.includeGroup("org.parchmentmc.data"));
+        });
+    }
+
     /** What every stage context reads: the project it configures and the platform it builds. */
     interface PlatformView {
         Project project();

@@ -1,6 +1,5 @@
 package lv.cebbys.modularity.gradle.setup;
 
-import lv.cebbys.modularity.gradle.ModularityPlatformPlugin;
 import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import net.neoforged.moddevgradle.dsl.NeoForgeExtension;
 import org.gradle.api.Project;
@@ -26,7 +25,7 @@ class NeoForgePlatformSetup extends AbstractForgeFamilyPlatformSetup {
         neoForge.setVersion(ctx.platform().loaderVersion());
         // Parchment (parameter names, javadoc) over the official mappings, compile time only.
         if (ctx.platform().parchment() != null) {
-            ModularityPlatformPlugin.parchmentRepository(ctx.project());
+            parchmentRepository(ctx.project());
             neoForge.parchment(p -> {
                 p.getMinecraftVersion().set(ctx.platform().minecraft().toString());
                 p.getMappingsVersion().set(ctx.platform().parchment());

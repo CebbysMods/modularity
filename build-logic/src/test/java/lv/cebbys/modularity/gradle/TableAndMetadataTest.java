@@ -59,6 +59,8 @@ class TableAndMetadataTest {
         assertEquals(Loader.FABRIC, p.loader());
         assertEquals(21, p.java());
         assertTrue(p.remap());
+        assertEquals("remapJar", p.modJarTask());
+        assertEquals("jar", t.platform("fabric-26.1").orElseThrow().modJarTask());
         assertFalse(p.enabled());
         assertFalse(t.platform("fabric-26.1").orElseThrow().remap());
         assertEquals(List.of("fabric-26.1"), t.enabled().stream().map(PlatformTable.Platform::id).toList());
@@ -94,6 +96,7 @@ class TableAndMetadataTest {
         PlatformTable.Platform neo = t.platform("neoforge-21.1").orElseThrow();
         assertEquals("21.1.265", neo.loaderVersion());
         assertFalse(neo.remap(), "NeoForge runs with Mojang names");
+        assertEquals("jar", neo.modJarTask());
         assertEquals("platforms/neoforge/versions/21.1", neo.projectDir());
         assertEquals(List.of("minecraft", "neoforge"), neo.loader().layerRoots());
         PlatformTable.Platform quilt = t.platform("quilt-21.1").orElseThrow();
@@ -154,6 +157,8 @@ class TableAndMetadataTest {
         assertThrows(IllegalArgumentException.class, () -> ModMetadata.mavenRange("~1.2"));
         assertEquals(":utilities:mvd:mvd-neoforge",
                 PlatformTable.Mod.companionProject(":utilities:mvd:mvd", Loader.NEOFORGE));
+        assertEquals(":utilities:mvd:mvd-fabric",
+                PlatformTable.Mod.companionProject(":utilities:mvd:mvd", Loader.QUILT), "Quilt runs the Fabric build");
         assertEquals(":utilities:mvd:mvd-core", PlatformTable.Mod.companionApi(":utilities:mvd:mvd"));
     }
 

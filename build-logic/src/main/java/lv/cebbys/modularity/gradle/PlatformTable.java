@@ -68,6 +68,11 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
             return (loader == Loader.FABRIC || loader == Loader.QUILT) && minecraft.obfuscated();
         }
 
+        /** The jar task that produces the mod jar: {@code remapJar} for obfuscated versions, else {@code jar}. */
+        public String modJarTask() {
+            return remap() ? "remapJar" : "jar";
+        }
+
         public boolean fabricLike() {
             return loader == Loader.FABRIC || loader == Loader.QUILT;
         }
@@ -98,9 +103,13 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
             return icon == null ? null : "assets/" + id + "/icon.png";
         }
 
-        /** The loader's build of a companion mod: {@code :utilities:mvd:mvd} and {@code NEOFORGE} give {@code -neoforge}. */
+        /**
+         * The loader's build of a companion mod: {@code :utilities:mvd:mvd} and {@code NEOFORGE} give {@code -neoforge}.
+         * Quilt runs the Fabric build (it has no {@code -quilt} module, docs/06-utility-mods.md).
+         */
         public static String companionProject(String companionMod, Loader loader) {
-            return companionMod + "-" + loader.id();
+            Loader build = loader == Loader.QUILT ? Loader.FABRIC : loader;
+            return companionMod + "-" + build.id();
         }
 
         /**

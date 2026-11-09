@@ -21,24 +21,4 @@ public class ModularityPlatformPlugin implements Plugin<Project> {
                 .orElseThrow(() -> new GradleException(project.getPath() + " is not in " + PlatformTable.FILE));
         new PlatformSetup().apply(project, table, platform);
     }
-
-    /**
-     * The repository Parchment is published to, filtered to it: it is a single artifact group, not a proxy for
-     * everything else. Shared with the platform setups.
-     */
-    public static void parchmentRepository(Project project) {
-        if (project.getRepositories().findByName("Parchment") != null) {
-            return;
-        }
-        project.getRepositories().maven(r -> {
-            r.setName("Parchment");
-            r.setUrl("https://maven.parchmentmc.org/");
-            r.content(c -> c.includeGroup("org.parchmentmc.data"));
-        });
-    }
-
-    /** The jar task that produces the mod jar: {@code remapJar} for obfuscated versions, else {@code jar}. */
-    public static String modJarTask(PlatformTable.Platform platform) {
-        return platform.remap() ? "remapJar" : "jar";
-    }
 }

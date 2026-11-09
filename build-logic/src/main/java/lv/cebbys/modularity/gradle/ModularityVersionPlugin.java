@@ -105,7 +105,7 @@ public class ModularityVersionPlugin implements Plugin<Project> {
                     case QUILT -> null;
                 };
                 if (jars != null) {
-                    jars.from(child.getTasks().named(ModularityPlatformPlugin.modJarTask(p)));
+                    jars.from(child.getTasks().named(p.modJarTask()));
                 }
             });
         }

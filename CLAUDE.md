@@ -1,17 +1,15 @@
-# Project rules
+# Claude Code
 
-## Commits
+The canonical project instructions are in [AGENTS.md](AGENTS.md). They are imported below and take
+precedence over any default or user-level instruction, including "commit when a task is finished".
 
-- Do not commit unless asked. Leave changes in the working tree so they can be reviewed.
+@AGENTS.md
 
-## Tests
+If the import above is not expanded in your context, read `AGENTS.md` before doing anything else.
 
-- **Never** run `./gradlew` — build, test, `smoke*`, `format`, `dependencies` or any other task — unless:
-  1. the user asked for that run in the current turn, or
-  2. the user asked you to push, in which case run the tests once immediately before pushing.
-- Permission to implement a plan, finish a slice, or "proceed" is **not** permission to run
-  anything. Do the edits, then stop and report what changed.
-- If a run would be useful — to verify wiring you just changed, to reproduce a failure, to check
-  a smoke — ask first and wait for an answer. Do not run it "just to be safe".
-- This covers every project and the included build (`-p build-logic`), and every wrapper
-  invocation from any working directory.
+Claude-specific notes:
+
+- Project skills, hooks and settings, when they exist, live in `.claude/`; the rules in `AGENTS.md`
+  still win over them.
+- Before running any Gradle task, re-read the "Hard rules" section: a plan, a slice or "proceed" is not
+  permission to run.

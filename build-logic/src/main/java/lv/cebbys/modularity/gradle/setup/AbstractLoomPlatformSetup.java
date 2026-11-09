@@ -1,6 +1,5 @@
 package lv.cebbys.modularity.gradle.setup;
 
-import lv.cebbys.modularity.gradle.ModularityPlatformPlugin;
 import lv.cebbys.modularity.gradle.PlatformTable;
 import lv.cebbys.modularity.gradle.RemapService;
 import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
@@ -97,7 +96,7 @@ abstract class AbstractLoomPlatformSetup extends AbstractPlatformSetup {
         if (platform.parchment() == null) {
             return loom.officialMojangMappings();
         }
-        ModularityPlatformPlugin.parchmentRepository(project);
+        parchmentRepository(project);
         return loom.layered(builder -> {
             builder.officialMojangMappings();
             builder.parchment(platform.parchmentArtifact());
