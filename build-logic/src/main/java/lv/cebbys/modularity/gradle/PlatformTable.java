@@ -21,6 +21,11 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
 
     public static final String FILE = "gradle/platforms.toml";
 
+    /** The metadata file a loader reads: one per generated file (docs/07, 7.4). */
+    public enum MetadataFormat {
+        FABRIC, QUILT, NEOFORGE, FORGE
+    }
+
     /**
      * One platform: one loader, one Minecraft version, one project
      * ({@code :platforms:<name>:<name>-<loader>}).
@@ -73,8 +78,14 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
             return remap() ? "remapJar" : "jar";
         }
 
-        public boolean fabricLike() {
-            return loader == Loader.FABRIC || loader == Loader.QUILT;
+        /** The metadata file the loader reads. */
+        public MetadataFormat metadataFormat() {
+            return switch (loader) {
+                case FABRIC -> MetadataFormat.FABRIC;
+                case QUILT -> MetadataFormat.QUILT;
+                case NEOFORGE -> MetadataFormat.NEOFORGE;
+                case FORGE -> MetadataFormat.FORGE;
+            };
         }
 
         /**
@@ -88,12 +99,14 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
     }
 
     /**
-     * Values for the generated {@code fabric.mod.json}.
+     * Values for the generated loader metadata.
      *
+     * @param group         Maven group of the mod ({@code [mod] group}, default the id): the {@code quilt_loader.group}
+     *                      of {@code quilt.mod.json}
      * @param companionMods the mods that sit next to Modularity, named once and without a loader
      *                      ({@code :utilities:mvd:mvd}); {@link #companionProject} gives the build of one
      */
-    public record Mod(String id, String name, String description, String license, List<String> authors,
+    public record Mod(String id, String group, String name, String description, String license, List<String> authors,
                       String sources, String mixinPackage,
                       Map<String, String> depends, String archivePrefix, List<String> nested,
                       List<String> companionMods, String icon) {
@@ -139,8 +152,9 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
         Map<String, String> depends = new LinkedHashMap<>();
         ((Map<String, Object>) mod.getOrDefault("depends", Map.of())).forEach((k, v) -> depends.put(k, (String) v));
 
-        Mod m = new Mod(str(mod, "id", "mod"), str(mod, "name", "mod"), str(mod, "description", "mod"),
-                str(mod, "license", "mod"), (List<String>) require(mod, "authors", "mod"),
+        String id = str(mod, "id", "mod");
+        Mod m = new Mod(id, (String) mod.getOrDefault("group", id), str(mod, "name", "mod"),
+                str(mod, "description", "mod"), str(mod, "license", "mod"), (List<String>) require(mod, "authors", "mod"),
                 (String) mod.get("sources"), str(mod, "mixin-package", "mod"), depends,
                 (String) mod.getOrDefault("archive-prefix", mod.get("id")),
                 (List<String>) mod.getOrDefault("nested", List.of()),

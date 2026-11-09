@@ -6,21 +6,20 @@ import java.util.Locale;
 
 /**
  * Mod loader of a platform. Each loader has a stack of layer roots under {@code platforms/}, lowest first: the
- * Minecraft code every loader shares, then the loader's own code (docs/07, 7.3).
+ * Minecraft code every loader shares, the code shared by every loader that is not Minecraft code, then the loader's
+ * own code (docs/07, 7.3).
  */
 public enum Loader {
-    FABRIC(List.of("minecraft", "fabric"), true),
-    /** Runs the Fabric layers on Quilt Loader; Quilt-only differences go to {@code platforms/quilt}. */
-    QUILT(List.of("minecraft", "fabric", "quilt"), false),
-    NEOFORGE(List.of("minecraft", "neoforge"), true),
-    FORGE(List.of("minecraft", "forge"), true);
+    FABRIC(List.of("minecraft", "common", "loom", "fabric")),
+    /** Runs the Fabric-compatibility layers on Quilt Loader; Quilt-only differences go to {@code platforms/quilt}. */
+    QUILT(List.of("minecraft", "common", "loom", "quilt")),
+    NEOFORGE(List.of("minecraft", "common", "neoforge")),
+    FORGE(List.of("minecraft", "common", "forge"));
 
     private final List<String> layerRoots;
-    private final boolean publishes;
 
-    Loader(List<String> layerRoots, boolean publishes) {
+    Loader(List<String> layerRoots) {
         this.layerRoots = layerRoots;
-        this.publishes = publishes;
     }
 
     /** {@code fabric}, {@code quilt}, {@code neoforge}, {@code forge}: table value, project and folder names. */
@@ -31,14 +30,6 @@ public enum Loader {
     /** Folders under {@code platforms/} whose layers make up this loader's sources, lowest first. */
     public List<String> layerRoots() {
         return layerRoots;
-    }
-
-    /**
-     * Whether the platform has its own jar in {@code collectJars}. Quilt platforms run the Fabric jar's code on Quilt
-     * Loader: they verify that the Fabric jar works there and ship nothing of their own.
-     */
-    public boolean publishes() {
-        return publishes;
     }
 
     public static Loader parse(String id) {

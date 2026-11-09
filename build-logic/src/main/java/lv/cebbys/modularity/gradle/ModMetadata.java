@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * Generates the mod metadata of one platform: {@code fabric.mod.json} (Fabric, Quilt),
+ * Generates the mod metadata of one platform: {@code fabric.mod.json} (Fabric), {@code quilt.mod.json} (Quilt),
  * {@code META-INF/neoforge.mods.toml} (NeoForge) or {@code META-INF/mods.toml} (Forge), and the mixin config.
  */
 public final class ModMetadata {
@@ -27,9 +27,17 @@ public final class ModMetadata {
     private ModMetadata() {
     }
 
-    /** Mixin config name in the jar, e.g. {@code modularity.mixins.json}. */
-    public static String mixinConfigName(PlatformTable.Mod mod) {
-        return mod.id() + ".mixins.json";
+    /**
+     * Mixin config name in the jar. Fabric keeps {@code <id>.mixins.json}; every other loader adds its name, because the
+     * universal jar carries one config per loader and Mixin finds the configs by name.
+     */
+    public static String mixinConfigName(PlatformTable.Mod mod, Loader loader) {
+        return loader == Loader.FABRIC ? mod.id() + ".mixins.json" : mod.id() + "." + loader.id() + ".mixins.json";
+    }
+
+    /** {@code META-INF/jars/<archive file name>}: where Loom nests a jar and where {@code quilt.mod.json} points. */
+    public static String nestedJarPath(String archiveFileName) {
+        return "META-INF/jars/" + archiveFileName;
     }
 
     public static String fabricModJson(PlatformTable.Mod mod, PlatformTable.Platform platform, String fabricLoader,
@@ -50,9 +58,9 @@ public final class ModMetadata {
             json.put("icon", mod.iconPath());
         }
         json.put("environment", "*");
-        json.put("entrypoints", fabricEntrypoints(entrypoints));
+        json.put("entrypoints", loaderEntrypoints(entrypoints, Loader.FABRIC));
         if (hasMixins) {
-            json.put("mixins", List.of(mixinConfigName(mod)));
+            json.put("mixins", List.of(mixinConfigName(mod, Loader.FABRIC)));
         }
         Map<String, Object> depends = new LinkedHashMap<>();
         depends.put("fabricloader", ">=" + fabricLoader);
@@ -68,10 +76,77 @@ public final class ModMetadata {
     /** Path of the loader metadata file inside the jar. */
     public static String metadataPath(PlatformTable.Platform platform) {
         return switch (platform.loader()) {
-            case FABRIC, QUILT -> "fabric.mod.json";
+            case FABRIC -> "fabric.mod.json";
+            case QUILT -> "quilt.mod.json";
             case NEOFORGE -> "META-INF/neoforge.mods.toml";
             case FORGE -> "META-INF/mods.toml";
         };
+    }
+
+    /**
+     * {@code quilt.mod.json}. It follows the Quilt metadata schema 1: the loader block holds the id, the Maven group
+     * and the metadata that Fabric keeps at the top level; dependencies are objects with an {@code id} and a
+     * {@code versions} range; nested jars are paths under {@code META-INF/jars/}.
+     *
+     * @throws IllegalArgumentException when the platform is not remapped: the QMJ names
+     *                                  {@code net.fabricmc:intermediary}, which a non-obfuscated build does not have
+     */
+    public static String quiltModJson(PlatformTable.Mod mod, PlatformTable.Platform platform, String version,
+                                      List<String> nestedJars, boolean hasMixins,
+                                      Map<EntryPoint, List<String>> entrypoints) {
+        if (!platform.remap()) {
+            throw new IllegalArgumentException("quilt.mod.json needs net.fabricmc:intermediary mappings; platform "
+                    + platform.id() + " uses Mojang names");
+        }
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("name", mod.name());
+        metadata.put("description", mod.description() + " Quilt " + platform.minecraft() + " platform.");
+        Map<String, Object> contributors = new LinkedHashMap<>();
+        for (String author : mod.authors()) {
+            contributors.put(author, "Author");
+        }
+        metadata.put("contributors", contributors);
+        if (mod.sources() != null) {
+            metadata.put("contact", Map.of("sources", mod.sources()));
+        }
+        metadata.put("license", mod.license());
+        if (mod.iconPath() != null) {
+            metadata.put("icon", mod.iconPath());
+        }
+        List<Object> depends = new ArrayList<>();
+        depends.add(quiltDependency("quilt_loader", ">=" + platform.loaderVersion()));
+        depends.add(quiltDependency("minecraft", "=" + platform.minecraft()));
+        depends.add(quiltDependency("fabric-api", "*"));
+        depends.add(quiltDependency("java", ">=" + platform.java()));
+        mod.depends().forEach((id, range) -> depends.add(quiltDependency(id, range)));
+
+        Map<String, Object> loader = new LinkedHashMap<>();
+        loader.put("group", mod.group());
+        loader.put("id", mod.id());
+        loader.put("version", version);
+        loader.put("metadata", metadata);
+        loader.put("intermediate_mappings", "net.fabricmc:intermediary");
+        loader.put("entrypoints", loaderEntrypoints(entrypoints, Loader.QUILT));
+        loader.put("depends", depends);
+
+        Map<String, Object> json = new LinkedHashMap<>();
+        json.put("schema_version", 1);
+        json.put("quilt_loader", loader);
+        json.put("minecraft", Map.of("environment", "*"));
+        if (hasMixins) {
+            json.put("mixin", mixinConfigName(mod, Loader.QUILT));
+        }
+        if (!nestedJars.isEmpty()) {
+            json.put("jars", nestedJars.stream().map(ModMetadata::nestedJarPath).toList());
+        }
+        return Json.write(json) + "\n";
+    }
+
+    private static Map<String, Object> quiltDependency(String id, String versions) {
+        Map<String, Object> dependency = new LinkedHashMap<>();
+        dependency.put("id", id);
+        dependency.put("versions", versions);
+        return dependency;
     }
 
     /**
@@ -159,7 +234,7 @@ public final class ModMetadata {
     /**
      * The entrypoints of one platform, from its assembled sources: every class that directly implements one of
      * Fabric's entrypoint interfaces. The roles are Modularity's names ({@code common}, {@code client},
-     * {@code server}, {@code launch}); {@link #fabricEntrypoints} maps them to the keys Fabric reads. Each list is
+     * {@code server}, {@code launch}); {@link #loaderEntrypoints} maps them to the keys a loader reads. Each list is
      * sorted, so the generated file is identical on every OS.
      */
     public static Map<EntryPoint, List<String>> findEntrypoints(Path javaDir) {
@@ -201,13 +276,13 @@ public final class ModMetadata {
         return result;
     }
 
-    /** The {@code entrypoints} map of {@code fabric.mod.json}: role to the key Fabric calls its classes under. */
-    public static Map<String, List<String>> fabricEntrypoints(Map<EntryPoint, List<String>> roles) {
+    /** The {@code entrypoints} map of the generated metadata: role to the key the loader calls its classes under. */
+    public static Map<String, List<String>> loaderEntrypoints(Map<EntryPoint, List<String>> roles, Loader loader) {
         Map<String, List<String>> result = new LinkedHashMap<>();
         for (EntryPoint role : EntryPoint.values()) {
             List<String> classes = roles.get(role);
             if (classes != null && !classes.isEmpty()) {
-                result.put(role.fabricKey(), classes);
+                result.put(role.key(loader), classes);
             }
         }
         return result;

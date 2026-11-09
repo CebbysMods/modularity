@@ -24,6 +24,7 @@ class TableAndMetadataTest {
 
             [mod]
             id = "modularity"
+            group = "lv.cebbys.mcmods"
             name = "Modularity"
             description = "API."
             license = "MIT"
@@ -63,6 +64,7 @@ class TableAndMetadataTest {
         assertFalse(t.platform("fabric-26.1").orElseThrow().remap());
         assertEquals(List.of("fabric-26.1"), t.enabled().stream().map(PlatformTable.Platform::id).toList());
         assertEquals(List.of(":a", ":b"), t.mod().companionMods());
+        assertEquals("lv.cebbys.mcmods", t.mod().group());
         assertEquals("modularity", t.mod().archivePrefix());
         assertEquals(":platforms:21.1:21.1-fabric", p.projectPath());
         assertEquals("21.1-fabric", p.projectName());
@@ -96,11 +98,10 @@ class TableAndMetadataTest {
         assertFalse(neo.remap(), "NeoForge runs with Mojang names");
         assertEquals("jar", neo.modJarTask());
         assertEquals("platforms/neoforge/versions/21.1", neo.projectDir());
-        assertEquals(List.of("minecraft", "neoforge"), neo.loader().layerRoots());
+        assertEquals(List.of("minecraft", "common", "neoforge"), neo.loader().layerRoots());
         PlatformTable.Platform quilt = t.platform("quilt-21.1").orElseThrow();
         assertTrue(quilt.remap());
-        assertFalse(quilt.loader().publishes(), "Quilt runs the Fabric jar");
-        assertEquals(List.of("minecraft", "fabric", "quilt"), quilt.loader().layerRoots());
+        assertEquals(List.of("minecraft", "common", "loom", "quilt"), quilt.loader().layerRoots());
         assertThrows(IllegalArgumentException.class, () -> PlatformTable.parse(TABLE.replace("java = 25",
                 "java = 25\nloader = \"liteloader\"")), "unknown loader");
         assertThrows(IllegalArgumentException.class, () -> PlatformTable.parse(TABLE + """
@@ -192,6 +193,41 @@ class TableAndMetadataTest {
     }
 
     @Test
+    void quiltModJsonHasSchemaGroupMappingsAndNestedJars() {
+        PlatformTable t = PlatformTable.parse(TABLE + """
+
+                [[platform]]
+                name = "21.1"
+                loader = "quilt"
+                minecraft = "1.21.1"
+                quilt-loader = "0.30.2"
+                fabric-api = "0.116.17+1.21.1"
+                java = 21
+                """);
+        PlatformTable.Platform quilt = t.platform("quilt-21.1").orElseThrow();
+        String json = ModMetadata.quiltModJson(t.mod(), quilt, "0.1.0", List.of("modularity-api-0.1.0.jar"), true,
+                Map.of(EntryPoint.COMMON, List.of("lv.example.Main"),
+                        EntryPoint.LAUNCH, List.of("lv.example.Launch")));
+        assertTrue(json.contains("\"schema_version\": 1"), json);
+        assertTrue(json.contains("\"group\": \"lv.cebbys.mcmods\""), json);
+        assertTrue(json.contains("\"id\": \"modularity\""), json);
+        assertTrue(json.contains("\"intermediate_mappings\": \"net.fabricmc:intermediary\""), json);
+        assertTrue(json.contains("\"main\": [\n        \"lv.example.Main\"\n      ]"), json);
+        assertTrue(json.contains("\"pre_launch\": [\n        \"lv.example.Launch\"\n      ]"), json);
+        assertTrue(json.contains("\"mixin\": \"modularity.quilt.mixins.json\""), json);
+        assertTrue(json.contains("\"jars\": [\n    \"META-INF/jars/modularity-api-0.1.0.jar\"\n  ]"), json);
+        assertTrue(json.contains("\"versions\": \"=1.21.1\""), json);
+        assertTrue(json.contains("\"versions\": \">=0.30.2\""), json);
+        assertTrue(json.contains("\"contributors\": {\n        \"CebbyS\": \"Author\"\n      }"), json);
+        assertTrue(json.contains("\"environment\": \"*\""), json);
+        // A 26.x platform has no intermediary mappings, so it cannot carry a native Quilt metadata file.
+        assertThrows(IllegalArgumentException.class,
+                () -> ModMetadata.quiltModJson(t.mod(), new PlatformTable.Platform("26.1", Loader.QUILT,
+                        McVersion.parse("26.1"), "0.31.0", "0.145.1+26.1", 25, null, true, false, null),
+                        "0.1.0", List.of(), false, Map.of()));
+    }
+
+    @Test
     void parchmentIsPerMinecraftVersionAndOptional() {
         PlatformTable t = PlatformTable.parse(TABLE + """
 
@@ -240,13 +276,18 @@ class TableAndMetadataTest {
         assertEquals(List.of("lv.example.entrypoint.Server"), roles.get(EntryPoint.SERVER));
         assertEquals(List.of("lv.example.entrypoint.Launch"), roles.get(EntryPoint.LAUNCH));
 
-        Map<String, List<String>> fabric = ModMetadata.fabricEntrypoints(roles);
+        Map<String, List<String>> fabric = ModMetadata.loaderEntrypoints(roles, Loader.FABRIC);
         assertEquals(List.of("lv.example.entrypoint.Common", "lv.example.entrypoint.Second"),
-                fabric.get(EntryPoint.COMMON.fabricKey()));
-        assertEquals(List.of("lv.example.entrypoint.client.Client"), fabric.get(EntryPoint.CLIENT.fabricKey()));
-        assertEquals(List.of("lv.example.entrypoint.Server"), fabric.get(EntryPoint.SERVER.fabricKey()));
-        assertEquals(List.of("lv.example.entrypoint.Launch"), fabric.get(EntryPoint.LAUNCH.fabricKey()));
+                fabric.get(EntryPoint.COMMON.key(Loader.FABRIC)));
+        assertEquals(List.of("lv.example.entrypoint.client.Client"),
+                fabric.get(EntryPoint.CLIENT.key(Loader.FABRIC)));
+        assertEquals(List.of("lv.example.entrypoint.Server"), fabric.get(EntryPoint.SERVER.key(Loader.FABRIC)));
+        assertEquals(List.of("lv.example.entrypoint.Launch"), fabric.get(EntryPoint.LAUNCH.key(Loader.FABRIC)));
         assertEquals(4, fabric.size());
+
+        Map<String, List<String>> quilt = ModMetadata.loaderEntrypoints(roles, Loader.QUILT);
+        assertEquals(List.of("lv.example.entrypoint.Launch"), quilt.get("pre_launch"));
+        assertEquals(List.of("lv.example.entrypoint.Common", "lv.example.entrypoint.Second"), quilt.get("main"));
 
         assertEquals(Map.of(), ModMetadata.findEntrypoints(dir.resolve("missing")));
     }
