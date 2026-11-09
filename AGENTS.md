@@ -50,7 +50,7 @@ is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `bu
 |---|---|
 | `build-logic/` | Included build: settings, root and platform plugins, tasks, table parser, smoke harness |
 | `build-logic/.../gradle/setup/` | One `*PlatformSetup` per loader, over shared Loom and Forge-family bases |
-| `platforms/minecraft`, `fabric`, `quilt`, `neoforge`, `forge` | Layer roots (`common/`, `changes/<range>/`, `versions/<version>/`) |
+| `platforms/minecraft`, `common`, `loom`, `fabric`, `quilt`, `neoforge`, `forge` | Layer roots (`common/`, `changes/<range>/`, `versions/<version>/`); `loom` is shared by Fabric and Quilt, `anvil` is reserved for the Forge family |
 | `platforms/versions/<version>/` | Version parent projects; no sources, no build files |
 | `modularity-api/` | The dependency-free API, nested into the platform jars |
 | `utilities/mvd`, `utilities/mpd` | Version and platform detectors, built per loader (`modularity-9oz9` folds them in) |
