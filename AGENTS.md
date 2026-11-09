@@ -39,6 +39,10 @@ is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `bu
    or `docs/02-requirements.md` updates the requirement (and its check) in the same change. Unfinished
    work goes to the bean tracker, never into a requirement.
 8. **Text files:** UTF-8, LF line endings.
+9. **Writing style.** Write every document, explanation, code comment and answer in Simplified Technical
+   English (ASD-STE100) at about 80 %: short sentences, one idea per sentence, active voice, present
+   tense, one term for one thing, no idioms or filler. Keep code identifiers, log lines and quoted
+   output unchanged.
 
 ## Where things are
 
