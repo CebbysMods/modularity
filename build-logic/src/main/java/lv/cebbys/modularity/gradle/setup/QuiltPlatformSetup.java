@@ -1,7 +1,6 @@
 package lv.cebbys.modularity.gradle.setup;
 
 import lv.cebbys.modularity.gradle.Loader;
-import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import net.fabricmc.loom.api.LoomGradleExtensionAPI;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -78,7 +77,7 @@ class QuiltPlatformSetup extends AbstractLoomPlatformSetup {
         // Loom writes the development settings as fabric.* properties into launch.cfg; Quilt Loader reads the same
         // settings as loader.*. Without them Quilt finds none of the development mods. Just before each game run:
         // the launch.cfg path is in the run's JVM arguments (-Dfabric.dli.config=...).
-        ctx.project().getTasks().withType(JavaExec.class).configureEach(t -> t.doFirst(x -> {
+        ctx.project().getTasks().withType(JavaExec.class).configureEach(t -> t.doFirst(_ -> {
             for (String arg : t.getAllJvmArgs()) {
                 if (arg.startsWith("-Dfabric.dli.config=")) {
                     Path cfg = Path.of(arg.substring("-Dfabric.dli.config=".length()));
