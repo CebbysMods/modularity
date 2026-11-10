@@ -1,5 +1,9 @@
 package lv.cebbys.mcmods.modularity.api;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
 import lv.cebbys.mcmods.modularity.api.block.BlockDefinition;
 import lv.cebbys.mcmods.modularity.api.block.property.IntegerProperty;
 import lv.cebbys.mcmods.modularity.api.block.property.Property;
@@ -9,13 +13,24 @@ import lv.cebbys.mcmods.modularity.api.core.VersionRange;
 import lv.cebbys.mcmods.modularity.api.core.Versioned;
 import lv.cebbys.mcmods.modularity.api.data.DataCodec;
 import lv.cebbys.mcmods.modularity.api.data.MapData;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Epics;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Features;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Issues;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Stories;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Epic(Epics.MODULARITY)
+@Feature(Features.L1_UNIT)
+@Story(Stories.TESTKIT_CORE)
+@Issue(Issues.PR_9)
+@Tag(Tags.PR_9)
 class CoreApiTest {
 
     @Test

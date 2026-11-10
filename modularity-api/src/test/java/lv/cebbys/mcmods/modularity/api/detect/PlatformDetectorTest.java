@@ -1,8 +1,13 @@
 package lv.cebbys.mcmods.modularity.api.detect;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
 import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.api.core.PlatformVersion;
 import lv.cebbys.mcmods.modularity.api.core.Side;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -12,10 +17,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Epics;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Features;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Issues;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Stories;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Epic(Epics.MODULARITY)
+@Feature(Features.L1_UNIT)
+@Story(Stories.RUNTIME_DETECTION)
+@Issue(Issues.PR_9)
+@Tag(Tags.PR_9)
 class PlatformDetectorTest {
     private static final String QUILT = "org.quiltmc.loader.api.QuiltLoader";
     private static final String FABRIC = "net.fabricmc.loader.api.FabricLoader";

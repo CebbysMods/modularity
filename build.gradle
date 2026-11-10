@@ -3,6 +3,10 @@ plugins {
     // onto the root classpath, so every project (platforms) shares one Loom: subprojects apply
     // net.fabricmc.fabric-loom-remap / net.fabricmc.fabric-loom without a version.
     id 'lv.cebbys.modularity.root'
+    // Test pyramid report (docs/07, 7.11). The adapter is applied to the test modules only; the aggregate report
+    // reads the copies that allureCollectResults stages into build/allure-results.
+    id 'io.qameta.allure-adapter' version '4.3.0' apply false
+    id 'io.qameta.allure-aggregate-report' version '4.3.0'
 }
 
 subprojects {
@@ -50,6 +54,37 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
             }
         }
     }
+}
+
+// The API and the testkit run the L1 unit tests, so they write Allure results. The smoke module has no tests, and a
+// platform project's test task would pull in its whole Loom class path, so neither gets the adapter.
+configure([project(':modularity-api'), project(':modularity-testkit')]) {
+    apply plugin: 'io.qameta.allure-adapter'
+
+    allure {
+        adapter {
+            // 3.x adapter line: allure-jupiter over allure-junit-platform (allure-junit5 is 2.x only).
+            allureJavaVersion = '3.1.1'
+            // No @Step/@Attachment in test code, so the AspectJ weaver is not needed.
+            aspectjWeaver = false
+        }
+    }
+}
+
+// The aggregate plugin links itself to every project of the build. That would resolve the class path of every
+// platform, which needs Minecraft and the network. The staged directory replaces those links (see the root plugin).
+configurations.configureEach { configuration ->
+    if (configuration.name in ['allureReport', 'allureGenerateCategories']) {
+        configuration.withDependencies { dependencies -> dependencies.clear() }
+    }
+}
+
+tasks.named('allureAggregateReport') {
+    description = 'Writes one Allure HTML report from the collected L1, L2 and L3 results'
+    // Raw results from every layer, staged by allureCollectResults. Without it the plugin would read the project
+    // dependencies cleared above, which is nothing.
+    resultsDirs.setFrom(layout.buildDirectory.dir('allure-results'))
+    dependsOn 'allureCollectResults'
 }
 
 // buildAll also runs the plugin unit tests (layer ordering, override and duplicate checks, table, metadata).

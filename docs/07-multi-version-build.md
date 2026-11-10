@@ -427,6 +427,9 @@ Tasks:
 
 Labels: `epic=Modularity`, `feature=L1 unit tests` or `L2 build contract`, `story` per concern, and the
 requirement id as `issue` and `tag`. The layer label is the filter that turns one report into the pyramid.
+The values live in `ModularityAllureConstants`, published as test fixtures of `modularity-api`: one child
+class per annotation (`Epics`, `Features`, `Stories`, `Issues`, `Tags`), so a test names a constant instead
+of a string. The included build cannot consume them and keeps its own copy (stage S2).
 
 The included build is not a project of this build, so its results reach the report only through
 `allureCollectResults` (stage S2).

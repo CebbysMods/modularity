@@ -1,5 +1,8 @@
 description = 'Loader and Minecraft version independent API of Modularity'
 
+// The Allure label constants are test fixtures, so the modules that run tests share one set of labels.
+apply plugin: 'java-test-fixtures'
+
 dependencies {
     testImplementation platform("org.junit:junit-bom:${junit_version}")
     testImplementation 'org.junit.jupiter:junit-jupiter'

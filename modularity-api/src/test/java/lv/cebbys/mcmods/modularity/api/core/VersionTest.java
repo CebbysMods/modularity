@@ -1,15 +1,30 @@
 package lv.cebbys.mcmods.modularity.api.core;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Epics;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Features;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Issues;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Stories;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Epic(Epics.MODULARITY)
+@Feature(Features.L1_UNIT)
+@Story(Stories.API_VERSION)
+@Issue(Issues.PR_9)
+@Tag(Tags.PR_9)
 class VersionTest {
 
     @Test

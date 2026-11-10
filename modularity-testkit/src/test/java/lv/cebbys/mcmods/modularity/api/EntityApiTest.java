@@ -1,5 +1,9 @@
 package lv.cebbys.mcmods.modularity.api;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
 import lv.cebbys.mcmods.modularity.api.client.CameraController;
 import lv.cebbys.mcmods.modularity.api.client.ClientContext;
 import lv.cebbys.mcmods.modularity.api.client.KeyBinding;
@@ -33,18 +37,29 @@ import lv.cebbys.mcmods.modularity.testkit.TestItemStack;
 import lv.cebbys.mcmods.modularity.testkit.TestLevel;
 import lv.cebbys.mcmods.modularity.testkit.TestPlayer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
 import java.util.List;
 import java.util.Optional;
 
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Epics;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Features;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Issues;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Stories;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Entities, items, channels and client hooks on the test platform. */
+@Epic(Epics.MODULARITY)
+@Feature(Features.L1_UNIT)
+@Story(Stories.TESTKIT_ENTITIES)
+@Issue(Issues.PR_9)
+@Tag(Tags.PR_9)
 class EntityApiTest {
     static final EntityData<Integer> TICKS = EntityData.of(Id.of("testmod", "ticks"), DataCodec.INT, 0);
     static final EntityData<Integer> INPUT = EntityData.of(Id.of("testmod", "input"), DataCodec.INT, 0).notSaved().notSynced();

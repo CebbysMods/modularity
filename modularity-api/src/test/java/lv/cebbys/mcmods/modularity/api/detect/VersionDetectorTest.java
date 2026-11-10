@@ -1,6 +1,11 @@
 package lv.cebbys.mcmods.modularity.api.detect;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
 import lv.cebbys.mcmods.modularity.api.core.MinecraftVersion;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -11,10 +16,20 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Epics;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Features;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Issues;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Stories;
+import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Epic(Epics.MODULARITY)
+@Feature(Features.L1_UNIT)
+@Story(Stories.RUNTIME_DETECTION)
+@Issue(Issues.PR_9)
+@Tag(Tags.PR_9)
 class VersionDetectorTest {
     private interface Detect {
         Optional<MinecraftVersion> run() throws Exception;

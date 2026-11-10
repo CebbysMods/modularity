@@ -57,6 +57,36 @@ Gradle tasks. Run them after `modularity-r133` (NeoForge) and `modularity-g420` 
 covers the platform-setup refactor and the lifecycle wiring. Until then, every Gradle check above
 stays open.
 
+## Allure test pyramid — open checks
+
+Plan: `C:\Users\valen\.claude-ollama\plans\serene-puzzling-otter.md`. Three stages: S1 L1 unit tests,
+S2 L2 build contract, S3 L3 in-game smoke. A stage stops for the owner's word; the build commands of
+AGENTS.md hard rule 1 apply to every check. Tick a box only when the check passes.
+
+### S1 — L1 unit tests
+
+- [ ] `./gradlew help` — the Allure plugins 4.3.0 resolve on Gradle 9.8.2.
+- [ ] `./gradlew -Pmodularity.platforms=none :modularity-api:test :modularity-testkit:test` — the 3.1.1
+      adapter writes `build/allure-results` in both modules, with JUnit 5.10.3.
+- [ ] `./gradlew -Pmodularity.platforms=none allureAggregateReport` — one report under
+      `build/reports/allure-report/` with the L1 tests of both modules.
+
+### Risks
+
+- **Network at build time.** `downloadAllure` fetches the Allure 3 runtime on the first report run. The
+  report stays out of `buildAll`, so offline builds keep working.
+- **Plugin on Gradle 9.8.2.** The plugin tests against 9.6.1; the pair here is unproven until the first
+  check above runs.
+- **Adapter 3.1.1 with JUnit 5.10.3.** The adapter does not constrain Jupiter, but the combination is
+  unproven. A linkage error needs the owner's decision on the 2.x adapter.
+- **`withDependencies` clearing.** The aggregate plugin links to every project, which would resolve every
+  platform class path; the root build clears those links and points the task at `build/allure-results`.
+  Check the task's input log line (`Input directories for allureAggregateReport`) on the first run.
+- **Included-build boundary (S2).** The aggregate plugin cannot see `build-logic`; a missing copy step
+  silently leaves L2 out of the report.
+- **Duplicate results (S3).** Smoke results use a deterministic `historyId` and the writer clears its
+  directory; `allureCollectResults` is a `Sync`.
+
 ## NeoForge/Forge lifecycle — decisions moved to beans
 
 The risks are now decisions and checks inside the tracker; they are no longer tracked here.
