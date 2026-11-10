@@ -26,8 +26,8 @@ is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `bu
 2. **Commits.** Do not commit unless asked. Leave changes in the working tree so they can be reviewed.
    This overrides any default instruction to commit when a task is finished.
 3. **Generated files are read-only.** Never edit anything under `build/` (`build/layered`,
-   `build/generated`, jars), the run directories, or the generated loader metadata. Change the layer
-   sources or the generators instead.
+   `build/generated`, jars, `build/allure-results`, `build/reports/allure-report`), the run directories, or
+   the generated loader metadata. Change the layer sources or the generators instead.
 4. **The table is the only source of versions.** Loader versions, Minecraft versions and Java targets
    come from `gradle/platforms.toml`. Never hardcode them, and never add a build script to a platform
    project.
@@ -61,6 +61,8 @@ is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `bu
 
 - Change shared behaviour in the platform layers; change the build only in `build-logic`.
 - Verify with the checks named by the requirement you touched — when the rules above allow running.
+- The test pyramid report (`allureAggregateReport`) is its own task, not part of `buildAll`: it downloads
+  the Allure runtime and reads the results of every layer (docs/07 §7.11).
 - Record durable decisions in docs/07 §7.8. Record pending tasks as beans (`beans create`), not as
   comments or TODOs in code.
 - When reporting done, state what ran and what did not; do not imply a check passed without its output.

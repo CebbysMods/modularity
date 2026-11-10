@@ -321,6 +321,8 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | `ModularModRegistry` lives in `modularity-api`, not in `platform` | `UniversalJar` relocates `platform.*`; an adapter of another mod links only against the unrelocated API. |
 | NeoForge and Forge seam stubs throw `UnsupportedOperationException` naming the method instead of registering nothing | NeoForge and Forge register content before common setup; a silent no-op would hide a lost registration. The follow-up (`modularity-m23h`) replays registrations. |
 | Fabric entrypoints found in the assembled sources, not listed in `platforms.toml`: a class that directly implements `ModInitializer`, `ClientModInitializer`, `DedicatedServerModInitializer` or `PreLaunchEntrypoint`. Roles are `common`, `client`, `server`, `launch`; Fabric's keys are `main`, `client`, `server`, `preLaunch`, Quilt's are `main`, `client`, `server`, `pre_launch` | The class says that it is an entrypoint, so a rename or a version layer that adds or removes one needs no table edit. Each loader defines its keys, so the role names are internal and the mapping happens once, when the metadata is written. Direct implementation only: a class that inherits an interface from a base class is not found; the same limit as the mixin scan. |
+| Allure plugins 4.3.0 with the 3.x Java adapter (`allure-bom` 3.1.1) | One report shows every layer, and a test carries its layer as a label. The 3.x line is the current adapter; `allure-junit5` is 2.x only. The adapter is `compileOnly`/`runtimeOnly`, so the published API keeps no Allure dependency. |
+| The report does not belong to `buildAll`, and the aggregate plugin's project links are cleared | The report downloads the Allure runtime, and the plugin's links would resolve the class path of every platform. `allureCollectResults` stages the raw results into `build/allure-results`, and the report task reads that directory. |
 
 ## 7.9 Port log
 
@@ -401,3 +403,36 @@ same version in the line format of the time.
 2026-11-10 13:01. `unzip -l` finds no `META-INF/services` entry in its 495 files, so the platform jars
 in `platforms/*/versions/21.1/build/libs` now carry the current metadata.
 
+
+## 7.11 Test pyramid report (Allure)
+
+One report shows every layer. Each stage of the plan adds one layer; S1 (L1) is wired now.
+
+| Layer | Producer | Written as |
+|---|---|---|
+| L1 unit tests | `:modularity-api:test`, `:modularity-testkit:test`, `-p build-logic test` | Allure results from the JUnit 5 engine, through the `allure-jupiter` adapter |
+| L2 build contract | the build-logic tests (`LayersTest`, `TableAndMetadataTest`, …) | the same engine, inside the included build |
+| L3 in-game smoke | `smokeServer` / `smokeClient` per platform | one result file per run, with the log, the summary and the screenshot attached |
+| L4 production jar | `modularity-xbj0` | not yet |
+
+Tasks:
+
+- `allureCollectResults` — `Sync` into `build/allure-results`. It copies the results of the two library
+  modules and depends on their `test` tasks. `-Pmodularity.allure.tests=false` copies without running a
+  test, which the CI jobs use after they have run the tests themselves. `executor.json` is left out: every
+  project writes one and the report does not read it.
+- `allureAggregateReport` — writes `build/reports/allure-report/allureAggregateReport/`. The aggregate
+  plugin links itself to every project of the build; the root build clears those links, because resolving
+  them would set up the class path of every platform. The task reads `build/allure-results` instead.
+
+Labels: `epic=Modularity`, `feature=L1 unit tests` or `L2 build contract`, `story` per concern, and the
+requirement id as `issue` and `tag`. The layer label is the filter that turns one report into the pyramid.
+
+The included build is not a project of this build, so its results reach the report only through
+`allureCollectResults` (stage S2).
+
+CI: `build.yml` has a `report` job that runs both test sets, writes the report and uploads
+`allure-report-build`; it fails last, so a red test still publishes the report. `smoke.yml` publishes
+`smoke-allure-report` (stage S3).
+
+Status: L1 is wired and not yet run. L2 and L3 are stage S2 and S3 of the bean epic.

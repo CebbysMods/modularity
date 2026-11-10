@@ -53,9 +53,10 @@ Status values: `met` — verified by its check; `partial` — true where checked
 
 | ID | Requirement | Verified by | Status |
 |---|---|---|---|
-| PR-14 | `-p build-logic test` is green: the table, layering, metadata, version and universal-jar rules have unit tests. | `LayersTest`, `ModularityVersionPluginTest`, `TableAndMetadataTest`, `UniversalJarTest`, `VersionsTest` | met |
+| PR-14 | `-p build-logic test`, `:modularity-api:test` and `:modularity-testkit:test` are green: the table, layering, metadata, version, universal-jar, detector and API rules have unit tests. | `LayersTest`, `ModularityVersionPluginTest`, `TableAndMetadataTest`, `UniversalJarTest`, `VersionsTest`, `VersionTest`, `PlatformDetectorTest`, `VersionDetectorTest`, the testkit tests | met |
 | PR-15 | CI builds every enabled platform in a parallel job (`buildAll` with `-Pmodularity.platforms`), collects the universal jar of every version in a final job (`collectJars`), and runs each platform's smoke tests in a parallel job (`smoke`, or `smokeServer` when the table sets no client). A change is complete only when both workflows are green. | `.github/workflows/build.yml`, `.github/workflows/smoke.yml` | configured; not verified green after the CI matrix rewrite |
 | PR-16 | Decisions are recorded in docs/07 §7.8 and unfinished work in the bean tracker (`.beans`), so no requirement depends on unwritten history. | review | convention |
+| PR-17 | One Allure report per workflow shows the test pyramid: L1 unit tests and L2 build-contract tests from the JUnit engine, L3 in-game smoke runs as one test per platform and side with the log, the summary and the screenshot attached. Every test carries its layer as a label, and CI publishes the report as an artifact. | `allureAggregateReport`; `build.yml` and `smoke.yml` report jobs | partial — L1 is wired; L2 and L3 are not yet |
 
 ## Known limits — not requirements
 
