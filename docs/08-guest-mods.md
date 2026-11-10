@@ -83,8 +83,8 @@ not have the Fabric Loader internals that `LoaderInjection` uses. The Quilt smok
 The smoke tests of every platform (docs/07, 7.6) load a guest mod on Fabric, `modularity-smoke/`
 (its own Gradle module: Modularity API only, `modularity.mod.json`, not on the run class path). The
 checks require
-`[modularity] Loaded guest mod smoke_guest` and, once the server started,
-`[smoke] guest mod smoke_guest: loaded=true initialized=true`. The Quilt platform runs the same smoke
+`Loaded guest mod smoke_guest` and, once the server started,
+`Guest mod smoke_guest: loaded=true initialized=true`. The Quilt platform runs the same smoke
 mod without the guest and expects neither line.
 
 Refabslab ran as a guest mod on 26.3: one jar with its classes, resources and a

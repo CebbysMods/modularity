@@ -24,12 +24,12 @@ public final class SmokeMod {
 
     public SmokeMod() {
         Optional<? extends ModContainer> container = ModList.get().getModContainerById("modularity");
-        LOGGER.info("[smoke] mod modularity: loaded={} version={} nested={}", container.isPresent(),
+        LOGGER.info("Mod modularity: loaded={} version={} nested={}", container.isPresent(),
                 container.map(c -> c.getModInfo().getVersion().toString()).orElse("-"),
                 container.map(SmokeMod::parent).orElse("no"));
         NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post event) -> {
             if (event.getServer().isDedicatedServer() && ++ticks == SERVER_TICKS) {
-                LOGGER.info("[smoke] server ticked {} times, stopping", SERVER_TICKS);
+                LOGGER.info("Server ticked {} times, stopping", SERVER_TICKS);
                 event.getServer().halt(false);
             }
         });

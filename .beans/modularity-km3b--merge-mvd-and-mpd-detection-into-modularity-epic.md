@@ -8,7 +8,7 @@ tags:
     - architecture
     - build
 created_at: 2026-11-10T09:07:59Z
-updated_at: 2026-11-10T10:49:14Z
+updated_at: 2026-11-10T10:51:09Z
 ---
 
 Implements .beans/modularity-9oz9 (merge mvd/mpd, retire companion-mods). Plan: C:\Users\valen\.claude-ollama\plans\serene-puzzling-otter.md
@@ -52,3 +52,10 @@ and `mpd` in its metadata. That jar predates the merge and must not be used as e
 `(<side>) platform <loader>:<loaderVersion>, minecraft:<version>`. The Quilt run above used
 the earlier format. `DetectionLog` writes the new line; `SmokeCheck` and `SmokeCheckTest` expect it;
 docs 00, 06 and 07 and the two review documents quote it. The new line is not yet seen in a smoke run.
+
+
+2026-11-10 (owner request, same change): the other Modularity log lines lost the `[modularity]` prefix
+too. `EntryPoints` writes `entrypoint <role> active (<loader>)`; the Fabric launch writes
+`Loaded guest mod ...`; NeoForge and Forge write `NeoForge platform loaded` and `Forge platform
+loaded`; Quilt's error line starts with `Guest mods are not supported`. `SmokeCheck` expects the guest
+line without the prefix.

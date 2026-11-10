@@ -17,13 +17,16 @@ public final class DetectionLog {
     }
 
     /**
-     * Writes {@code (<side>) platform <loader>:<loaderVersion>, minecraft:<version>}. The logger names the mod.
+     * Writes {@code (<side>) platform <loader>:<loaderVersion>, minecraft:<version>}.
+     * The logger names the mod.
      */
     public static void log() {
         DetectedPlatform platform = PlatformDetector.detect();
         MinecraftVersion version = VersionDetector.detect();
-        String side = platform.side().map(Object::toString).orElse("UNKNOWN").toLowerCase(Locale.ROOT);
+        String side = platform.side().map(Object::toString).orElse("UNKNOWN")
+                .toLowerCase(Locale.ROOT);
         String loader = platform.loader().name().toLowerCase(Locale.ROOT);
-        LOGGER.info("({}) platform {}:{}, minecraft:{}", side, loader, platform.loaderVersion(), version);
+        LOGGER.info("({}) platform {}:{}, minecraft:{}", side, loader, platform.loaderVersion(),
+                version);
     }
 }

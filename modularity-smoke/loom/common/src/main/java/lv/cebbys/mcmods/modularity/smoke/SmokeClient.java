@@ -25,13 +25,13 @@ public final class SmokeClient implements ClientModInitializer {
         }
         ticks++;
         if (ticks == 1) {
-            SmokeMod.LOGGER.info("[smoke] client joined world");
+            SmokeMod.LOGGER.info("Client joined world");
         }
         if (ticks == SHOT_TICK) {
             Screenshots.take(mc, "smoke.png");
         }
         if (ticks == STOP_TICK) {
-            SmokeMod.LOGGER.info("[smoke] client done");
+            SmokeMod.LOGGER.info("Client done");
             mc.stop();
         }
     }

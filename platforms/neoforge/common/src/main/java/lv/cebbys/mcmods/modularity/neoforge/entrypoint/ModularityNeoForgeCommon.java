@@ -41,6 +41,6 @@ public final class ModularityNeoForgeCommon {
             DetectionLog.log();
             ModularityCommon.init("neoforge");
         }));
-        LOGGER.info("[modularity] NeoForge platform loaded");
+        LOGGER.info("NeoForge platform loaded");
     }
 }

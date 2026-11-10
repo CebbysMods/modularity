@@ -23,7 +23,7 @@ public final class ModularityQuiltLaunch implements PreLaunchEntrypoint {
         List<GuestDescriptor> guests = GuestCandidates.find();
         if (!guests.isEmpty()) {
             // LoaderInjection uses Fabric Loader internals, which Quilt Loader does not have (docs/08).
-            LOGGER.error("[modularity] Guest mods are not supported on Quilt yet; not loaded: {}",
+            LOGGER.error("Guest mods are not supported on Quilt yet; not loaded: {}",
                     guests.stream().map(GuestDescriptor::id).toList());
         }
         LoomEntrypoints.launchMods("quilt");

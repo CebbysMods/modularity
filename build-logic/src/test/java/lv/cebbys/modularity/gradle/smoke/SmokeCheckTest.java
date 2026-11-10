@@ -10,10 +10,10 @@ class SmokeCheckTest {
 
     private static final String SERVER_LOG = """
             [17:39:33] [main/INFO] (modularity) (server) platform fabric:0.20.1, minecraft:1.21.10
-            [17:39:33] [main/INFO] (modularity-smoke) [smoke] mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no
-            [17:39:33] [main/INFO] (modularity) [modularity] Loaded guest mod smoke_guest 1.0.0 from guest.jar
-            [17:39:34] [Server thread/INFO] (modularity-smoke) [smoke] guest mod smoke_guest: loaded=true initialized=true
-            [17:39:35] [Server thread/INFO] (modularity-smoke) [smoke] server ticked 40 times, stopping
+            [17:39:33] [main/INFO] (modularity-smoke) Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no
+            [17:39:33] [main/INFO] (modularity) Loaded guest mod smoke_guest 1.0.0 from guest.jar
+            [17:39:34] [Server thread/INFO] (modularity-smoke) Guest mod smoke_guest: loaded=true initialized=true
+            [17:39:35] [Server thread/INFO] (modularity-smoke) Server ticked 40 times, stopping
             """;
 
     @Test
@@ -41,8 +41,8 @@ class SmokeCheckTest {
     @Test
     void nestedModFails() {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG.replace(
-                        "mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no",
-                        "mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=modularity"),
+                        "Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no",
+                        "Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=modularity"),
                 "1.21.10", SmokeCheck.Side.SERVER);
         assertFalse(r.ok());
     }
@@ -52,7 +52,7 @@ class SmokeCheckTest {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG, "1.21.10", SmokeCheck.Side.CLIENT);
         assertFalse(r.ok());
         String client = SERVER_LOG.replace("(server)", "(client)")
-                + "[x] [smoke] client joined world\n[x] [smoke] screenshot: Saved screenshot as smoke.png\n[x] [smoke] client done\n";
+                + "[x] Client joined world\n[x] Screenshot: Saved screenshot as smoke.png\n[x] Client done\n";
         assertTrue(SmokeCheck.check(client, "1.21.10", SmokeCheck.Side.CLIENT).ok());
     }
 

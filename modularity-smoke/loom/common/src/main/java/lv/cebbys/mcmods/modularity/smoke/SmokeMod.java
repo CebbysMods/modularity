@@ -26,15 +26,15 @@ public final class SmokeMod implements ModInitializer {
     @Override
     public void onInitialize() {
         Optional<ModContainer> container = FabricLoader.getInstance().getModContainer("modularity");
-        LOGGER.info("[smoke] mod modularity: loaded={} version={} nested={}", container.isPresent(),
+        LOGGER.info("Mod modularity: loaded={} version={} nested={}", container.isPresent(),
                 container.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("-"),
                 container.flatMap(ModContainer::getContainingMod).map(c -> c.getMetadata().getId()).orElse("no"));
         // Mods initialize in no fixed order: report the guest mod once everything has initialized.
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> LOGGER.info("[smoke] guest mod {}: loaded={} initialized={}",
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> LOGGER.info("Guest mod {}: loaded={} initialized={}",
                 GUEST, FabricLoader.getInstance().isModLoaded(GUEST), "initialized".equals(System.getProperty(GUEST_PROPERTY))));
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (server.isDedicatedServer() && ++ticks == SERVER_TICKS) {
-                LOGGER.info("[smoke] server ticked {} times, stopping", SERVER_TICKS);
+                LOGGER.info("Server ticked {} times, stopping", SERVER_TICKS);
                 server.halt(false);
             }
         });

@@ -10,6 +10,6 @@ final class Screenshots {
 
     static void take(Minecraft mc, String name) {
         Screenshot.grab(mc.gameDirectory, name, mc.getMainRenderTarget(),
-                message -> SmokeMod.LOGGER.info("[smoke] screenshot: {}", message.getString()));
+                message -> SmokeMod.LOGGER.info("Screenshot: {}", message.getString()));
     }
 }

@@ -296,7 +296,7 @@ No code changes are made here. The change list, file by file:
 * `build-logic/src/main/java/lv/cebbys/modularity/gradle/smoke/SmokeCheck.java`: add the launch entry-point line
   to the expectations, so a run proves the stage ran. The line format from
   `platforms/common/common/src/main/java/lv/cebbys/mcmods/modularity/platform/EntryPoints.java` is
-  `[modularity] entrypoint launch active (<loader>)`.
+  `entrypoint launch active (<loader>)`.
 * `.beans/`: one bean for the Forge seam, one for the launch-stage smoke check, if they are not part of this
   change.
 
@@ -305,10 +305,10 @@ No code changes are made here. The change list, file by file:
 Do not run any command here. When allowed, a run must show these lines in `build/smoke/server.txt` for the
 NeoForge and Forge platforms:
 
-* `[modularity] entrypoint launch active (neoforge)` or `(forge)`, exactly once.
+* `entrypoint launch active (neoforge)` or `(forge)`, exactly once.
 * The existing `(<side>) platform neoforge:...` or `forge:...` line, with the right Minecraft version and
   side.
-* `[smoke] server ticked <n> times, stopping`, with no crash marker.
+* `Server ticked <n> times, stopping`, with no crash marker.
 
 The launch line appears before the platform line on NeoForge, because the platform line is logged inside
 `enqueueWork` (`ModularityNeoForgeCommon.java:38-42`). A check must not require a fixed order between them.

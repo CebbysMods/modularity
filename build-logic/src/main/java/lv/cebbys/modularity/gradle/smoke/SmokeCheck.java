@@ -33,21 +33,21 @@ public final class SmokeCheck {
      */
     public static Result check(String log, String minecraft, Side side, String platform, boolean guests) {
         List<String> expectations = new ArrayList<>();
-        expectations.add("\\[smoke\\] mod modularity: loaded=true version=\\S+ nested=no");
+        expectations.add("Mod modularity: loaded=true version=\\S+ nested=no");
         String loader = platform.toLowerCase(Locale.ROOT);
         expectations.add("\\(" + side.name().toLowerCase(Locale.ROOT) + "\\) platform " + loader
                 + ":\\S+, minecraft:" + Pattern.quote(minecraft) + "\\b");
         if (guests) {
             // A guest mod (modularity.mod.json only) was turned into a mod of the loader and its entrypoint ran.
-            expectations.add("\\[modularity\\] Loaded guest mod " + GUEST + " ");
-            expectations.add("\\[smoke\\] guest mod " + GUEST + ": loaded=true initialized=true");
+            expectations.add("Loaded guest mod " + GUEST + " ");
+            expectations.add("Guest mod " + GUEST + ": loaded=true initialized=true");
         }
         if (side == Side.SERVER) {
-            expectations.add("\\[smoke\\] server ticked \\d+ times, stopping");
+            expectations.add("Server ticked \\d+ times, stopping");
         } else {
-            expectations.add("\\[smoke\\] client joined world");
-            expectations.add("\\[smoke\\] screenshot: ");
-            expectations.add("\\[smoke\\] client done");
+            expectations.add("Client joined world");
+            expectations.add("Screenshot: ");
+            expectations.add("Client done");
         }
 
         List<String> logLines = log.lines().toList();

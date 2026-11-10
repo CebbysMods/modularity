@@ -19,6 +19,6 @@ public final class EntryPoints {
 
     /** For a loader entry point that is not one of the four roles, such as the mod constructor. */
     public static void active(String entryPoint, String loader) {
-        LOGGER.info("[modularity] entrypoint {} active ({})", entryPoint, loader);
+        LOGGER.info("Entrypoint {} active ({})", entryPoint, loader);
     }
 }

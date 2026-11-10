@@ -23,6 +23,6 @@ public final class ModularityForge {
         PlatformDetector.install(new ForgePlatformSource());
         EntryPoints.active("mod-constructor", "forge");
         DetectionLog.log();
-        LOGGER.info("[modularity] Forge platform loaded");
+        LOGGER.info("Forge platform loaded");
     }
 }

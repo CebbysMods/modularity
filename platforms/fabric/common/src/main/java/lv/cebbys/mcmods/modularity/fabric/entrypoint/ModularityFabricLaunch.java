@@ -42,7 +42,7 @@ public final class ModularityFabricLaunch implements PreLaunchEntrypoint {
             } catch (Exception e) {
                 throw new IllegalStateException("Modularity: cannot add guest mod '" + guest.id() + "'", e);
             }
-            LOGGER.info("[modularity] Loaded guest mod {} {} from {}", guest.id(), guest.version(),
+            LOGGER.info("Loaded guest mod {} {} from {}", guest.id(), guest.version(),
                     guest.origin().getFileName());
         }
         byId.values().forEach(ModularityFabricLaunch::checkDependencies);
