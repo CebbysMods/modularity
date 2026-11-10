@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SmokeCheckTest {
 
     private static final String SERVER_LOG = """
-            [17:39:33] [main/INFO] (modularity) [modularity] platform FABRIC 0.20.1, Minecraft 1.21.10, SERVER
+            [17:39:33] [main/INFO] (modularity) (server) platform fabric:0.20.1, minecraft:1.21.10
             [17:39:33] [main/INFO] (modularity-smoke) [smoke] mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no
             [17:39:33] [main/INFO] (modularity) [modularity] Loaded guest mod smoke_guest 1.0.0 from guest.jar
             [17:39:34] [Server thread/INFO] (modularity-smoke) [smoke] guest mod smoke_guest: loaded=true initialized=true
@@ -51,14 +51,14 @@ class SmokeCheckTest {
     void clientNeedsClientSideAndScreenshot() {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG, "1.21.10", SmokeCheck.Side.CLIENT);
         assertFalse(r.ok());
-        String client = SERVER_LOG.replace(", SERVER", ", CLIENT")
+        String client = SERVER_LOG.replace("(server)", "(client)")
                 + "[x] [smoke] client joined world\n[x] [smoke] screenshot: Saved screenshot as smoke.png\n[x] [smoke] client done\n";
         assertTrue(SmokeCheck.check(client, "1.21.10", SmokeCheck.Side.CLIENT).ok());
     }
 
     @Test
     void quiltServerPassesWithoutGuests() {
-        SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG.replace("platform FABRIC 0.20.1", "platform QUILT 0.30.2"),
+        SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG.replace("platform fabric:0.20.1", "platform quilt:0.30.2"),
                 "1.21.10", SmokeCheck.Side.SERVER, "QUILT", false);
         assertTrue(r.ok(), r.problems().toString());
     }

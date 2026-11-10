@@ -83,7 +83,7 @@ Expected:
 - `smokeAll` runs eight game runs in sequence (server then client per platform) and writes
   `build/smoke/{server,client}.txt` in each platform project. `--continue` runs every platform even
   after a failure, which is needed while NeoForge and Forge smoke results are still open.
-- Each passing platform logs `[modularity] platform <LOADER> <version>, Minecraft 1.21.1, <SIDE>`.
+- Each passing platform logs `(<side>) platform <loader>:<version>, minecraft:1.21.1`.
 
 ## Risks to check before closing
 

@@ -96,14 +96,14 @@ Sources in priority order:
 Each install point then calls `DetectionLog.log()`, which writes one line:
 
 ```
-[modularity] platform FABRIC 0.20.1, Minecraft 1.21.1, SERVER
+(server) platform fabric:0.20.1, minecraft:1.21.1
 ```
 
 ## 6.5 Verification
 
 * Unit tests in `modularity-api`: version parsing, the cross-kind comparison rule, source order,
   error aggregation, `install`, the marker-class order with stub classes on a test class loader.
-* Smoke tests for all four loaders check the `[modularity] platform ...` line against
+* Smoke tests for all four loaders check the `(<side>) platform ...` line against
   `gradle/platforms.toml`, and that no separate detector mod is loaded.
 
 ## 6.6 History

@@ -202,7 +202,7 @@ Modularity detects the Minecraft version and the loader itself (docs/06). `api.d
 detector, the source interface and the built-in sources; each loader layer holds its own source and
 installs it in the entrypoint. The detector runs the installed sources first and the built-in ones
 after them, and caches the first result. Each install point logs one line,
-`[modularity] platform <LOADER> <loaderVersion>, Minecraft <version>, <SIDE>`.
+`(<side>) platform <loader>:<loaderVersion>, minecraft:<version>`.
 
 There is no `META-INF/services` file: the universal jar copies resources first-wins and relocates
 class names, so explicit `install(...)` replaces `ServiceLoader`.
@@ -295,7 +295,7 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | Smoke tests built before the ports (goal step 7 moved before step 5) | Every port commit is verified with the same `smoke` task for that version and all earlier ones. |
 | Smoke mod as source set `smoke` of each platform, own Loom runs in `build/smoke/run` | Same classpath and mappings as the platform; no second build, no maven round trip; each source set is its own mod (Loom `mods {}`). |
 | Fresh flat world per server run; the client opens that world with `--quickPlaySingleplayer` | The client test needs no world creation UI; the world matches the version. |
-| Log checks in `SmokeCheck` (unit tested): Modularity loaded and not nested, `[modularity] platform <LOADER> <loaderVersion>, Minecraft <exact>, <SIDE>`, end marker, no crash or failed mixin | The goal's verification, done mechanically; matched lines go to `build/smoke/{server,client}.txt`. |
+| Log checks in `SmokeCheck` (unit tested): Modularity loaded and not nested, `(<side>) platform <loader>:<loaderVersion>, minecraft:<exact>`, end marker, no crash or failed mixin | The goal's verification, done mechanically; matched lines go to `build/smoke/{server,client}.txt`. |
 | `tools/smoke-fabric-1.21.1` kept | It is the refabslab integration test (double slabs, KleeSlabs), separate from the platform smoke tests. |
 | One decompilation per version, by the Fabric platform (the parent's `genSources` points there); it is not part of `build`, and the other platforms' tasks `mustRunAfter` it | Loom keeps one mapped Minecraft jar and one Maven directory per version in the root `loom-cache` and declares the directory an output of `genSourcesWithVineflower`; Gradle deletes declared outputs before running a task. Decompiling inside a parallel build therefore deletes files the other platforms of the version read, so they wait for it, and `build` leaves decompilation to an explicit `genSources` run. Sources after compilation is impossible (Loom's `genSources` depends on its own `remapJar`). The mappings are the same for every loader of a version, so one decompilation serves them all. No platform source depends on the decompiled output, so `genSources` is run on its own. |
 | Parchment layered over the official mappings, one entry per Minecraft version in `[parchment]` | Parameter names and javadoc in the Minecraft classes the platforms compile against, without changing names, remapping or runtime: the universal jar is byte-identical. It is published per Minecraft version, not per loader, so one entry covers Fabric, Quilt, NeoForge and Forge; versions without a release (1.21.2, 26.x) build with the official mappings alone. Shape: Loom `layered` for Fabric/Quilt, ModDevGradle `neoForge.parchment` for NeoForge, ForgeGradle `minecraft.mappings("parchment", …)` for Forge. ForgeGradle's run launcher resolves the run class path in an attribute-less detached configuration that no project configuration hook can reach, so on Forge the mappings channel and version are additionally set as attributes on the Minecraft dependency; that is what makes the two published variants of `net.minecraftforge:forge` resolvable there. |
@@ -350,7 +350,7 @@ What each version layer changes (oldest first). Version-specific calls sit behin
 `./gradlew buildAll collectJars --rerun-tasks` passes; `build/libs-all` holds `modularity-fabric-<version>` for all 16 versions plus `mvd-fabric-4.0.0` and `mpd-fabric-1.0.0`. Plugin tests: 27 passed. Layer checks (no identical copies, every `.removed` names a file below) pass on every platform. Fabric meta re-checked: 26.3 is the newest stable.
 
 This record predates the merge of mvd and mpd into Modularity (docs/06). The detector mods and their jars
-are gone; the same runs now expect the `[modularity] platform ...` line and the table stays as the
+are gone; the same runs now expect the `(<side>) platform ...` line and the table stays as the
 historical evidence. The re-run is an open check in `TODO-NOW.md`.
 
 Files per layer (`.removed` markers in brackets): common 77; `1.21.2+` 8; `1.21.4+` 3; `1.21.5+` 5; `1.21.6+` 4; `1.21.9+` 5 (2); `1.21.11+` 4; `26.1+` 18; `26.2+` 3 (1); `26.3+` 3; no `versions/<v>` has sources. Smoke mod: common 4, `1.21.6+` 1, `26.2+` 1.
@@ -375,3 +375,17 @@ Smoke log lines (`build/smoke/{server,client}.txt`):
 | 26.1.2 | 3/3 | 26.1.2 | FABRIC 0.20.1 SERVER | ticked 40 | - |
 | 26.2 | 3/3 | 26.2 | FABRIC 0.20.1 SERVER | ticked 40 | - |
 | 26.3 | 3/3 | 26.3 | FABRIC 0.20.1 SERVER | ticked 40 | joined, screenshot, done |
+
+### Re-run after the mvd/mpd merge (2026-11-10)
+
+`./gradlew -Pmodularity.platforms=quilt-21.1 :platforms:21.1:21.1-quilt:smokeServer` passes. The Quilt
+server logged `[modularity] platform QUILT 0.30.2, Minecraft 1.21.1, SERVER`, in the line format of
+the time, so the `quilt_loader` container reports the version in `gradle/platforms.toml`. The three
+Quilt entrypoints run (`launch`, `common`, `server`), the smoke ticks 40 times, and the guest mod stays
+off, as docs/08 expects. The line format changed to `(<side>) platform ...` on 2026-11-10;
+the next smoke run reports it.
+
+The platform jars in `platforms/quilt/versions/21.1/build/libs` are from 2026-11-09, before the merge.
+They still name `mvd` and `mpd` in `fabric.mod.json`, so they are not evidence of the current metadata.
+The universal-jar check rebuilds them.
+

@@ -306,7 +306,7 @@ Do not run any command here. When allowed, a run must show these lines in `build
 NeoForge and Forge platforms:
 
 * `[modularity] entrypoint launch active (neoforge)` or `(forge)`, exactly once.
-* The existing `[modularity] platform NEOFORGE ...` or `FORGE ...` line, with the right Minecraft version and
+* The existing `(<side>) platform neoforge:...` or `forge:...` line, with the right Minecraft version and
   side.
 * `[smoke] server ticked <n> times, stopping`, with no crash marker.
 

@@ -8,7 +8,7 @@ tags:
     - architecture
     - build
 created_at: 2026-11-10T09:07:59Z
-updated_at: 2026-11-10T09:07:59Z
+updated_at: 2026-11-10T10:49:14Z
 ---
 
 Implements .beans/modularity-9oz9 (merge mvd/mpd, retire companion-mods). Plan: C:\Users\valen\.claude-ollama\plans\serene-puzzling-otter.md
@@ -36,3 +36,19 @@ types are in `modularity-api`; `loom`, `neoforge` and `forge` each install their
 `[modularity] platform ...` line replaces `[mvd]` and `[mpd]`; `utilities/` is deleted. The acceptance
 criteria stay unchecked: no Gradle task ran (not requested), so no loader has reported the new line
 in a smoke run yet. The eight checks in TODO-NOW.md stay open.
+
+
+2026-11-10 (after the six static checks): the Quilt loader-version check passed.
+`:platforms:21.1:21.1-quilt:smokeServer` logged `[modularity] platform QUILT 0.30.2, Minecraft
+1.21.1, SERVER`; the version matches `quilt-loader` in `gradle/platforms.toml`. Quilt is the first
+loader to report the new line after the merge. The run is recorded in docs/07 §7.10.
+
+One open check remains: no `META-INF/services` entry in the universal jar (`modularity-f5e2`).
+Note: `platforms/quilt/versions/21.1/build/libs` still held a 2026-11-09 platform jar that names `mvd`
+and `mpd` in its metadata. That jar predates the merge and must not be used as evidence.
+
+
+2026-11-10 (owner request): the detection line template changed to
+`(<side>) platform <loader>:<loaderVersion>, minecraft:<version>`. The Quilt run above used
+the earlier format. `DetectionLog` writes the new line; `SmokeCheck` and `SmokeCheckTest` expect it;
+docs 00, 06 and 07 and the two review documents quote it. The new line is not yet seen in a smoke run.

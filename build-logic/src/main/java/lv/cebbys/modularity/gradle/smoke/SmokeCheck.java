@@ -2,6 +2,7 @@ package lv.cebbys.modularity.gradle.smoke;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /** Checks a smoke run log (docs/07-multi-version-build.md, 7.6). Pure logic, unit tested. */
@@ -33,8 +34,9 @@ public final class SmokeCheck {
     public static Result check(String log, String minecraft, Side side, String platform, boolean guests) {
         List<String> expectations = new ArrayList<>();
         expectations.add("\\[smoke\\] mod modularity: loaded=true version=\\S+ nested=no");
-        expectations.add("\\[modularity\\] platform " + platform + " \\S+, Minecraft "
-                + Pattern.quote(minecraft) + ", " + side + "\\b");
+        String loader = platform.toLowerCase(Locale.ROOT);
+        expectations.add("\\(" + side.name().toLowerCase(Locale.ROOT) + "\\) platform " + loader
+                + ":\\S+, minecraft:" + Pattern.quote(minecraft) + "\\b");
         if (guests) {
             // A guest mod (modularity.mod.json only) was turned into a mod of the loader and its entrypoint ran.
             expectations.add("\\[modularity\\] Loaded guest mod " + GUEST + " ");
@@ -57,7 +59,8 @@ public final class SmokeCheck {
                     .ifPresentOrElse(found::add, () -> problems.add("missing log line /" + regex + "/"));
         }
         // A detection line with another version means the detection is wrong, not just missing.
-        logLines.stream().filter(l -> l.contains("[modularity] platform ") && !l.contains("Minecraft " + minecraft + ", "))
+        Pattern detectedVersion = Pattern.compile("minecraft:" + Pattern.quote(minecraft) + "\\b");
+        logLines.stream().filter(l -> l.contains(") platform ") && !detectedVersion.matcher(l).find())
                 .findFirst().ifPresent(l -> problems.add("detection reports a different version: " + l));
         logLines.stream().filter(l -> l.contains("---- Minecraft Crash Report ----") || l.contains("Mixin apply failed")
                         || l.contains("Mixin transformation of") && l.contains("failed"))

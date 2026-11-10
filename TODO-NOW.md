@@ -78,21 +78,20 @@ The risks are now decisions and checks inside the tracker; they are no longer tr
 
 These are the risks of the merge plan. Remove an item only when its check passes.
 
-- [ ] **Quilt loader version.** Check that the `quilt_loader` container reports the version from
-      `gradle/platforms.toml` on Quilt Loader 0.30.2.
 - [ ] **No service files.** Check that the universal jar contains no
       `META-INF/services/lv.cebbys.mcmods.*` entry.
 
-Run notes for the two items above (tasks `modularity-isu0` and `modularity-f5e2`):
+Run notes for the item above (task `modularity-f5e2`):
 
-- `SmokeCheck` accepts any version string, so a green smoke does not prove the Quilt version. Read
-  the log line.
-- Quilt Loader may report `0.30.2+build.N`. Compare the prefix with the table and record the full
-  string.
 - `UniversalJarTask` is cacheable. Do not inspect a jar that is older than the merge.
 - `:platforms:21.1:jar` builds all four platforms, so the service check runs alone.
 
 Closed on 2026-11-10:
+- Quilt loader version: `:platforms:21.1:21.1-quilt:smokeServer` logged
+  `[modularity] platform QUILT 0.30.2, Minecraft 1.21.1, SERVER` in the line format of the time,
+  which matches `quilt-loader` in the table. The format changed on 2026-11-10; the next smoke run
+  must show `(server) platform quilt:0.30.2, minecraft:1.21.1`. The run is recorded in
+  docs/07 §7.10.
 - Public contract: the only `install` calls outside the API and its tests are in
   `ModularityForge`, `LoomEntrypoints` and `ModularityNeoForgeCommon`.
 - Java level: `javac --release 17` compiled `modularity-api/src/main/java` and its tests with no

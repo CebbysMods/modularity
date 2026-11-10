@@ -45,7 +45,7 @@ so two runs are comparable.
 |---|---|
 | 1 | table parsed; layered sources assembled; metadata generated (Fabric, Quilt, NeoForge/Forge TOML); universal jar relocation; `collectJars` |
 | 2 | Modularity's own `main`; `client`; `server`; `preLaunch`/`pre_launch`; mod registration; per-mod dispatch for common, client, server (and launch where it exists); init order; failure names the mod |
-| 3 | version source; platform source (loader, version, side, development); `LoaderInfo`; `Loaders` seams installed; `[modularity] platform ...` line |
+| 3 | version source; platform source (loader, version, side, development); `LoaderInfo`; `Loaders` seams installed; `(<side>) platform ...` line |
 | 4 | blocks; block items; block entity types; items; creative tabs; entity types; sounds; channels; payload types |
 | 5 | payload registration; server → client; client → server; channel codec bound |
 | 6 | fluid unit; entity fluid tank (expose + fill); entity item storage; `StorageBackend` |

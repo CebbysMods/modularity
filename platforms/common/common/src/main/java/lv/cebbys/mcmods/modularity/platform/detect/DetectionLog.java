@@ -7,6 +7,8 @@ import lv.cebbys.mcmods.modularity.api.detect.VersionDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Locale;
+
 /** Logs the runtime detection once, after the loader installed its sources. */
 public final class DetectionLog {
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
@@ -14,12 +16,14 @@ public final class DetectionLog {
     private DetectionLog() {
     }
 
-    /** Writes {@code [modularity] platform <LOADER> <loaderVersion>, Minecraft <version>, <SIDE>}. */
+    /**
+     * Writes {@code (<side>) platform <loader>:<loaderVersion>, minecraft:<version>}. The logger names the mod.
+     */
     public static void log() {
         DetectedPlatform platform = PlatformDetector.detect();
         MinecraftVersion version = VersionDetector.detect();
-        String side = platform.side().map(Object::toString).orElse("UNKNOWN");
-        LOGGER.info("[modularity] platform {} {}, Minecraft {}, {}", platform.loader(), platform.loaderVersion(),
-                version, side);
+        String side = platform.side().map(Object::toString).orElse("UNKNOWN").toLowerCase(Locale.ROOT);
+        String loader = platform.loader().name().toLowerCase(Locale.ROOT);
+        LOGGER.info("({}) platform {}:{}, minecraft:{}", side, loader, platform.loaderVersion(), version);
     }
 }
