@@ -378,14 +378,26 @@ Smoke log lines (`build/smoke/{server,client}.txt`):
 
 ### Re-run after the mvd/mpd merge (2026-11-10)
 
-`./gradlew -Pmodularity.platforms=quilt-21.1 :platforms:21.1:21.1-quilt:smokeServer` passes. The Quilt
-server logged `[modularity] platform QUILT 0.30.2, Minecraft 1.21.1, SERVER`, in the line format of
-the time, so the `quilt_loader` container reports the version in `gradle/platforms.toml`. The three
-Quilt entrypoints run (`launch`, `common`, `server`), the smoke ticks 40 times, and the guest mod stays
-off, as docs/08 expects. The line format changed to `(<side>) platform ...` on 2026-11-10;
-the next smoke run reports it.
+`./gradlew -p build-logic test` passes: 46 tests, no failure, including the seven `SmokeCheck` tests
+that expect the capital-letter log lines.
 
-The platform jars in `platforms/quilt/versions/21.1/build/libs` are from 2026-11-09, before the merge.
-They still name `mvd` and `mpd` in `fabric.mod.json`, so they are not evidence of the current metadata.
-The universal-jar check rebuilds them.
+`./gradlew -Pmodularity.platforms=quilt-21.1 :platforms:21.1:21.1-quilt:smokeServer` passes. The Quilt
+server logged
+
+    Entrypoint launch active (quilt)
+    Entrypoint common active (quilt)
+    (server) platform quilt:0.30.2, minecraft:1.21.1
+    Modularity 0.1.0-SNAPSHOT on quilt, Minecraft 1.21.1: initializing 0 mod(s)
+    Entrypoint server active (quilt)
+    Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no
+    Server ticked 40 times, stopping
+
+So the `quilt_loader` container reports the version in `gradle/platforms.toml`, and the smoke sees the
+current line format and capital letters. The three Quilt entrypoints run (`launch`, `common`,
+`server`), and the guest mod stays off, as docs/08 expects. An earlier run the same day reported the
+same version in the line format of the time.
+
+`./gradlew -Pmodularity.platforms=21.1 :platforms:21.1:jar` passes and writes the universal jar at
+2026-11-10 13:01. `unzip -l` finds no `META-INF/services` entry in its 495 files, so the platform jars
+in `platforms/*/versions/21.1/build/libs` now carry the current metadata.
 

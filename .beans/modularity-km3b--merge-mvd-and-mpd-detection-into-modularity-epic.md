@@ -8,7 +8,7 @@ tags:
     - architecture
     - build
 created_at: 2026-11-10T09:07:59Z
-updated_at: 2026-11-10T10:51:09Z
+updated_at: 2026-11-10T11:02:20Z
 ---
 
 Implements .beans/modularity-9oz9 (merge mvd/mpd, retire companion-mods). Plan: C:\Users\valen\.claude-ollama\plans\serene-puzzling-otter.md
@@ -59,3 +59,11 @@ too. `EntryPoints` writes `entrypoint <role> active (<loader>)`; the Fabric laun
 `Loaded guest mod ...`; NeoForge and Forge write `NeoForge platform loaded` and `Forge platform
 loaded`; Quilt's error line starts with `Guest mods are not supported`. `SmokeCheck` expects the guest
 line without the prefix.
+
+2026-11-10 (three runs, owner-approved): all eight merge checks pass, so TODO-NOW.md no longer lists open items for the merge.
+
+- `./gradlew -p build-logic test`: BUILD SUCCESSFUL, 46 tests, no failure. The seven `SmokeCheck` tests expect the capital-letter line format.
+- `./gradlew -Pmodularity.platforms=21.1 :platforms:21.1:jar`: BUILD SUCCESSFUL in 9s. The universal jar holds 495 files and no `META-INF/services` entry (`modularity-f5e2` closed).
+- `./gradlew -Pmodularity.platforms=quilt-21.1 :platforms:21.1:21.1-quilt:smokeServer`: `smoke SERVER 1.21.1: ok`. The log shows `(server) platform quilt:0.30.2, minecraft:1.21.1`, `Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no` and `Server ticked 40 times, stopping`, plus the three Quilt entrypoints.
+
+Acceptance still open: the detection line must be seen on Fabric, NeoForge and Forge. Quilt is the only loader with a run. The S5 `smokeAll` pass in TODO-NOW.md covers the rest.

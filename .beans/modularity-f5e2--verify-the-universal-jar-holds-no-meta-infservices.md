@@ -1,12 +1,13 @@
 ---
 # modularity-f5e2
 title: Verify the universal jar holds no META-INF/services entry
-status: todo
+status: completed
 type: task
+priority: normal
 tags:
     - verification
 created_at: 2026-11-10T10:42:35Z
-updated_at: 2026-11-10T10:42:35Z
+updated_at: 2026-11-10T11:02:17Z
 parent: modularity-km3b
 ---
 
@@ -23,3 +24,5 @@ Jar: `platforms/versions/21.1/build/libs/modularity-1.21.1-0.1.0-SNAPSHOT.jar`.
 
 Pass: `unzip -l <jar> | grep -i 'META-INF/services'` prints no line. Run this alone; the task builds
 all four platform jars, so a failure in any of them stops the command.
+
+Result (2026-11-10): PASS. `./gradlew -Pmodularity.platforms=21.1 :platforms:21.1:jar` wrote `platforms/versions/21.1/build/libs/modularity-1.21.1-0.1.0-SNAPSHOT.jar` at 13:01, after the merge. `unzip -l` finds no `META-INF/services` entry in its 495 files. Recorded in TODO-NOW.md and docs/07 §7.10.
