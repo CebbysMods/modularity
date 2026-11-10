@@ -1,6 +1,6 @@
 package lv.cebbys.mcmods.modularity.platform;
 
-import lv.cebbys.mcmods.modularity.api.ModContext;
+import lv.cebbys.mcmods.modularity.api.CommonContext;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.block.BlockDefinition;
 import lv.cebbys.mcmods.modularity.api.block.BlockHandle;
@@ -37,8 +37,8 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/** The {@link ModContext} of one mod, the same on every loader; loader work goes through {@link Loaders#hooks()}. */
-final class MinecraftModContext implements ModContext {
+/** The {@link CommonContext} of one mod, the same on every loader; loader work goes through {@link Loaders#hooks()}. */
+final class MinecraftModContext implements CommonContext {
     private final String modId;
     private final System.Logger logger;
 

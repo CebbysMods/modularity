@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Forge entrypoint of Modularity. The constructor installs the detection sources and logs the result; the rest of
- * the platform runtime (running the {@code ModularMod}s, content registration) follows.
+ * the platform runtime (running the {@code ModularityModCommon}s, content registration) follows.
  */
 @Mod("modularity")
 public final class ModularityForge {

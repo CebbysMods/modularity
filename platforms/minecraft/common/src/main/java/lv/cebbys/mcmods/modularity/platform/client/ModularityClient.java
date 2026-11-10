@@ -1,6 +1,8 @@
 package lv.cebbys.mcmods.modularity.platform.client;
 
 import lv.cebbys.mcmods.modularity.api.Modularity;
+import lv.cebbys.mcmods.modularity.api.ModularityModClient;
+import lv.cebbys.mcmods.modularity.api.ModularityModCommon;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.block.BlockHandle;
 import lv.cebbys.mcmods.modularity.api.client.CameraController;
@@ -33,7 +35,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Client init, the same on every loader: runs {@code initClient} of every Modularity mod and wires client features
+ * Client init, the same on every loader: runs the client stage of every Modularity mod and wires client features
  * through {@link Loaders#client()}, which the loader's client entrypoint installs first.
  */
 public final class ModularityClient {
@@ -45,7 +47,7 @@ public final class ModularityClient {
 
     public static void init() {
         ClientHooks client = Loaders.client();
-        ModularityCommon.forEachMod("client initialization", loaded -> loaded.mod().initClient(new Context(loaded.modId())));
+        ModularityCommon.forEachMod("client initialization", loaded -> run(loaded.mod(), new Context(loaded.modId())));
         client.blockModels(ClientRegistry.MODELS);
         client.onClientTick(minecraft -> {
             if (minecraft.level == null) {
@@ -57,6 +59,13 @@ public final class ModularityClient {
         });
         client.hud(HUD_LAYERS);
         client.onResourceReload(McModelRef::clearAll);
+    }
+
+    /** Runs the client stage of a mod that has one; a common-only mod is skipped. */
+    private static void run(ModularityModCommon mod, ClientContext context) {
+        if (mod instanceof ModularityModClient client) {
+            client.initialize(context);
+        }
     }
 
     private record Context(String modId) implements ClientContext {

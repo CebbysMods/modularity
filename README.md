@@ -7,21 +7,21 @@ for each loader and Minecraft version, own all the mixins, and let you drop down
 whenever you need to.
 
 ```java
-public final class RefabslabMod implements ModularMod {
+public final class RefabslabMod implements ModularityModCommon, ModularityModClient {
     @Override
-    public void initCommon(ModContext mod) {
-        doubleSlab = mod.block("double_slab_block", block -> block
+    public void initialize(CommonContext common) {
+        doubleSlab = common.block("double_slab_block", block -> block
                 .property(LIGHT_LEVEL, 0)
                 .lightLevel(state -> state.get(LIGHT_LEVEL))
                 .pushReaction(PushReaction.BLOCK)
                 .data(DOUBLE_SLAB_DATA)
                 .behaviour(new DoubleSlabBehaviour()));
 
-        mod.intercept(BlockSelector.type(BlockType.SLAB), new SlabCombining());
+        common.intercept(BlockSelector.type(BlockType.SLAB), new SlabCombining());
     }
 
     @Override
-    public void initClient(ClientContext client) {
+    public void initialize(ClientContext client) {
         client.blockModel(doubleSlab, new DoubleSlabModel());
         client.hitParticles(doubleSlab, new DoubleSlabParticles());
     }

@@ -1,6 +1,6 @@
 package lv.cebbys.mcmods.modularity.platform;
 
-import lv.cebbys.mcmods.modularity.api.ModularMod;
+import lv.cebbys.mcmods.modularity.api.ModularityModCommon;
 import lv.cebbys.mcmods.modularity.api.ModularModRegistry;
 import lv.cebbys.mcmods.modularity.api.Modularity;
 import lv.cebbys.mcmods.modularity.platform.loader.LoaderInfo;
@@ -18,8 +18,8 @@ public final class ModularityCommon {
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
     private static final List<LoadedMod> MODS = new ArrayList<>();
 
-    /** A mod initialized by Modularity; the same instance receives the client/server init. */
-    public record LoadedMod(String modId, ModularMod mod) {
+    /** A mod initialized by Modularity; the same instance receives the client/server stages. */
+    public record LoadedMod(String modId, ModularityModCommon mod) {
     }
 
     private ModularityCommon() {
@@ -30,11 +30,11 @@ public final class ModularityCommon {
     }
 
     /** Registers a mod discovered by a generated loader adapter; call it before common initialization. */
-    public static void register(String modId, ModularMod mod) {
+    public static void register(String modId, ModularityModCommon mod) {
         ModularModRegistry.register(modId, mod);
     }
 
-    /** Installs the runtime and runs {@code initCommon} of every mod with a Modularity entrypoint. */
+    /** Installs the runtime and runs the common stage of every mod with a Modularity entrypoint. */
     public static void init(String loaderName) {
         ModularModRegistry.freeze();
         Modularity.install(MinecraftRuntime.INSTANCE);
@@ -44,8 +44,8 @@ public final class ModularityCommon {
                 MinecraftRuntime.INSTANCE.minecraftVersion(), entries.size());
         for (LoaderInfo.ModEntry entry : entries) {
             run(entry.modId(), "to initialize", () -> {
-                ModularMod mod = entry.mod().get();
-                mod.initCommon(new MinecraftModContext(entry.modId()));
+                ModularityModCommon mod = entry.mod().get();
+                mod.initialize(new MinecraftModContext(entry.modId()));
                 MODS.add(new LoadedMod(entry.modId(), mod));
             });
         }

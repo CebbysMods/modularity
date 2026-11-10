@@ -49,8 +49,18 @@ class EntityApiTest {
     static final EntityData<Integer> TICKS = EntityData.of(Id.of("testmod", "ticks"), DataCodec.INT, 0);
     static final EntityData<Integer> INPUT = EntityData.of(Id.of("testmod", "input"), DataCodec.INT, 0).notSaved().notSynced();
 
+    /** A mod with client work only: it implements the client stage and overrides nothing common. */
+    static final class ClientOnlyMod implements ModularityModCommon, ModularityModClient {
+        ClientContext client;
+
+        @Override
+        public void initialize(ClientContext client) {
+            this.client = client;
+        }
+    }
+
     /** A tiny mod: a cart that counts ticks, can be ridden, is placed by an item and steered by a channel. */
-    static final class CartMod implements ModularMod {
+    static final class CartMod implements ModularityModCommon, ModularityModClient {
         EntityHandle cart;
         ItemHandle cartItem;
         SoundHandle hum;
@@ -60,8 +70,8 @@ class EntityApiTest {
         int honks;
 
         @Override
-        public void initCommon(ModContext mod) {
-            cart = mod.entity("cart", e -> e.size(1.0F, 0.8F)
+        public void initialize(CommonContext common) {
+            cart = common.entity("cart", e -> e.size(1.0F, 0.8F)
                     .seat(new Vec3(0, 0.5, 0))
                     .data(TICKS, INPUT)
                     .fluidTank(2000, Id.minecraft("lava"))
@@ -82,7 +92,7 @@ class EntityApiTest {
                             return ctx.entity().addPassenger(player) ? InteractionResult.SUCCESS : InteractionResult.PASS;
                         }
                     }));
-            cartItem = mod.item("cart", i -> i.stackSize(1).behaviour(new ItemBehaviour() {
+            cartItem = common.item("cart", i -> i.stackSize(1).behaviour(new ItemBehaviour() {
                 @Override
                 public InteractionResult useOnBlock(ItemUseContext ctx) {
                     Pos above = ctx.clickedPos().offset(ctx.clickedFace());
@@ -91,13 +101,13 @@ class EntityApiTest {
                     return InteractionResult.SUCCESS;
                 }
             }));
-            hum = mod.sound("hum");
-            steer = mod.channel("steer", DataCodec.INT);
+            hum = common.sound("hum");
+            steer = common.channel("steer", DataCodec.INT);
             steer.onServer((player, value) -> player.vehicle().ifPresent(v -> v.setData(INPUT, value)));
         }
 
         @Override
-        public void initClient(ClientContext client) {
+        public void initialize(ClientContext client) {
             honk = client.keyBinding("honk", Keys.H);
             model = client.objModel(client.id("models/cube.obj"));
             client.onTick(state -> {
@@ -227,19 +237,10 @@ class EntityApiTest {
     @Test
     void loopingSoundsStopWithTheirEntity() {
         TestEntity cart = placeCart();
-        ClientContext[] client = new ClientContext[1];
+        ClientOnlyMod clientOnly = new ClientOnlyMod();
         TestGame other = TestGame.create();
-        other.load("other", new ModularMod() {
-            @Override
-            public void initCommon(ModContext mod) {
-            }
-
-            @Override
-            public void initClient(ClientContext c) {
-                client[0] = c;
-            }
-        });
-        client[0].play(new LoopingSound() {
+        other.load("other", clientOnly);
+        clientOnly.client.play(new LoopingSound() {
             @Override
             public SoundHandle sound() {
                 return mod.hum;

@@ -1,7 +1,7 @@
 package lv.cebbys.mcmods.modularity.loom.loader;
 
 import lv.cebbys.mcmods.modularity.platform.loader.LoaderInfo;
-import lv.cebbys.mcmods.modularity.api.ModularMod;
+import lv.cebbys.mcmods.modularity.api.ModularityModCommon;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -36,7 +36,7 @@ public final class LoomLoaderInfo implements LoaderInfo {
 
     @Override
     public List<ModEntry> modularMods() {
-        return FabricLoader.getInstance().getEntrypointContainers(ENTRYPOINT, ModularMod.class).stream()
+        return FabricLoader.getInstance().getEntrypointContainers(ENTRYPOINT, ModularityModCommon.class).stream()
                 .map(c -> new ModEntry(c.getProvider().getMetadata().getId(), c::getEntrypoint))
                 .toList();
     }

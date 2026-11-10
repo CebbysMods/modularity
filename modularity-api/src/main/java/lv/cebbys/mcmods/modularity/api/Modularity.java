@@ -34,7 +34,7 @@ public final class Modularity {
      * Registers a mod built on Modularity. A generated loader adapter calls it from its constructor, before
      * common initialization.
      */
-    public static void registerMod(String modId, ModularMod mod) {
+    public static void registerMod(String modId, ModularityModCommon mod) {
         ModularModRegistry.register(modId, mod);
     }
 

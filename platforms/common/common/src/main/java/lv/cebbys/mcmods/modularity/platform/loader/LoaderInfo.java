@@ -1,6 +1,6 @@
 package lv.cebbys.mcmods.modularity.platform.loader;
 
-import lv.cebbys.mcmods.modularity.api.ModularMod;
+import lv.cebbys.mcmods.modularity.api.ModularityModCommon;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 
 import java.util.List;
@@ -25,6 +25,6 @@ public interface LoaderInfo {
     List<ModEntry> modularMods();
 
     /** A mod id and how to create its entrypoint (may throw; the caller names the mod). */
-    record ModEntry(String modId, Supplier<ModularMod> mod) {
+    record ModEntry(String modId, Supplier<ModularityModCommon> mod) {
     }
 }

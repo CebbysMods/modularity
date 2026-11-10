@@ -1,12 +1,14 @@
 package lv.cebbys.mcmods.modularity.platform;
 
 import lv.cebbys.mcmods.modularity.api.Modularity;
+import lv.cebbys.mcmods.modularity.api.ModularityModCommon;
+import lv.cebbys.mcmods.modularity.api.ModularityModServer;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.server.ServerContext;
 
 /**
- * Runs {@code initServer} of every loaded mod built on Modularity. A loader calls it on a dedicated server only,
- * after common initialization.
+ * Runs the server stage of every loaded mod built on Modularity. A loader calls it on a dedicated server only,
+ * after common initialization. A mod without the stage is skipped.
  */
 public final class ModularityServer {
     private ModularityServer() {
@@ -14,7 +16,13 @@ public final class ModularityServer {
 
     public static void init() {
         ModularityCommon.forEachMod("server initialization",
-                loaded -> loaded.mod().initServer(new Context(loaded.modId())));
+                loaded -> run(loaded.mod(), new Context(loaded.modId())));
+    }
+
+    private static void run(ModularityModCommon mod, ServerContext context) {
+        if (mod instanceof ModularityModServer server) {
+            server.initialize(context);
+        }
     }
 
     private record Context(String modId) implements ServerContext {

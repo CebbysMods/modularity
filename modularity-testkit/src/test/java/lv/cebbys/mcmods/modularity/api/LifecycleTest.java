@@ -12,21 +12,22 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class LifecycleTest {
-    private static final class RecordingMod implements ModularMod {
+    private static final class RecordingMod
+            implements ModularityModCommon, ModularityModClient, ModularityModServer {
         final List<String> calls = new ArrayList<>();
 
         @Override
-        public void initCommon(ModContext mod) {
-            calls.add("common:" + mod.modId());
+        public void initialize(CommonContext common) {
+            calls.add("common:" + common.modId());
         }
 
         @Override
-        public void initClient(ClientContext client) {
+        public void initialize(ClientContext client) {
             calls.add("client:" + client.modId());
         }
 
         @Override
-        public void initServer(ServerContext server) {
+        public void initialize(ServerContext server) {
             calls.add("server:" + server.modId());
         }
     }

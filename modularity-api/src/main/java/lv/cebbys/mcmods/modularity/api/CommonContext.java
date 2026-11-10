@@ -17,7 +17,7 @@ import lv.cebbys.mcmods.modularity.api.sound.SoundHandle;
 import java.util.function.Consumer;
 
 /** Everything a mod can do during common initialization. Ids are created in the mod namespace. */
-public interface ModContext {
+public interface CommonContext {
     String modId();
 
     Platform platform();

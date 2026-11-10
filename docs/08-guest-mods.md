@@ -33,7 +33,7 @@ other mod: it detects the Minecraft version and the loader itself (docs/06).
 | Field | Required | Meaning |
 |---|---|---|
 | `id`, `version` | yes | Mod id and version. |
-| `entrypoints` | yes | `ModularMod` classes (one string or a list). |
+| `entrypoints` | yes | `ModularityModCommon` classes (one string or a list). |
 | `minecraft`, `modularity` | no (default `*`) | Version ranges the mod runs on. |
 | `name`, `description`, `authors`, `contributors`, `contact`, `license`, `icon`, `environment` | no | Shown in mod lists. |
 | `depends`, `recommends`, `suggests`, `breaks`, `conflicts` | no | Other mods, by id and version range. |

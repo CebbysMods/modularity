@@ -15,18 +15,18 @@ import java.util.Objects;
  * {@code universal.<loader>}. An adapter of another mod must link against unrelocated classes.
  */
 public final class ModularModRegistry {
-    private static final Map<String, ModularMod> MODS = new LinkedHashMap<>();
+    private static final Map<String, ModularityModCommon> MODS = new LinkedHashMap<>();
     private static boolean frozen;
 
     private ModularModRegistry() {
     }
 
     /** One registered mod and its mod id. */
-    public record Entry(String modId, ModularMod mod) {
+    public record Entry(String modId, ModularityModCommon mod) {
     }
 
     /** Registers {@code mod} under {@code modId}. Fails on a duplicate id or after {@link #freeze()}. */
-    public static synchronized void register(String modId, ModularMod mod) {
+    public static synchronized void register(String modId, ModularityModCommon mod) {
         Objects.requireNonNull(modId, "modId");
         Objects.requireNonNull(mod, "mod");
         if (frozen) {
