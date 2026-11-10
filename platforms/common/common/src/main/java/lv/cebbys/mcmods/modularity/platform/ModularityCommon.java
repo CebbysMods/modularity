@@ -58,7 +58,7 @@ public final class ModularityCommon {
         }
     }
 
-    private static void run(String modId, String what, Runnable init) {
+    static void run(String modId, String what, Runnable init) {
         try {
             init.run();
         } catch (RuntimeException e) {

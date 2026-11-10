@@ -10,7 +10,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.bundling.Jar;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,17 +18,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Smoke tests of one platform: the layered smoke mod ({@code tools/smoke}) as source set {@code smoke}, Loom runs
+ * Smoke tests of one platform: the layered smoke mod ({@code modularity-smoke}) as source set {@code smoke}, Loom runs
  * {@code runSmokeServer} / {@code runSmokeClient} in {@code build/smoke/run}, and the checks {@code smokeServer},
  * {@code smokeClient} and {@code smoke} (server, plus client where the table asks for it).
  */
 public final class SmokeSetup {
 
-    static final String SMOKE_ROOT = "tools/smoke";
+    static final String SMOKE_ROOT = "modularity-smoke";
     public static final String RUN_DIR = "build/smoke/run";
 
     private SmokeSetup() {
@@ -113,21 +111,14 @@ public final class SmokeSetup {
 
         // Guest mod: Modularity API only, a modularity.mod.json and no loader metadata, so one jar for every
         // platform. Not on the run class path: Modularity must find it (modularity.guestMods) and load it itself.
-        SourceSet guest = sourceSets.create("smokeGuest");
-        guest.getJava().setSrcDirs(List.of(new File(project.getRootDir(), SMOKE_ROOT + "/guest/src/main/java")));
-        guest.getResources().setSrcDirs(List.of(new File(project.getRootDir(), SMOKE_ROOT + "/guest/src/main/resources")));
-        project.getDependencies().add(guest.getCompileOnlyConfigurationName(),
-                project.getDependencies().project(Map.of("path", ":modularity-api")));
-        TaskProvider<Jar> guestJar = project.getTasks().register("smokeGuestJar", Jar.class, t -> {
-            t.setGroup("verification");
-            t.setDescription("Jar of the smoke guest mod (modularity.mod.json only)");
-            t.from(guest.getOutput());
-            t.getDestinationDirectory().set(project.getLayout().getBuildDirectory().dir("smoke"));
-            t.getArchiveFileName().set(SmokeCheck.GUEST + ".jar");
-        });
+        // The jar is the smoke module's own jar; modularity-smoke/build.gradle fixes its name. The task path is a
+        // string, so it resolves after every project is configured: the root applies java-library to the module
+        // after it applies this plugin.
+        String guestJar = ":modularity-smoke:jar";
         // Guest mods are implemented for Fabric so far (docs/08); other loaders run without the guest.
         boolean guests = platform.loader() == Loader.FABRIC;
-        String guestMods = new File(project.getLayout().getBuildDirectory().get().getAsFile(), "smoke/" + SmokeCheck.GUEST + ".jar").getAbsolutePath();
+        String guestMods = new File(project.getRootDir(), SMOKE_ROOT + "/build/libs/" + SmokeCheck.GUEST + ".jar")
+                .getAbsolutePath();
 
         String userDir = new File(project.getProjectDir(), RUN_DIR).getAbsolutePath();
         RunTasks runTasks = gameRuns.register(project, platform, main, smoke, guests ? guestMods : null);
@@ -194,7 +185,7 @@ public final class SmokeSetup {
         });
     }
 
-    /** Smoke mod layer roots under {@code tools/smoke}: the same stack as the platform's (Quilt: the Fabric mod). */
+    /** Smoke mod layer roots under {@code modularity-smoke}: the same stack as the platform's (Quilt: the Fabric mod). */
     static List<String> smokeRoots(PlatformTable.Platform platform) {
         return platform.loader().layerRoots();
     }

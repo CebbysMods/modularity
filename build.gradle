@@ -14,14 +14,12 @@ subprojects {
     }
 }
 
-configure([project(':modularity-api'), project(':modularity-testkit')]) {
+// The API, the testkit and the smoke guest: Java 17, no loader and no Minecraft on the compile path.
+configure([project(':modularity-api'), project(':modularity-testkit'), project(':modularity-smoke')]) {
     apply plugin: 'java-library'
-    apply plugin: 'maven-publish'
 
     java {
         toolchain { languageVersion = JavaLanguageVersion.of(Integer.parseInt(rootProject.java_toolchain)) }
-        withSourcesJar()
-        withJavadocJar()
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -33,6 +31,16 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
 
     tasks.withType(Javadoc).configureEach {
         options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+
+// Only the two libraries are published; the smoke module is a test fixture.
+configure([project(':modularity-api'), project(':modularity-testkit')]) {
+    apply plugin: 'maven-publish'
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
     }
 
     publishing {

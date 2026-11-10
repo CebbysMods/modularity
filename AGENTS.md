@@ -53,7 +53,7 @@ is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `bu
 | `platforms/minecraft`, `common`, `loom`, `fabric`, `quilt`, `neoforge`, `forge` | Layer roots (`common/`, `changes/<range>/`, `versions/<version>/`); `loom` is shared by Fabric and Quilt, `anvil` is reserved for the Forge family |
 | `platforms/versions/<version>/` | Version parent projects; no sources, no build files |
 | `modularity-api/` | The dependency-free API, nested into the platform jars; includes the detectors (`api.detect`) |
-| `tools/smoke/` | The smoke mod and the guest mod |
+| `modularity-smoke/` | The smoke mods: the guest module and the layered roots the platform smoke sets assemble |
 | `docs/` | Requirements, API design, build design, decisions |
 | `.beans/` | The issue tracker (`beans` CLI); use it for pending work |
 

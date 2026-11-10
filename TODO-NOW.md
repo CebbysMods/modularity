@@ -24,6 +24,34 @@ both) and because it left the plugin's legacy body holding Forge alone.
 
 - [ ] Run `smokeAll` across the four loaders and `:platforms:21.1:jar`.
 
+## Build and smoke command review
+
+- [ ] Review [BUILD-SMOKE-COMMANDS.md](BUILD-SMOKE-COMMANDS.md) before closing: confirm that
+      `-Pmodularity.platforms=<version> buildAll` and `smokeAll` are the two commands to keep, and that
+      the selector test, the `smokeAll` wording and the doc changes are accepted.
+
+## Anvil launch stage
+
+- [ ] Review [ANVIL-LAUNCH.md](ANVIL-LAUNCH.md) before closing: confirm option 1 (one listener on
+      Modularity's own mod bus for the loader `RegisterEvent`, behind a `static` guard) before the
+      Forge-family launch stage or its docs are written. The document marks the judgements it could
+      not prove, and the Forge seam is a prerequisite for the stage on Forge.
+
+## Smoke module move (`modularity-smoke`) — open checks
+
+Risks of the move of `tools/smoke` into the `:modularity-smoke` module. Tick a box only when its
+check passes.
+
+- [ ] **Module jar path.** `modularity.guestMods` is a fixed path string; check that
+      `modularity-smoke/build/libs/smoke_guest.jar` exists after `:modularity-smoke:jar`.
+- [ ] **Run-task ordering.** Check that a clean checkout runs the smoke with the guest jar present,
+      because the run tasks depend on `:modularity-smoke:jar`.
+- [ ] **Root build split.** Check that only `modularity-api` and `modularity-testkit` publish.
+- [ ] **Layer base dir.** Check that `AssembleLayersTask` assembles the smoke mod from
+      `modularity-smoke/` and that the smoke log shows `modularity_smoke` loaded.
+- [ ] **Java level.** Check that the guest compiles at release 17 against `modularity-api`.
+- [ ] **`buildAll` scope.** Check that `buildAll` builds `:modularity-smoke` without a failure.
+
 ## One verification pass
 
 The S3, S4 and S5 runs and the lifecycle checks (`modularity-8ywo`, `modularity-lw0r`) use the same

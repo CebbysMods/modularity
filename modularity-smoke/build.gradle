@@ -1,0 +1,10 @@
+description = 'Smoke test mods: the guest jar, and the layered roots the platform smoke sets assemble'
+
+dependencies {
+    api project(':modularity-api')
+}
+
+tasks.named('jar') {
+    // Fixed name: SmokeSetup passes this file as the modularity.guestMods system property.
+    archiveFileName = 'smoke_guest.jar'
+}

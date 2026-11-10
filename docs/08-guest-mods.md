@@ -80,8 +80,9 @@ not have the Fabric Loader internals that `LoaderInjection` uses. The Quilt smok
 
 ## 8.4 Verification
 
-The smoke tests of every platform (docs/07, 7.6) load a guest mod on Fabric, `tools/smoke/guest`
-(Modularity API only, `modularity.mod.json`, not on the run class path). The checks require
+The smoke tests of every platform (docs/07, 7.6) load a guest mod on Fabric, `modularity-smoke/`
+(its own Gradle module: Modularity API only, `modularity.mod.json`, not on the run class path). The
+checks require
 `[modularity] Loaded guest mod smoke_guest` and, once the server started,
 `[smoke] guest mod smoke_guest: loaded=true initialized=true`. The Quilt platform runs the same smoke
 mod without the guest and expects neither line.

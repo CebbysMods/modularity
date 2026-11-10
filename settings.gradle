@@ -21,9 +21,11 @@ plugins {
 
 rootProject.name = 'modularity'
 
-// Loader independent modules, buildable with nothing but Maven Central.
+// Loader independent modules, buildable with nothing but Maven Central. The smoke module holds the guest mod
+// (compiled here) and the layered smoke roots, which each platform assembles (docs/07, 7.6).
 include 'modularity-api'
 include 'modularity-testkit'
+include 'modularity-smoke'
 
 // The platform projects come from gradle/platforms.toml (settings plugin above). Skip all of them with
 // -Pmodularity.platforms=none (e.g. in offline environments).

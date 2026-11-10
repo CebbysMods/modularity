@@ -19,7 +19,7 @@ public final class SmokeCheck {
     private SmokeCheck() {
     }
 
-    /** Id of the smoke guest mod ({@code tools/smoke/guest}). */
+    /** Id of the smoke guest mod ({@code modularity-smoke/src/main/resources/modularity.mod.json}). */
     public static final String GUEST = "smoke_guest";
 
     public static Result check(String log, String minecraft, Side side) {

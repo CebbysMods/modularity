@@ -26,5 +26,6 @@ public final class ModularityQuiltLaunch implements PreLaunchEntrypoint {
             LOGGER.error("[modularity] Guest mods are not supported on Quilt yet; not loaded: {}",
                     guests.stream().map(GuestDescriptor::id).toList());
         }
+        LoomEntrypoints.launchMods("quilt");
     }
 }

@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public abstract class AssembleLayersTask extends DefaultTask {
 
     /**
-     * Layer root, e.g. {@code tools/smoke/fabric} (holds common, changes, versions), or with {@link #getRoots()} the
+     * Layer root, e.g. {@code modularity-smoke/fabric} (holds common, changes, versions), or with {@link #getRoots()} the
      * folder holding a stack of such roots, e.g. {@code platforms}.
      */
     @Internal

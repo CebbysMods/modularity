@@ -46,6 +46,7 @@ public final class ModularityFabricLaunch implements PreLaunchEntrypoint {
                     guest.origin().getFileName());
         }
         byId.values().forEach(ModularityFabricLaunch::checkDependencies);
+        LoomEntrypoints.launchMods("fabric");
     }
 
     /** Fabric resolved dependencies before guests existed; the same rules, checked here. */

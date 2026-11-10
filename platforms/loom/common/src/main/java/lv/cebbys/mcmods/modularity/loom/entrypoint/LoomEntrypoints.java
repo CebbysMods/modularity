@@ -12,6 +12,7 @@ import lv.cebbys.mcmods.modularity.loom.loader.LoomStorageBackend;
 import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
+import lv.cebbys.mcmods.modularity.platform.ModularityLaunch;
 import lv.cebbys.mcmods.modularity.platform.ModularityServer;
 import lv.cebbys.mcmods.modularity.platform.client.ModularityClient;
 import lv.cebbys.mcmods.modularity.platform.compat.SyncedData;
@@ -29,10 +30,8 @@ public final class LoomEntrypoints {
 
     /** Installs the seams and initializes every {@code "modularity"} entrypoint. */
     public static void common(String loaderName) {
-        VersionDetector.install(new LoomVersionSource());
-        PlatformDetector.install(new LoomPlatformSource());
         EntryPoints.active(EntryPoint.COMMON, loaderName);
-        Loaders.install(new LoomLoaderInfo(), new LoomRenderData(), new LoomStorageBackend(), new LoomLoaderHooks());
+        installDetection();
         SyncedData.init();
         DetectionLog.log();
         ModularityCommon.init(loaderName);
@@ -49,8 +48,21 @@ public final class LoomEntrypoints {
         ModularityServer.init();
     }
 
-    /** Runs before the game starts, after the loader resolved the mods. */
+    /** Runs before the game starts, after the loader resolved the mods: detection and the seams only. */
     public static void launch(String loaderName) {
         EntryPoints.active(EntryPoint.LAUNCH, loaderName);
+        installDetection();
+    }
+
+    /** Runs the launch stage of every mod; the loader calls it after the guest mods exist. */
+    public static void launchMods(String loaderName) {
+        ModularityLaunch.init(loaderName);
+    }
+
+    /** Installs the detection sources and the seams; a second call is harmless. */
+    private static void installDetection() {
+        VersionDetector.install(new LoomVersionSource());
+        PlatformDetector.install(new LoomPlatformSource());
+        Loaders.install(new LoomLoaderInfo(), new LoomRenderData(), new LoomStorageBackend(), new LoomLoaderHooks());
     }
 }

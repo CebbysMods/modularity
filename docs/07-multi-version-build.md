@@ -51,8 +51,9 @@ platforms/
     changes/<range>/src/main/{java,resources} one change, at the first version that needs it
     versions/<version>/                      project dir of platform <loader>-<version>;
       src/main/{java,resources}              only truly single-version details
-tools/smoke/minecraft | loom | fabric | quilt | neoforge | forge
-                                           smoke-test mods (same layering, see 7.6); tools/smoke/guest
+modularity-smoke/minecraft | loom | fabric | quilt | neoforge | forge
+                                           smoke-test mods (same layering, see 7.6); the guest mod in
+                                           modularity-smoke/src/main (the :modularity-smoke module)
 ```
 
 Range folder names: `1.21.5+` (that version and every later one) or `1.21.5-1.21.8` (inclusive).
@@ -208,8 +209,9 @@ class names, so explicit `install(...)` replaces `ServiceLoader`.
 
 ## 7.6 Smoke tests
 
-The smoke mod lives in `tools/smoke/` and is layered like the platform. Each platform project gets a
-`smoke` source set and two runs:
+The smoke mod lives in `modularity-smoke/` and is layered like the platform. Its guest mod is the
+`:modularity-smoke` jar; the platform smoke runs take that file as `modularity.guestMods`. Each
+platform project gets a `smoke` source set and two runs:
 
 * `smokeServer`: dedicated server, flat world, stops itself after a few ticks; the task then checks
   the log: Modularity loaded as a top-level mod, the detection line naming the exact version and
@@ -217,8 +219,8 @@ The smoke mod lives in `tools/smoke/` and is layered like the platform. Each pla
 * `smokeClient`: client joins the world written by the server run, takes a screenshot, quits; same
   log checks.
 
-The shared smoke sources live in `tools/smoke/minecraft`, `tools/smoke/loom` and the loader roots; a root
-without a `tools/smoke/<root>` folder is skipped. The smoke guest mod loads on Fabric only (docs/08), so
+The shared smoke sources live in `modularity-smoke/minecraft`, `modularity-smoke/loom` and the loader
+roots; a root without a `modularity-smoke/<root>` folder is skipped. The smoke guest mod loads on Fabric only (docs/08), so
 the Quilt check expects no guest lines.
 
 Every platform runs `smokeServer`; `smokeClient` runs for 21.1, 21.6, 21.11, 26.1 and the latest.
@@ -276,7 +278,7 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | NeoForge with ModDevGradle 2.0.148, Forge with ForgeGradle 7.0.40, both on the shared plugin classpath next to Loom | The plugins and versions of NeoForge's and Forge's own 1.21.1 MDKs, both on Gradle 9. ModDevGradle's legacy Forge plugin cannot build Forge 1.21.1 and ForgeGradle 6 needs Gradle 8. All three plugins in one build were tried first in a throwaway build. |
 | NeoForge/Forge metadata (`neoforge.mods.toml`, `mods.toml`) generated from the same `[mod]` values; Minecraft exact, the loader from its line on (`[21.1,)`, `[52,)`), `>=X` ranges as `[X,)` | One description of the mod for every loader. |
 | `[mod] mods` lists the Fabric modules; NeoForge and Forge use their `-neoforge` / `-forge` sibling | The separate mods are the same mods per loader. |
-| Smoke mods layered like the platforms (`tools/smoke/minecraft` + the loader's root) | The screenshot code is plain Minecraft code and its version changes apply to every loader. |
+| Smoke mods layered like the platforms (`modularity-smoke/minecraft` + the loader's root) | The screenshot code is plain Minecraft code and its version changes apply to every loader. |
 | NeoForge smoke source set: own configurations extending `main`'s, plus `addModdingDependenciesTo` | ModDevGradle adds its dev launcher to the source set's configurations; a plain file class path misses it. |
 | Forge runs named `server` / `client`, smoke tasks `runSmokeServer` / `runSmokeClient` | ForgeGradle 7 fills a run from Forge's run configuration of the same name and registers one task per source set (`run<SourceSet><Name>`) with that source set's class path; a run's `classpath` option replaces the launcher's own class path. |
 | Forge: resources compiled into the classes folder (`main`, `smoke`) | Forge's development discovery takes each class path folder as a mod file; `mods.toml` must sit next to the classes. |
