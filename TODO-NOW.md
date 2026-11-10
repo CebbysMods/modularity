@@ -46,17 +46,22 @@ check passes.
       `modularity-smoke/build/libs/smoke_guest.jar` exists after `:modularity-smoke:jar`.
 - [ ] **Run-task ordering.** Check that a clean checkout runs the smoke with the guest jar present,
       because the run tasks depend on `:modularity-smoke:jar`.
-- [ ] **Root build split.** Check that only `modularity-api` and `modularity-testkit` publish.
 - [ ] **Layer base dir.** Check that `AssembleLayersTask` assembles the smoke mod from
       `modularity-smoke/` and that the smoke log shows `modularity_smoke` loaded.
-- [ ] **Java level.** Check that the guest compiles at release 17 against `modularity-api`.
 - [ ] **`buildAll` scope.** Check that `buildAll` builds `:modularity-smoke` without a failure.
+
+Closed on 2026-11-10:
+- Root build split: `build.gradle` applies `maven-publish` in the second `configure` block, which
+  holds `modularity-api` and `modularity-testkit` only.
+- Java level: `javac --release 17` compiled `modularity-smoke/src/main/java` against the API classes
+  with no error.
 
 ## One verification pass
 
 The S3, S4 and S5 runs and the lifecycle checks (`modularity-8ywo`, `modularity-lw0r`) use the same
 Gradle tasks. Run them after `modularity-r133` (NeoForge) and `modularity-g420` (Forge), so one pass
-covers the platform-setup refactor and the lifecycle wiring. Until then, every item above stays open.
+covers the platform-setup refactor and the lifecycle wiring. Until then, every Gradle check above
+stays open.
 
 ## NeoForge/Forge lifecycle — decisions moved to beans
 
@@ -73,22 +78,33 @@ The risks are now decisions and checks inside the tracker; they are no longer tr
 
 These are the risks of the merge plan. Remove an item only when its check passes.
 
-- [ ] **Public contract.** `api.detect` is supported API. Check that the SPI stays minimal and that
-      only a platform installs a source.
-- [ ] **Java level.** `modularity-api` compiles at release 17. Check the sealed `Version` hierarchy,
-      records and pattern matching against Java 17.
-- [ ] **Version semantics.** A `MinecraftVersion` and a `PlatformVersion` must never compare equal,
-      and `PlatformVersion` must accept `+build` suffixes and `unknown` without throwing.
-- [ ] **Nested module split.** Loader sources reference only `api.detect` types and their own loader
-      API. Check that `modularity-api` imports no loader class.
 - [ ] **Quilt loader version.** Check that the `quilt_loader` container reports the version from
       `gradle/platforms.toml` on Quilt Loader 0.30.2.
-- [ ] **Forge side.** Check that `FMLLoader.isProduction()` stays a method call and that the Forge
-      constructor does not force a static initializer.
-- [ ] **Tests without Gradle.** The moved tests keep the marker class stubs, or
-      `MarkerClassSource` resolves the real loader on the test class path.
 - [ ] **No service files.** Check that the universal jar contains no
       `META-INF/services/lv.cebbys.mcmods.*` entry.
+
+Run notes for the two items above (tasks `modularity-isu0` and `modularity-f5e2`):
+
+- `SmokeCheck` accepts any version string, so a green smoke does not prove the Quilt version. Read
+  the log line.
+- Quilt Loader may report `0.30.2+build.N`. Compare the prefix with the table and record the full
+  string.
+- `UniversalJarTask` is cacheable. Do not inspect a jar that is older than the merge.
+- `:platforms:21.1:jar` builds all four platforms, so the service check runs alone.
+
+Closed on 2026-11-10:
+- Public contract: the only `install` calls outside the API and its tests are in
+  `ModularityForge`, `LoomEntrypoints` and `ModularityNeoForgeCommon`.
+- Java level: `javac --release 17` compiled `modularity-api/src/main/java` and its tests with no
+  error, and the 28 tests ran on that output.
+- Version semantics: `VersionTest` lines 63 to 86 parse `0.20.1+build.42` and `unknown`, and assert
+  that a `MinecraftVersion` and a `PlatformVersion` are not equal. All 28 tests pass.
+- Nested module split: no file in `modularity-api/src/main/java` imports a loader, Minecraft or
+  platform class.
+- Forge side: `ForgePlatformSource.detect` loads the marker class with `initialize` set to `false`,
+  and it calls `FMLLoader.isProduction()` as a method, not as a static field.
+- Tests without Gradle: the four marker stubs are in `modularity-api/src/test/java` (`net/fabricmc`,
+  `net/minecraftforge`, `net/neoforged`, `org/quiltmc`), and the tests pass on a plain class path.
 
 ## Quilt/Fabric separation (`loom`, `common`, native Quilt jar) — open checks
 
