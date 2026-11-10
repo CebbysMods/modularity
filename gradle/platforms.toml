@@ -10,7 +10,7 @@
 [defaults]
 fabric-loader = "0.20.1"
 # fabricloader dependency of the Fabric jars: the API they use is old and stable; Quilt Loader 0.30.2 reports
-# Fabric Loader 0.19.5. Same floor as mvd and mpd.
+# Fabric Loader 0.19.5.
 fabric-loader-min = "0.16.0"
 # Quilt Loader: newest stable from meta.quiltmc.org, checked 2026-11-06.
 quilt-loader = "0.30.2"
@@ -34,16 +34,8 @@ icon = "images/modularity.png"
 mixin-package = "lv.cebbys.mcmods.modularity.platform.mixin"
 # Nested in the jar and exposed as api.
 nested = [":modularity-api"]
-# Companion mods: they sit next to Modularity (not nested), see docs/06-utility-mods.md. A companion mod is named
-# once, without a loader (:utilities:mvd:mvd); each platform uses its build for that loader (mvd-fabric, mvd-neoforge,
-# mvd-forge) and compiles against its mvd-core API (see PlatformTable.Mod.companionProject).
-companion-mods = [":utilities:mvd:mvd", ":utilities:mpd:mpd"]
 # No entrypoints here: the build finds them in the assembled sources by the Fabric entrypoint interface each
 # class implements (common, client, server, launch; docs/07, 7.4).
-
-[mod.depends]
-mvd = ">=4.0.0"
-mpd = ">=1.0.0"
 
 [[platform]]
 name = "21.1"

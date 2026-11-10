@@ -1,6 +1,7 @@
 package lv.cebbys.modularity.gradle.setup;
 
 import lv.cebbys.modularity.gradle.Loader;
+import lv.cebbys.modularity.gradle.QuiltJarMetadata;
 import net.fabricmc.loom.api.LoomGradleExtensionAPI;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -74,6 +75,16 @@ class QuiltPlatformSetup extends AbstractLoomPlatformSetup {
 
     @Override
     protected void tasks(TasksContext ctx) {
+        // Loom nests the modules into META-INF/jars and names them in fabric.mod.json; it does not know
+        // quilt.mod.json, so add quilt_loader.jars after the jar is built (dev resources stay free of it).
+        ctx.project().getTasks().named(ctx.platform().modJarTask()).configure(t -> t.doLast(_ -> {
+            // The jar task's outputs: the mod jar (not the sources jar) that Loom has already nested.
+            for (File file : t.getOutputs().getFiles()) {
+                if (file.isFile() && file.getName().endsWith(".jar") && !file.getName().contains("-sources")) {
+                    QuiltJarMetadata.addNestedJars(file.toPath());
+                }
+            }
+        }));
         // Loom writes the development settings as fabric.* properties into launch.cfg; Quilt Loader reads the same
         // settings as loader.*. Without them Quilt finds none of the development mods. Just before each game run:
         // the launch.cfg path is in the run's JVM arguments (-Dfabric.dli.config=...).

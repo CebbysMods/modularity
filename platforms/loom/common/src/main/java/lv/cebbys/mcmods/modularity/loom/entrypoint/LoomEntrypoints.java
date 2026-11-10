@@ -1,6 +1,10 @@
 package lv.cebbys.mcmods.modularity.loom.entrypoint;
 
+import lv.cebbys.mcmods.modularity.api.detect.PlatformDetector;
+import lv.cebbys.mcmods.modularity.api.detect.VersionDetector;
 import lv.cebbys.mcmods.modularity.loom.client.LoomClientHooks;
+import lv.cebbys.mcmods.modularity.loom.detect.LoomPlatformSource;
+import lv.cebbys.mcmods.modularity.loom.detect.LoomVersionSource;
 import lv.cebbys.mcmods.modularity.loom.loader.LoomLoaderHooks;
 import lv.cebbys.mcmods.modularity.loom.loader.LoomLoaderInfo;
 import lv.cebbys.mcmods.modularity.loom.loader.LoomRenderData;
@@ -11,6 +15,7 @@ import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
 import lv.cebbys.mcmods.modularity.platform.ModularityServer;
 import lv.cebbys.mcmods.modularity.platform.client.ModularityClient;
 import lv.cebbys.mcmods.modularity.platform.compat.SyncedData;
+import lv.cebbys.mcmods.modularity.platform.detect.DetectionLog;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
 
 /**
@@ -24,9 +29,12 @@ public final class LoomEntrypoints {
 
     /** Installs the seams and initializes every {@code "modularity"} entrypoint. */
     public static void common(String loaderName) {
+        VersionDetector.install(new LoomVersionSource());
+        PlatformDetector.install(new LoomPlatformSource());
         EntryPoints.active(EntryPoint.COMMON, loaderName);
         Loaders.install(new LoomLoaderInfo(), new LoomRenderData(), new LoomStorageBackend(), new LoomLoaderHooks());
         SyncedData.init();
+        DetectionLog.log();
         ModularityCommon.init(loaderName);
     }
 

@@ -1,6 +1,5 @@
 package lv.cebbys.modularity.gradle.setup;
 
-import lv.cebbys.modularity.gradle.PlatformTable;
 import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -9,8 +8,8 @@ import org.gradle.api.tasks.SourceSet;
 import java.util.Map;
 
 /**
- * NeoForge and Forge: a Java library with the loader's plugin, the loader's build of the separate mods, the nested
- * modules packaged inside the jar, and the smoke runs registered per source set.
+ * NeoForge and Forge: a Java library with the loader's plugin, the nested modules packaged inside the jar, and the
+ * smoke runs registered per source set.
  *
  * <p>The two loaders share conventions, not a tool: how Minecraft and its mappings are obtained, how nested modules
  * are packaged and how runs are registered are hooks, because ModDevGradle and ForgeGradle have nothing in common
@@ -39,7 +38,6 @@ abstract class AbstractForgeFamilyPlatformSetup extends AbstractPlatformSetup {
             deps.add("api", deps.project(Map.of("path", path)));
         }
         packageNestedModules(ctx);
-        companionMods(ctx);
     }
 
     /** S5: the smoke runs, on a source set that sees the main one. */
@@ -68,17 +66,6 @@ abstract class AbstractForgeFamilyPlatformSetup extends AbstractPlatformSetup {
 
     /** The smoke source set's own loader dependencies (NeoForge: the modding dependencies of the dev launcher). */
     protected void smokeDependencies(Project project, SourceSet smoke) {
-    }
-
-    /** The {@code implementation}/{@code compileOnly} pair per companion mod, as built by the loader. */
-    private static void companionMods(DependenciesContext ctx) {
-        DependencyHandler deps = ctx.dependencies();
-        for (String companion : ctx.mod().companionMods()) {
-            deps.add("implementation", deps.project(Map.of("path", companionProject(ctx.project(),
-                    PlatformTable.Mod.companionProject(companion, ctx.platform().loader())))));
-            deps.add("compileOnly", deps.project(Map.of("path",
-                    companionProject(ctx.project(), PlatformTable.Mod.companionApi(companion)))));
-        }
     }
 
     /** The smoke source set compiles and runs against the main one's output and dependencies. */

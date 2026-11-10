@@ -31,7 +31,7 @@ public final class Versioned<T> {
         return new Builder<>();
     }
 
-    public Optional<T> find(McVersion version) {
+    public Optional<T> find(MinecraftVersion version) {
         return candidates.stream()
                 .filter(candidate -> candidate.range.contains(version))
                 .max(Comparator.comparing(
@@ -40,7 +40,7 @@ public final class Versioned<T> {
                 .map(candidate -> candidate.factory.get());
     }
 
-    public T select(McVersion version) {
+    public T select(MinecraftVersion version) {
         return find(version).orElseThrow(() -> new IllegalStateException(
                 "No implementation registered for Minecraft " + version + " among " + candidates));
     }
@@ -72,7 +72,7 @@ public final class Versioned<T> {
             return new Versioned<>(candidates);
         }
 
-        public T select(McVersion version) {
+        public T select(MinecraftVersion version) {
             return build().select(version);
         }
     }

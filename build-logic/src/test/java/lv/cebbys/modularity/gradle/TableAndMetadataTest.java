@@ -30,10 +30,9 @@ class TableAndMetadataTest {
             license = "MIT"
             authors = ["CebbyS"]
             mixin-package = "lv.example.mixin"
-            companion-mods = [":a", ":b"]
 
             [mod.depends]
-            mvd = ">=4.0.0"
+            example = ">=1.0.0"
 
             [[platform]]
             name = "26.1"
@@ -63,7 +62,6 @@ class TableAndMetadataTest {
         assertFalse(p.enabled());
         assertFalse(t.platform("fabric-26.1").orElseThrow().remap());
         assertEquals(List.of("fabric-26.1"), t.enabled().stream().map(PlatformTable.Platform::id).toList());
-        assertEquals(List.of(":a", ":b"), t.mod().companionMods());
         assertEquals("lv.cebbys.mcmods", t.mod().group());
         assertEquals("modularity", t.mod().archivePrefix());
         assertEquals(":platforms:21.1:21.1-fabric", p.projectPath());
@@ -136,7 +134,7 @@ class TableAndMetadataTest {
         assertTrue(neo.contains("modId=\"modularity\""), neo);
         assertTrue(neo.contains("modId=\"minecraft\"\ntype=\"required\"\nversionRange=\"[1.21.1]\""), neo);
         assertTrue(neo.contains("modId=\"neoforge\"\ntype=\"required\"\nversionRange=\"[21.1,)\""), neo);
-        assertTrue(neo.contains("modId=\"mvd\"\ntype=\"required\"\nversionRange=\"[4.0.0,)\""), neo);
+        assertTrue(neo.contains("modId=\"example\"\ntype=\"required\"\nversionRange=\"[1.0.0,)\""), neo);
         assertEquals("META-INF/neoforge.mods.toml", ModMetadata.metadataPath(t.platform("neoforge-21.1").orElseThrow()));
 
         String forge = ModMetadata.modsToml(t.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0");
@@ -155,11 +153,6 @@ class TableAndMetadataTest {
         assertEquals("[0,)", ModMetadata.mavenRange("*"));
         assertEquals("[1.2.3]", ModMetadata.mavenRange("1.2.3"));
         assertThrows(IllegalArgumentException.class, () -> ModMetadata.mavenRange("~1.2"));
-        assertEquals(":utilities:mvd:mvd-neoforge",
-                PlatformTable.Mod.companionProject(":utilities:mvd:mvd", Loader.NEOFORGE));
-        assertEquals(":utilities:mvd:mvd-fabric",
-                PlatformTable.Mod.companionProject(":utilities:mvd:mvd", Loader.QUILT), "Quilt runs the Fabric build");
-        assertEquals(":utilities:mvd:mvd-core", PlatformTable.Mod.companionApi(":utilities:mvd:mvd"));
     }
 
     @Test
@@ -181,7 +174,7 @@ class TableAndMetadataTest {
         String json = ModMetadata.fabricModJson(t.mod(), t.platform("fabric-21.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", true,
                 Map.of(EntryPoint.COMMON, List.of("lv.example.Main")));
         assertTrue(json.contains("\"minecraft\": \"1.21.1\""), json);
-        assertTrue(json.contains("\"mvd\": \">=4.0.0\""), json);
+        assertTrue(json.contains("\"example\": \">=1.0.0\""), json);
         assertTrue(json.contains("\"fabricloader\": \">=0.16.0\""), json);
         assertTrue(json.contains("\"java\": \">=21\""), json);
         assertTrue(json.contains("\"entrypoints\": {\n    \"main\": [\n      \"lv.example.Main\"\n    ]\n  }"), json);
@@ -205,7 +198,7 @@ class TableAndMetadataTest {
                 java = 21
                 """);
         PlatformTable.Platform quilt = t.platform("quilt-21.1").orElseThrow();
-        String json = ModMetadata.quiltModJson(t.mod(), quilt, "0.1.0", List.of("modularity-api-0.1.0.jar"), true,
+        String json = ModMetadata.quiltModJson(t.mod(), quilt, "0.1.0", true,
                 Map.of(EntryPoint.COMMON, List.of("lv.example.Main"),
                         EntryPoint.LAUNCH, List.of("lv.example.Launch")));
         assertTrue(json.contains("\"schema_version\": 1"), json);
@@ -215,20 +208,19 @@ class TableAndMetadataTest {
         assertTrue(json.contains("\"main\": [\n        \"lv.example.Main\"\n      ]"), json);
         assertTrue(json.contains("\"pre_launch\": [\n        \"lv.example.Launch\"\n      ]"), json);
         assertTrue(json.contains("\"mixin\": \"modularity.quilt.mixins.json\""), json);
-        assertTrue(json.contains("\"jars\": [\n    \"META-INF/jars/modularity-api-0.1.0.jar\"\n  ]"), json);
         assertTrue(json.contains("\"versions\": \"=1.21.1\""), json);
         assertTrue(json.contains("\"versions\": \">=0.30.2\""), json);
         assertTrue(json.contains("\"contributors\": {\n        \"CebbyS\": \"Author\"\n      }"), json);
         assertTrue(json.contains("\"environment\": \"*\""), json);
+        // The nested jars are added to the built jar (QuiltJarMetadata); dev resources must not name a missing file.
+        assertFalse(json.contains("\"jars\""), json);
         assertEquals("modularity.mixins.json", ModMetadata.mixinConfigName(t.mod(), Loader.FABRIC));
         assertEquals("modularity.quilt.mixins.json", ModMetadata.mixinConfigName(t.mod(), Loader.QUILT));
-        assertEquals("META-INF/jars/modularity-api-0.1.0.jar",
-                ModMetadata.nestedJarPath("modularity-api-0.1.0.jar"));
         // A 26.x platform has no intermediary mappings, so it cannot carry a native Quilt metadata file.
         assertThrows(IllegalArgumentException.class,
                 () -> ModMetadata.quiltModJson(t.mod(), new PlatformTable.Platform("26.1", Loader.QUILT,
                         McVersion.parse("26.1"), "0.31.0", "0.145.1+26.1", 25, null, true, false, null),
-                        "0.1.0", List.of(), false, Map.of()));
+                        "0.1.0", false, Map.of()));
     }
 
     @Test

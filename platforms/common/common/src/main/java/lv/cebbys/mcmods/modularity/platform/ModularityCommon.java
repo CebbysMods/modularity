@@ -37,15 +37,15 @@ public final class ModularityCommon {
     /** Installs the runtime and runs {@code initCommon} of every mod with a Modularity entrypoint. */
     public static void init(String loaderName) {
         ModularModRegistry.freeze();
-        Modularity.install(McRuntime.INSTANCE);
+        Modularity.install(MinecraftRuntime.INSTANCE);
         List<LoaderInfo.ModEntry> entries = Loaders.info().modularMods();
         LOGGER.info("Modularity {} on {}, Minecraft {}: initializing {} mod(s)",
-                McRuntime.INSTANCE.modVersion("modularity").orElse("?"), loaderName,
-                McRuntime.INSTANCE.minecraftVersion(), entries.size());
+                MinecraftRuntime.INSTANCE.modVersion("modularity").orElse("?"), loaderName,
+                MinecraftRuntime.INSTANCE.minecraftVersion(), entries.size());
         for (LoaderInfo.ModEntry entry : entries) {
             run(entry.modId(), "to initialize", () -> {
                 ModularMod mod = entry.mod().get();
-                mod.initCommon(new McModContext(entry.modId()));
+                mod.initCommon(new MinecraftModContext(entry.modId()));
                 MODS.add(new LoadedMod(entry.modId(), mod));
             });
         }

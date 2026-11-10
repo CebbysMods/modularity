@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 /**
- * Platform smoke test (docs/07-multi-version-build.md, 7.6), NeoForge: logs whether modularity, mvd and mpd are
- * loaded as separate top-level mods; on a dedicated server it stops the server after a few ticks.
+ * Platform smoke test (docs/07-multi-version-build.md, 7.6), NeoForge: logs whether Modularity is loaded as a
+ * top-level mod; on a dedicated server it stops the server after a few ticks.
  */
 @Mod("modularity_smoke")
 public final class SmokeMod {
@@ -23,12 +23,10 @@ public final class SmokeMod {
     private int ticks;
 
     public SmokeMod() {
-        for (String id : new String[]{"modularity", "mvd", "mpd"}) {
-            Optional<? extends ModContainer> container = ModList.get().getModContainerById(id);
-            LOGGER.info("[smoke] mod {}: loaded={} version={} nested={}", id, container.isPresent(),
-                    container.map(c -> c.getModInfo().getVersion().toString()).orElse("-"),
-                    container.map(SmokeMod::parent).orElse("no"));
-        }
+        Optional<? extends ModContainer> container = ModList.get().getModContainerById("modularity");
+        LOGGER.info("[smoke] mod modularity: loaded={} version={} nested={}", container.isPresent(),
+                container.map(c -> c.getModInfo().getVersion().toString()).orElse("-"),
+                container.map(SmokeMod::parent).orElse("no"));
         NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post event) -> {
             if (event.getServer().isDedicatedServer() && ++ticks == SERVER_TICKS) {
                 LOGGER.info("[smoke] server ticked {} times, stopping", SERVER_TICKS);

@@ -27,3 +27,9 @@ the relocated Fabric class set.
 ## Acceptance
 - `:platforms:21.1:21.1-quilt:smokeJarClient` is green.
 - No `(development)` marker in the mpd line (that would mean the dev environment was used).
+
+## Update (2026-11-10)
+
+mvd and mpd are merged into Modularity (docs/06). The expected lines are now one line,
+`[modularity] platform <LOADER> <loaderVersion>, Minecraft <version>, <SIDE>`, and `mods/` holds only
+the universal jar, Fabric API where the loader needs it, and the guest jar when the test uses one.

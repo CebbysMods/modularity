@@ -8,7 +8,9 @@ tags:
     - build
     - architecture
 created_at: 2026-11-09T11:58:06Z
-updated_at: 2026-11-09T11:58:06Z
+updated_at: 2026-11-10T09:08:14Z
+blocked_by:
+    - modularity-km3b
 ---
 
 `mvd` (Minecraft Version Detector) and `mpd` (Minecraft Platform Detector) exist only so Modularity can
@@ -47,24 +49,25 @@ platform-setup refactor.
 
 ## Removal checklist (what "deprecated and removed together" touches)
 
-- [ ] `gradle/platforms.toml`: drop `companion-mods`, and the `mvd`/`mpd` entries under `[mod.depends]`
+- [x] `gradle/platforms.toml`: drop `companion-mods`, and the `mvd`/`mpd` entries under `[mod.depends]`
       if they only exist for the companion jars. Update the comment that points at
       `PlatformTable.Mod.companionProject`.
-- [ ] `PlatformTable`: remove the `companionMods` component from `Mod`, its parsing, and the static
+- [x] `PlatformTable`: remove the `companionMods` component from `Mod`, its parsing, and the static
       `companionProject` / `companionApi` helpers.
-- [ ] `AbstractPlatformSetup.companionProject` (the fail-fast project check) and the companion blocks
-      in `AbstractLoomPlatformSetup` and `AbstractForgeFamilyPlatformSetup`.
-- [ ] `TableAndMetadataTest`: the fixture's `companion-mods` and the two derivation assertions.
-- [ ] Generated metadata: `ModMetadata` / `GenerateModMetadataTask` must stop writing `"mvd"` / `"mpd"`
+- [x] `AbstractPlatformSetup.companionProject` (the fail-fast project check) and the companion blocks
+      in `AbstractLoomPlatformSetup` and `AbstractForgeFamilyPlatformSetup`. `ModularityRootPlugin`
+      also lost `extraJars`.
+- [x] `TableAndMetadataTest`: the fixture's `companion-mods` and the two derivation assertions.
+- [x] Generated metadata: `ModMetadata` / `GenerateModMetadataTask` must stop writing `"mvd"` / `"mpd"`
       into `fabric.mod.json`, `mods.toml` and `neoforge.mods.toml` `"depends"` sections.
-- [ ] Delete `utilities/mvd/{mvd-core,mvd-fabric,mvd-neoforge,mvd-forge}` and `utilities/mpd/...`
+- [x] Delete `utilities/mvd/{mvd-core,mvd-fabric,mvd-neoforge,mvd-forge}` and `utilities/mpd/...`
       (eight projects), their `gradle.properties` files, their `settings.gradle` includes, their
       publishing configuration, and the root `collectJars` step that copies three jars.
-- [ ] Smoke: `SmokeCheck` expectations (`[mvd]` / `[mpd]` lines, loaded-mod counts), `SmokeServer`'s
+- [x] Smoke: `SmokeCheck` expectations (`[mvd]` / `[mpd]` lines, loaded-mod counts), `SmokeServer`'s
       three-mod log, and any `tools/smoke` assumption that both utilities are separate mods.
-- [ ] Docs: `docs/06-utility-mods.md` (the whole document), `docs/07-multi-version-build.md` §7.5,
+- [x] Docs: `docs/06-utility-mods.md` (the whole document), `docs/07-multi-version-build.md` §7.5,
       `docs/08` where guest/companion mods are described, and the root README if it lists the mods.
-- [ ] Check other beans for references to mvd/mpd (the parchment bean names mvd in its verification
+- [x] Check other beans for references to mvd/mpd (the parchment bean names mvd in its verification
       notes) and update them rather than leaving stale instructions.
 
 ## Acceptance

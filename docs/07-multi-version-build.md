@@ -163,12 +163,13 @@ Two plugins in `build-logic/`:
     layering. Entrypoints are every class that directly implements a Fabric entrypoint interface; the
     build calls the roles `common`, `client`, `server` and `launch`, and maps them to the loader's keys:
     Fabric `main`, `client`, `server`, `preLaunch`; Quilt `main`, `client`, `server`, `pre_launch`. The
-    Quilt metadata also carries the Maven group, `intermediate_mappings: net.fabricmc:intermediary` and
-    the `META-INF/jars/` paths of the nested modules. Each loader's mixin config has its own name
-    (`modularity.mixins.json`, `modularity.quilt.mixins.json`), because the universal jar carries them
-    side by side;
+    Quilt metadata also carries the Maven group, `intermediate_mappings: net.fabricmc:intermediary`; the
+    `quilt_loader.jars` list is added to the built jar after Loom nests the modules (`QuiltJarMetadata`),
+    because the development resources must not name a file that the jar task has not created yet. Each
+    loader's mixin config has its own name (`modularity.mixins.json`, `modularity.quilt.mixins.json`),
+    because the universal jar carries them side by side;
   * dependencies: the loader (Fabric Loader, Quilt Loader, NeoForge or Forge), Fabric API on Fabric and
-    Quilt, `modularity-api` (nested), mvd and mpd (runtime, not nested);
+    Quilt, `modularity-api` (nested);
   * tasks per platform: `compile` (the Java plugin's `compileJava`), `runClient`, `runServer`, `smokeServer`,
     `smokeClient`;
   * root tasks: `buildAll`, `collectJars` (Sync of the universal jars into `build/libs-all`), `smokeAll`.
@@ -194,10 +195,16 @@ Quilt contributes its own class set, its own entrypoints (`ModularityQuiltCommon
 metadata and its own mixin config. The Mixin refmap and Forge/NeoForge mixins, which make the jar
 production-ready, are beans `modularity-dals` and `modularity-vk1z`.
 
-## 7.5 mvd and mpd
+## 7.5 Runtime detection
 
-One jar each, compiled against 1.21.1 (Java 21 bytecode), declaring `"minecraft": ">=1.21.1"`. They
-use only Fabric Loader API and no Minecraft classes, so the same jar loads on every version.
+Modularity detects the Minecraft version and the loader itself (docs/06). `api.detect` holds the
+detector, the source interface and the built-in sources; each loader layer holds its own source and
+installs it in the entrypoint. The detector runs the installed sources first and the built-in ones
+after them, and caches the first result. Each install point logs one line,
+`[modularity] platform <LOADER> <loaderVersion>, Minecraft <version>, <SIDE>`.
+
+There is no `META-INF/services` file: the universal jar copies resources first-wins and relocates
+class names, so explicit `install(...)` replaces `ServiceLoader`.
 
 ## 7.6 Smoke tests
 
@@ -205,8 +212,8 @@ The smoke mod lives in `tools/smoke/` and is layered like the platform. Each pla
 `smoke` source set and two runs:
 
 * `smokeServer`: dedicated server, flat world, stops itself after a few ticks; the task then checks
-  the log: modularity, mvd and mpd loaded as top-level mods, mvd reports the exact version, mpd
-  reports the loader (`FABRIC`, `QUILT`, `NEOFORGE`, `FORGE`).
+  the log: Modularity loaded as a top-level mod, the detection line naming the exact version and
+  the loader (`FABRIC`, `QUILT`, `NEOFORGE`, `FORGE`).
 * `smokeClient`: client joins the world written by the server run, takes a screenshot, quits; same
   log checks.
 
@@ -256,11 +263,14 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | Mod Menu in every platform's runs (`modmenu` per table entry, development only) | Shows the loaded mods, guest mods included, in every version; newest Mod Menu release per Minecraft version from Modrinth, checked on the Terraformers maven. |
 | Platforms keyed by loader and version (`fabric-21.1`); shared roots `minecraft` (Minecraft code) and `common` (non-Minecraft code), then the loader family (`loom`) and the loader | Most code is plain Minecraft code; version changes in it are made once for every loader. Code that is shared but names no Minecraft type (`EntryPoint`, the mod lifecycle, `Loaders`, `GuestDescriptor`) lives in `common`, so the split follows what a file depends on, not which loader happens to use it first. |
 | `loom` root for Fabric and Quilt; `anvil` reserved for Forge and NeoForge | Fabric API code that both Fabric and Quilt Loader run needs one home; the Forge-family counterpart gets `anvil` when that work starts. |
-| Quilt has its own class set, `quilt.mod.json`, entrypoints and mixin config in the universal jar | Full loader separation: Quilt Loader reads native metadata, not Fabric's; the universal jar carries `fabric.mod.json` and `quilt.mod.json` side by side. |
+| Quilt has its own class set, `quilt.mod.json`, entrypoints and mixin config in the universal jar | Full loader separation: Quilt Loader reads native metadata, not Fabric's; the universal jar carries `fabric.mod.json` and `quilt.mod.json` side by side. Quilt Loader 0.30.2 dispatches `main`/`client`/`server` to `ModInitializer`/`ClientModInitializer`/`DedicatedServerModInitializer` and `pre_launch` to `PreLaunchEntrypoint` (checked in the loader's sources), so the Quilt entrypoints reuse the same interfaces for the first three roles. |
 | Quilt uses Fabric API as its library; QSL is not used | QSL for 1.21.1 is alpha-only and discontinued, and it lacks transfer/fluid, item and entity lookups, client events and model loading. Quilt Loader provides the Fabric Loader API, so `loom` compiles once. |
+| The universal jar carries one full class set per loader, Quilt included | Real separation costs the duplicated shared `common`/`loom`/`minecraft` classes. Sharing the Fabric tree instead would leak Quilt overrides into Fabric. |
+| A native `quilt.mod.json` is generated only when the platform is remapped (Fabric/Quilt on an obfuscated version) | The QMJ names `net.fabricmc:intermediary`; a 26.x Loom platform uses Mojang names, so the metadata task fails with a clear message until the Mojang-mapping path is designed. |
+| `quilt_loader.jars` is added to the built jar, not to the generated resources | Quilt Loader in development reads the metadata from `build/resources/main` and opens every nested jar it names; Loom creates the nested jars only in the jar task. Loom does the same for `fabric.mod.json`; `QuiltJarMetadata` does it for the QMJ after the jar is built. |
 | Quilt through Fabric Loom with Quilt Loader as the loader dependency, no Quilt Loom | One Loom for the whole build. Loom reads loader libraries only from `fabric-installer.json`; the plugin adds the `common` and `development` libraries of Quilt Loader's own `quilt_installer.json`, copies Loom's `fabric.*` development properties in `launch.cfg` to Quilt's `loader.*` names, and sets Quilt's `KnotClient`/`KnotServer` main classes. |
 | Quilt platforms compile against Fabric Loader (compile only) and exclude it at runtime | `loom` uses the Fabric Loader API (`LoomLoaderInfo`, `GuestCandidates`), which Quilt Loader provides; at runtime only Quilt Loader may be present (both ship `net.fabricmc.loader.impl`). |
-| `fabricloader >=0.16.0` in the Fabric jars (`fabric-loader-min`), built and run with 0.20.1 | Quilt Loader 0.30.2 reports Fabric Loader 0.19.5, so `>=0.20.1` refused the Fabric jar on Quilt. The loader API Modularity uses is old and stable; same floor as mvd and mpd. Only guest mods depend on 0.20.1 internals (docs/08). |
+| `fabricloader >=0.16.0` in the Fabric jars (`fabric-loader-min`), built and run with 0.20.1 | Quilt Loader 0.30.2 reports Fabric Loader 0.19.5, so `>=0.20.1` refused the Fabric jar on Quilt. The loader API Modularity uses is old and stable. Only guest mods depend on 0.20.1 internals (docs/08). |
 | Quilt, NeoForge and Forge only for 1.21.1 for now | Scope set by the project owner. Quilt was also tried on every other version: 1.21.2 to 1.21.11 passed on Quilt Loader 0.30.2; 26.x needs Quilt Loader 0.31.0-beta.6 (0.30.2 loads the mods there but never calls their entrypoints) and then passed too. |
 | No guest mods on Quilt yet | The guest loader uses Fabric Loader internals that Quilt Loader does not have; on Quilt it logs an error and loads no guests. Quilt smoke tests run without the guest. |
 | NeoForge with ModDevGradle 2.0.148, Forge with ForgeGradle 7.0.40, both on the shared plugin classpath next to Loom | The plugins and versions of NeoForge's and Forge's own 1.21.1 MDKs, both on Gradle 9. ModDevGradle's legacy Forge plugin cannot build Forge 1.21.1 and ForgeGradle 6 needs Gradle 8. All three plugins in one build were tried first in a throwaway build. |
@@ -283,12 +293,12 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | Smoke tests built before the ports (goal step 7 moved before step 5) | Every port commit is verified with the same `smoke` task for that version and all earlier ones. |
 | Smoke mod as source set `smoke` of each platform, own Loom runs in `build/smoke/run` | Same classpath and mappings as the platform; no second build, no maven round trip; each source set is its own mod (Loom `mods {}`). |
 | Fresh flat world per server run; the client opens that world with `--quickPlaySingleplayer` | The client test needs no world creation UI; the world matches the version. |
-| Log checks in `SmokeCheck` (unit tested): the 3 mods loaded and not nested, `[mvd] Detected version <exact>`, `[mpd] Detected platform FABRIC … <SIDE>`, end marker, no crash or failed mixin | The goal's verification, done mechanically; matched lines go to `build/smoke/{server,client}.txt`. |
+| Log checks in `SmokeCheck` (unit tested): Modularity loaded and not nested, `[modularity] platform <LOADER> <loaderVersion>, Minecraft <exact>, <SIDE>`, end marker, no crash or failed mixin | The goal's verification, done mechanically; matched lines go to `build/smoke/{server,client}.txt`. |
 | `tools/smoke-fabric-1.21.1` kept | It is the refabslab integration test (double slabs, KleeSlabs), separate from the platform smoke tests. |
-| One decompilation per version, by the Fabric platform (the parent's `genSources` points there); it is not part of `build`, and the other platforms' tasks `mustRunAfter` it | Loom keeps one mapped Minecraft jar and one Maven directory per version in the root `loom-cache` and declares the directory an output of `genSourcesWithVineflower`; Gradle deletes declared outputs before running a task. Decompiling inside a parallel build therefore deletes files the other platforms of the version read, so they wait for it, and `build` leaves decompilation to an explicit `genSources` run. Sources after compilation is impossible (Loom's `genSources` depends on its own `remapJar`). The mappings are the same for every loader of a version, so one decompilation serves them all. The utilities are compile dependencies of the platforms, so they cannot wait for a decompilation without a cycle: `genSources` is run on its own. |
+| One decompilation per version, by the Fabric platform (the parent's `genSources` points there); it is not part of `build`, and the other platforms' tasks `mustRunAfter` it | Loom keeps one mapped Minecraft jar and one Maven directory per version in the root `loom-cache` and declares the directory an output of `genSourcesWithVineflower`; Gradle deletes declared outputs before running a task. Decompiling inside a parallel build therefore deletes files the other platforms of the version read, so they wait for it, and `build` leaves decompilation to an explicit `genSources` run. Sources after compilation is impossible (Loom's `genSources` depends on its own `remapJar`). The mappings are the same for every loader of a version, so one decompilation serves them all. No platform source depends on the decompiled output, so `genSources` is run on its own. |
 | Parchment layered over the official mappings, one entry per Minecraft version in `[parchment]` | Parameter names and javadoc in the Minecraft classes the platforms compile against, without changing names, remapping or runtime: the universal jar is byte-identical. It is published per Minecraft version, not per loader, so one entry covers Fabric, Quilt, NeoForge and Forge; versions without a release (1.21.2, 26.x) build with the official mappings alone. Shape: Loom `layered` for Fabric/Quilt, ModDevGradle `neoForge.parchment` for NeoForge, ForgeGradle `minecraft.mappings("parchment", …)` for Forge. ForgeGradle's run launcher resolves the run class path in an attribute-less detached configuration that no project configuration hook can reach, so on Forge the mappings channel and version are additionally set as attributes on the Minecraft dependency; that is what makes the two published variants of `net.minecraftforge:forge` resolvable there. |
 | CI: one parallel job per enabled platform, then a final job; smoke jobs get JDK 8, 21 and 25 and run under xvfb for client runs | Per-platform results stay visible and the jobs run at the same time. The matrix comes from `gradle/platforms.toml`, so the table stays the only source. A per-platform job cannot make the universal jar, which merges every loader of a version, so the final job runs `collectJars` with every platform. Loom 1.19 needs Gradle on 25; 1.21.x toolchains need 21; ForgeGradle's slime launcher needs 8. setup-java writes all three to `~/.m2/toolchains.xml`, where Gradle finds them. |
-| mvd/mpd compiled against 1.21.1 | They use no Minecraft classes; the oldest target gives one jar for all. |
+| Detection code compiled into `modularity-api` at release 17 | It uses no Minecraft and no loader class; the loader sources live in the loader layers. |
 | Version calls behind small classes in `loom/compat` (seams), added to the `common` layer in their own commits before the port that needs them | A layer then replaces a 20-line seam instead of a large file, so "only changes per version" holds and big classes stay in the `common` layer once. |
 | Entity base as a chain, one concern per class (`SavedEntity` ← `DamageEntity` ← `UsableEntity` ← `SolidEntity` ← `BoundsEntity` ← `InterpolatedEntity`) | Saving, damage, use, collision, bounds and interpolation changed in different versions; one class per concern means one replaced file per change, without copying the others. |
 | `.removed` markers used for classes a version no longer needs (1.21.9 `BufferPoseOutput`, `ParticleEngineMixin`; 26.2 `EntityAccessor`) | A leftover mixin targeting a missing member fails at run time; removing it is the change. |
@@ -304,7 +314,7 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | A loader layer may replace a shared file at the same path (`SyncedData` 1.21.9+, `RenderDataHolder` in `loom`) | The roots stack (`minecraft`, `common`, `loom`, the loader), so a loader-specific version of a shared seam needs no extra indirection. Shared changes for a range go to `platforms/minecraft/changes`, Fabric-API ones to `platforms/loom/changes`, loader ones to the loader's. |
 | `DynamicUnbakedModel` stays in the `loom` layer | It only feeds Fabric's model loading plugin and creates the Fabric renderer's baked model; Quilt Loader uses the same Fabric API. |
 | NeoForge and Forge jars carry the shared mixins without a mixin config | Wiring them belongs to those runtimes (not written yet); the metadata task only logs it instead of failing. |
-| NeoForge and Forge compile against `mvd-core` / `mpd-core` (`compileOnly`) | Their utility mods pack the core without exporting it (split packages); the shared runtime calls the detectors directly. |
+| NeoForge and Forge carry their own detection sources | Each loader layer installs a version source and a platform source from its own API; the shared runtime calls `VersionDetector` and `PlatformDetector` from `modularity-api`. |
 | NeoForge entry points: three `@Mod` classes (`common`, `Dist.CLIENT`, `Dist.DEDICATED_SERVER`), each taking `IEventBus`; init runs in `enqueueWork` | This is the documented NeoForge sides pattern: the loader constructs only the class whose dist matches, so no client type reaches a dedicated server. `enqueueWork` runs the init on the main thread after the parallel setup phase. |
 | `ModularModRegistry` lives in `modularity-api`, not in `platform` | `UniversalJar` relocates `platform.*`; an adapter of another mod links only against the unrelocated API. |
 | NeoForge and Forge seam stubs throw `UnsupportedOperationException` naming the method instead of registering nothing | NeoForge and Forge register content before common setup; a silent no-op would hide a lost registration. The follow-up (`modularity-m23h`) replays registrations. |
@@ -337,11 +347,15 @@ What each version layer changes (oldest first). Version-specific calls sit behin
 
 `./gradlew buildAll collectJars --rerun-tasks` passes; `build/libs-all` holds `modularity-fabric-<version>` for all 16 versions plus `mvd-fabric-4.0.0` and `mpd-fabric-1.0.0`. Plugin tests: 27 passed. Layer checks (no identical copies, every `.removed` names a file below) pass on every platform. Fabric meta re-checked: 26.3 is the newest stable.
 
+This record predates the merge of mvd and mpd into Modularity (docs/06). The detector mods and their jars
+are gone; the same runs now expect the `[modularity] platform ...` line and the table stays as the
+historical evidence. The re-run is an open check in `TODO-NOW.md`.
+
 Files per layer (`.removed` markers in brackets): common 77; `1.21.2+` 8; `1.21.4+` 3; `1.21.5+` 5; `1.21.6+` 4; `1.21.9+` 5 (2); `1.21.11+` 4; `26.1+` 18; `26.2+` 3 (1); `26.3+` 3; no `versions/<v>` has sources. Smoke mod: common 4, `1.21.6+` 1, `26.2+` 1.
 
 Smoke log lines (`build/smoke/{server,client}.txt`):
 
-| Version | Mods loaded (not nested) | `[mvd] Detected version` | `[mpd] Detected platform` | Server end | Client |
+| Version | Mods loaded (not nested) | Version line (then) | Platform line (then) | Server end | Client |
 |---|---|---|---|---|---|
 | 21.1 | 3/3 | 1.21.1 | FABRIC 0.20.1 SERVER | ticked 40 | joined, screenshot, done |
 | 21.2 | 3/3 | 1.21.2 | FABRIC 0.20.1 SERVER | ticked 40 | - |

@@ -39,3 +39,9 @@ Windows.
 ## Acceptance
 - The task is green from a cold cache and again from a warm cache.
 - `mods/` contains exactly the universal jar, mvd-fabric, mpd-fabric and Fabric API.
+
+## Update (2026-11-10)
+
+mvd and mpd are merged into Modularity (docs/06). The expected lines are now one line,
+`[modularity] platform <LOADER> <loaderVersion>, Minecraft <version>, <SIDE>`, and `mods/` holds only
+the universal jar, Fabric API where the loader needs it, and the guest jar when the test uses one.

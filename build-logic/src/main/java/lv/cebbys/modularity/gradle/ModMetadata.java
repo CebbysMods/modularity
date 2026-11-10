@@ -35,11 +35,6 @@ public final class ModMetadata {
         return loader == Loader.FABRIC ? mod.id() + ".mixins.json" : mod.id() + "." + loader.id() + ".mixins.json";
     }
 
-    /** {@code META-INF/jars/<archive file name>}: where Loom nests a jar and where {@code quilt.mod.json} points. */
-    public static String nestedJarPath(String archiveFileName) {
-        return "META-INF/jars/" + archiveFileName;
-    }
-
     public static String fabricModJson(PlatformTable.Mod mod, PlatformTable.Platform platform, String fabricLoader,
                                        String version, boolean hasMixins,
                                        Map<EntryPoint, List<String>> entrypoints) {
@@ -86,14 +81,14 @@ public final class ModMetadata {
     /**
      * {@code quilt.mod.json}. It follows the Quilt metadata schema 1: the loader block holds the id, the Maven group
      * and the metadata that Fabric keeps at the top level; dependencies are objects with an {@code id} and a
-     * {@code versions} range; nested jars are paths under {@code META-INF/jars/}.
+     * {@code versions} range. The nested jars are added to {@code quilt_loader.jars} when the jar is built
+     * ({@link QuiltJarMetadata}); the development resources must not name a file that is not there yet.
      *
      * @throws IllegalArgumentException when the platform is not remapped: the QMJ names
      *                                  {@code net.fabricmc:intermediary}, which a non-obfuscated build does not have
      */
     public static String quiltModJson(PlatformTable.Mod mod, PlatformTable.Platform platform, String version,
-                                      List<String> nestedJars, boolean hasMixins,
-                                      Map<EntryPoint, List<String>> entrypoints) {
+                                      boolean hasMixins, Map<EntryPoint, List<String>> entrypoints) {
         if (!platform.remap()) {
             throw new IllegalArgumentException("quilt.mod.json needs net.fabricmc:intermediary mappings; platform "
                     + platform.id() + " uses Mojang names");
@@ -135,9 +130,6 @@ public final class ModMetadata {
         json.put("minecraft", Map.of("environment", "*"));
         if (hasMixins) {
             json.put("mixin", mixinConfigName(mod, Loader.QUILT));
-        }
-        if (!nestedJars.isEmpty()) {
-            json.put("jars", nestedJars.stream().map(ModMetadata::nestedJarPath).toList());
         }
         return Json.write(json) + "\n";
     }

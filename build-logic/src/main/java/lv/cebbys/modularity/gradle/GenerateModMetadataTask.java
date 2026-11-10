@@ -3,7 +3,6 @@ package lv.cebbys.modularity.gradle;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
@@ -48,10 +47,6 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getIconFile();
 
-    /** Archive file names of the nested modules: Loom nests them as {@code META-INF/jars/<name>}. */
-    @Input
-    public abstract ListProperty<String> getNestedJars();
-
     @OutputDirectory
     public abstract DirectoryProperty getOutputDir();
 
@@ -87,7 +82,7 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
                     ModMetadata.loaderEntrypoints(entrypoints, platform.loader()));
             if (platform.metadataFormat() == PlatformTable.MetadataFormat.QUILT) {
                 Files.writeString(out.resolve(ModMetadata.metadataPath(platform)),
-                        ModMetadata.quiltModJson(table.mod(), platform, getModVersion().get(), getNestedJars().get(),
+                        ModMetadata.quiltModJson(table.mod(), platform, getModVersion().get(),
                                 !mixins.isEmpty(), entrypoints));
             } else {
                 Files.writeString(out.resolve(ModMetadata.metadataPath(platform)),

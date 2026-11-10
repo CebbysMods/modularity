@@ -45,7 +45,7 @@ Status values: `met` — verified by its check; `partial` — true where checked
 
 | ID | Requirement | Verified by | Status |
 |---|---|---|---|
-| PR-11 | Modularity detects Minecraft version, loader and side on all four loaders, in development and from the shipped jar, without user configuration. | `SmokeCheck` (`[mvd]` / `[mpd]` lines); shipped-jar smoke (`modularity-xbj0`) | partial — proven for Forge after the refactor; the other loaders and the shipped jar are not yet re-run |
+| PR-11 | Modularity detects Minecraft version, loader and side on all four loaders, in development and from the shipped jar, without user configuration. | `SmokeCheck` (`[modularity] platform ...` line); shipped-jar smoke (`modularity-xbj0`) | partial — proven for Forge after the refactor; the other loaders and the shipped jar are not yet re-run |
 | PR-12 | On Fabric and Quilt, Modularity's `main`, `client`, `server` and launch entry points all run (Fabric `preLaunch`, Quilt `pre_launch`); on NeoForge and Forge its mod entry points run: mod construction, then common initialization, then client or dedicated-server initialization for the side. | `SmokeCheck`; logged entry points (`modularity-up2d`) | partial — Fabric and Quilt run every entry point; NeoForge is wired but its smoke has not run; Forge is not wired yet |
 | PR-13 | On Forge and NeoForge, Modularity's own mixins apply, so the API's hooks work from the jar and not only from the dev class path. | smoke of the shipped jar | open — `modularity-vk1z`, `modularity-dals` |
 
@@ -62,7 +62,6 @@ Status values: `met` — verified by its check; `partial` — true where checked
 - Guest mods (`modularity.mod.json`) load on Fabric only (docs/08).
 - Quilt uses Fabric API as its library; QSL is not used (it is alpha-only for 1.21.1 and lacks the
   transfer, lookup, client-event and model-loading APIs Modularity needs).
-- `mvd` and `mpd` are separate mods today; folding them into Modularity is `modularity-9oz9`.
 
 ## Where these are enforced
 

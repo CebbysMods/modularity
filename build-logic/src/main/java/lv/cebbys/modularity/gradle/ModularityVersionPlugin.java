@@ -115,8 +115,8 @@ public class ModularityVersionPlugin implements Plugin<Project> {
      * read, so their tasks wait for it. {@code mustRunAfter} only orders tasks that are both scheduled, and
      * {@code build} does not schedule a decompilation at all.
      * <p>
-     * Siblings only: the utilities are compile dependencies of the platforms, so ordering them would cycle (the
-     * decompilation itself depends on their jars). Run {@code genSources} on its own.
+     * Siblings only: the platforms share the same Minecraft, so ordering them would cycle (the decompilation itself
+     * depends on their jars). Run {@code genSources} on its own.
      */
     static void orderBuildAfterSources(Project parent) {
         Project source = sourcePlatform(parent);

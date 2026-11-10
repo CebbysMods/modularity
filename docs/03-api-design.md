@@ -49,8 +49,8 @@ code without leaving the project.**
    (block entity + render data on Fabric/NeoForge today; chunk attachments possible later).
 7. **Contexts over long parameter lists.** Callbacks get a context object (`PlacementContext`,
    `BreakContext`, `DropContext`) so adding information later is not a breaking change.
-8. **Version is data.** `McVersion`, `VersionRange`, `Versioned<T>` replace the annotation scanning of
-   the old refabslab plugin loader with an explicit, testable selector.
+8. **Version is data.** `MinecraftVersion`, `PlatformVersion`, `VersionRange`, `Versioned<T>` replace the
+   annotation scanning of the old refabslab plugin loader with an explicit, testable selector.
 
 ## 3.4 The API, step by step
 
@@ -140,7 +140,8 @@ common module stays Minecraft-free.
 |---|---|
 | `api` | `ModularMod`, `ModContext`, `Platform`, `Modularity` (static runtime access) |
 | `api.server` | `ServerContext` |
-| `api.core` | `Id`, `McVersion`, `VersionRange`, `Versioned`, `Handle`, `Loader`, `Side` |
+| `api.core` | `Version`, `MinecraftVersion`, `PlatformVersion`, `Id`, `VersionRange`, `Versioned`, `Handle`, `Loader`, `Side` |
+| `api.detect` | `VersionDetector`, `PlatformDetector`, `VersionSource`, `PlatformSource`, `DetectedPlatform`, built-in sources, detection exceptions |
 | `api.block` | `BlockDefinition` (+Builder), `BlockHandle`, `BlockRef`, `BlockStateRef`, `BlockBehaviour`, contexts, `BlockInterceptor`, `BlockSelector`, `PlacementResult`, `BlockTag`, `BlockType`, `PushReaction`, `BlockSound` |
 | `api.block.property` | `Property` (`IntegerProperty`, `BooleanProperty`, `EnumProperty`), `VanillaProperties`, `SlabType`, `PropertyValue` |
 | `api.data` | `BlockData`, `DataCodec`, `DataInput`, `DataOutput`, `MapData` |

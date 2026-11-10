@@ -48,3 +48,9 @@ the `mods/` listing, the command and the last 40 console lines.
 ## Acceptance
 - `./gradlew :platforms:21.1:21.1-fabric:smokeJarClient` launches the client and writes the four files.
 - A deliberately broken mod jar makes the task fail with an actionable message.
+
+## Update (2026-11-10)
+
+mvd and mpd are merged into Modularity (docs/06). The jar smoke run puts the parent universal jar in
+`mods/` with the Fabric API artifact where the loader needs it; there is no mvd/mpd jar to depend on,
+and the log check is `[modularity] platform <LOADER> <loaderVersion>, Minecraft <version>, <SIDE>`.

@@ -4,7 +4,7 @@ import lv.cebbys.mcmods.modularity.api.block.BlockDefinition;
 import lv.cebbys.mcmods.modularity.api.block.property.IntegerProperty;
 import lv.cebbys.mcmods.modularity.api.block.property.Property;
 import lv.cebbys.mcmods.modularity.api.core.Id;
-import lv.cebbys.mcmods.modularity.api.core.McVersion;
+import lv.cebbys.mcmods.modularity.api.core.MinecraftVersion;
 import lv.cebbys.mcmods.modularity.api.core.VersionRange;
 import lv.cebbys.mcmods.modularity.api.core.Versioned;
 import lv.cebbys.mcmods.modularity.api.data.DataCodec;
@@ -28,19 +28,19 @@ class CoreApiTest {
 
     @Test
     void versionsCompareNumerically() {
-        assertTrue(McVersion.parse("1.21.1").compareTo(McVersion.parse("1.21")) > 0);
-        assertTrue(McVersion.parse("1.9").compareTo(McVersion.parse("1.10")) < 0);
-        assertEquals(McVersion.parse("1.20"), McVersion.parse("1.20.0"));
-        assertTrue(McVersion.parse("1.20.6").isAtLeast("1.20.5"));
-        assertThrows(IllegalArgumentException.class, () -> McVersion.parse("24w10a"));
+        assertTrue(MinecraftVersion.parse("1.21.1").compareTo(MinecraftVersion.parse("1.21")) > 0);
+        assertTrue(MinecraftVersion.parse("1.9").compareTo(MinecraftVersion.parse("1.10")) < 0);
+        assertEquals(MinecraftVersion.parse("1.20"), MinecraftVersion.parse("1.20.0"));
+        assertTrue(MinecraftVersion.parse("1.20.6").isAtLeast("1.20.5"));
+        assertThrows(IllegalArgumentException.class, () -> MinecraftVersion.parse("24w10a"));
     }
 
     @Test
     void rangesAreHalfOpen() {
         VersionRange range = VersionRange.between("1.20", "1.21");
-        assertTrue(range.contains(McVersion.parse("1.20")));
-        assertTrue(range.contains(McVersion.parse("1.20.6")));
-        assertFalse(range.contains(McVersion.parse("1.21")));
+        assertTrue(range.contains(MinecraftVersion.parse("1.20")));
+        assertTrue(range.contains(MinecraftVersion.parse("1.20.6")));
+        assertFalse(range.contains(MinecraftVersion.parse("1.21")));
         assertThrows(IllegalArgumentException.class, () -> VersionRange.between("1.21", "1.20"));
     }
 
@@ -51,11 +51,11 @@ class CoreApiTest {
                 .since("1.20", () -> "mid")
                 .fallback(() -> "legacy")
                 .build();
-        assertEquals("new", impl.select(McVersion.parse("1.21.4")));
-        assertEquals("mid", impl.select(McVersion.parse("1.21.1")));
-        assertEquals("legacy", impl.select(McVersion.parse("1.18.2")));
+        assertEquals("new", impl.select(MinecraftVersion.parse("1.21.4")));
+        assertEquals("mid", impl.select(MinecraftVersion.parse("1.21.1")));
+        assertEquals("legacy", impl.select(MinecraftVersion.parse("1.18.2")));
         assertThrows(IllegalStateException.class,
-                () -> Versioned.<String>builder().since("1.21", () -> "x").select(McVersion.parse("1.19")));
+                () -> Versioned.<String>builder().since("1.21", () -> "x").select(MinecraftVersion.parse("1.19")));
     }
 
     @Test

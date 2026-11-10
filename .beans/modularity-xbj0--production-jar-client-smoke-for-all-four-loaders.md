@@ -38,3 +38,9 @@ Design plan: `C:\Users\valen\.claude-ollama\plans\serene-puzzling-otter.md`.
 - Each run produces `client.txt` / `client.log` / `client-console.log` / `command.txt` under
   `build/smoke-jar/`, listing every expected entry-point line that was found and every problem.
 - CI job is green on a cold cache and reuses the cache on later runs.
+
+## Update (2026-11-10)
+
+mvd and mpd are merged into Modularity (docs/06). The expected lines are now one line,
+`[modularity] platform <LOADER> <loaderVersion>, Minecraft <version>, <SIDE>`, and `mods/` holds only
+the universal jar, Fabric API where the loader needs it, and the guest jar when the test uses one.

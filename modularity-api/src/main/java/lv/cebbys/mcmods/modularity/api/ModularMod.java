@@ -22,7 +22,7 @@ import lv.cebbys.mcmods.modularity.api.server.ServerContext;
  */
 public interface ModularMod {
     /** Common initialization: register content, data, interceptors. Runs on client and server. */
-    void initCommon(ModContext mod);
+    void initCommon(CommonContext common);
 
     /** Client-only initialization: models, particles, renderers. Never runs on a dedicated server. */
     default void initClient(ClientContext client) {

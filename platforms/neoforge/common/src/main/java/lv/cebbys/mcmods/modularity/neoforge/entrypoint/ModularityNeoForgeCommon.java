@@ -1,5 +1,9 @@
 package lv.cebbys.mcmods.modularity.neoforge.entrypoint;
 
+import lv.cebbys.mcmods.modularity.api.detect.PlatformDetector;
+import lv.cebbys.mcmods.modularity.api.detect.VersionDetector;
+import lv.cebbys.mcmods.modularity.neoforge.detect.NeoForgePlatformSource;
+import lv.cebbys.mcmods.modularity.neoforge.detect.NeoForgeVersionSource;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeLoaderHooks;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeLoaderInfo;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeRenderData;
@@ -8,6 +12,7 @@ import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
 import lv.cebbys.mcmods.modularity.platform.compat.SyncedData;
+import lv.cebbys.mcmods.modularity.platform.detect.DetectionLog;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -25,12 +30,15 @@ public final class ModularityNeoForgeCommon {
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
 
     public ModularityNeoForgeCommon(IEventBus modBus) {
+        VersionDetector.install(new NeoForgeVersionSource());
+        PlatformDetector.install(new NeoForgePlatformSource());
         EntryPoints.active("mod-constructor", "neoforge");
         Loaders.install(new NeoForgeLoaderInfo(), new NeoForgeRenderData(),
                 new NeoForgeStorageBackend(), new NeoForgeLoaderHooks());
         modBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
             EntryPoints.active(EntryPoint.COMMON, "neoforge");
             SyncedData.init();
+            DetectionLog.log();
             ModularityCommon.init("neoforge");
         }));
         LOGGER.info("[modularity] NeoForge platform loaded");

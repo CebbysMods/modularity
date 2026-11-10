@@ -5,7 +5,8 @@ metadata: no `fabric.mod.json`, no `neoforge.mods.toml`, no per-loader or per-ve
 carries a `modularity.mod.json` instead. Modularity turns it into a real mod of the running loader at
 startup, so the same jar works on every loader and Minecraft version Modularity supports.
 
-Players install the guest jar next to `modularity-fabric-<version>`, mvd and mpd, all in `mods/`.
+Players install the guest jar next to `modularity-fabric-<version>`, both in `mods/`. Modularity needs no
+other mod: it detects the Minecraft version and the loader itself (docs/06).
 
 ## 8.1 `modularity.mod.json`
 

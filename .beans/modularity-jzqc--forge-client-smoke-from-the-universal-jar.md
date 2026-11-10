@@ -38,3 +38,9 @@ client artifact with an empty download URL.
 
 ## Acceptance
 - `:platforms:21.1:21.1-forge:smokeJarClient` is green.
+
+## Update (2026-11-10)
+
+mvd and mpd are merged into Modularity (docs/06). The expected lines are now one line,
+`[modularity] platform <LOADER> <loaderVersion>, Minecraft <version>, <SIDE>`, and `mods/` holds only
+the universal jar, Fabric API where the loader needs it, and the guest jar when the test uses one.

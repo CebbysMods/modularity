@@ -28,7 +28,7 @@ public abstract class SmokeCheckTask extends DefaultTask {
     @Input
     public abstract Property<SmokeCheck.Side> getSide();
 
-    /** Platform mpd must report: {@code FABRIC}, {@code QUILT}, {@code NEOFORGE}, {@code FORGE}. */
+    /** The loader the detection must report: {@code FABRIC}, {@code QUILT}, {@code NEOFORGE}, {@code FORGE}. */
     @Input
     public abstract Property<String> getPlatform();
 

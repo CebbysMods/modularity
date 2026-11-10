@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 /**
- * Platform smoke test (docs/07-multi-version-build.md, 7.6). Logs whether modularity, mvd and mpd are loaded as
- * separate top-level mods; on a dedicated server it stops the server after a few ticks. The plugin's
- * {@code smokeServer} / {@code smokeClient} tasks check these lines and the mvd/mpd detection lines.
+ * Platform smoke test (docs/07-multi-version-build.md, 7.6). Logs whether Modularity is loaded as a top-level mod;
+ * on a dedicated server it stops the server after a few ticks. The plugin's {@code smokeServer} / {@code smokeClient}
+ * tasks check these lines and the Modularity detection line.
  */
 public final class SmokeMod implements ModInitializer {
     static final Logger LOGGER = LoggerFactory.getLogger("modularity-smoke");
@@ -25,12 +25,10 @@ public final class SmokeMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        for (String id : new String[]{"modularity", "mvd", "mpd"}) {
-            Optional<ModContainer> container = FabricLoader.getInstance().getModContainer(id);
-            LOGGER.info("[smoke] mod {}: loaded={} version={} nested={}", id, container.isPresent(),
-                    container.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("-"),
-                    container.flatMap(ModContainer::getContainingMod).map(c -> c.getMetadata().getId()).orElse("no"));
-        }
+        Optional<ModContainer> container = FabricLoader.getInstance().getModContainer("modularity");
+        LOGGER.info("[smoke] mod modularity: loaded={} version={} nested={}", container.isPresent(),
+                container.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("-"),
+                container.flatMap(ModContainer::getContainingMod).map(c -> c.getMetadata().getId()).orElse("no"));
         // Mods initialize in no fixed order: report the guest mod once everything has initialized.
         ServerLifecycleEvents.SERVER_STARTED.register(server -> LOGGER.info("[smoke] guest mod {}: loaded={} initialized={}",
                 GUEST, FabricLoader.getInstance().isModLoaded(GUEST), "initialized".equals(System.getProperty(GUEST_PROPERTY))));

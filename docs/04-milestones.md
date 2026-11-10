@@ -35,7 +35,8 @@ Pulled forward from M3/M4 because the vehicle mod (CebbysMods/immersive-vehicles
 
 ## M1.6 – Utility mods mvd and mpd (branch `feature/mvd-mpd-utilities`)
 
-Version and platform detection as two separate mods next to Modularity ([06](06-utility-mods.md)).
+Version and platform detection inside Modularity ([06](06-runtime-detection.md)). These mods were later
+merged into Modularity itself; the milestone stays as the record of the separate mods.
 
 * [x] Gradle skeleton under `utilities/`
 * [x] mvd (`VersionDetector`), clean copy and refactor of minecraft-version-loader
@@ -55,10 +56,10 @@ from layered code by our own Gradle plugin ([07](07-multi-version-build.md)).
 * [x] Plugin `lv.cebbys.modularity` in `build-logic/`: version table, one project per platform, layered sources, override checks, generated `fabric.mod.json` and mixin config, `buildAll`/`collectJars`/`smokeAll`
 * [x] `platforms/fabric-21.1` moved into `platforms/fabric/common` + `versions/21.1`
 * [x] Ports 21.2 … 21.11, 26.1 … 26.3, one version at a time (port log in [07](07-multi-version-build.md#79-port-log))
-* [x] mvd and mpd: one jar each for every version (`minecraft >=1.21.1`, built against 1.21.1, verified on 1.21.1 … 26.3)
+* [x] mvd and mpd: one jar each for every version (`minecraft >=1.21.1`, built against 1.21.1, verified on 1.21.1 … 26.3); since merged into Modularity (docs/06)
 * [x] Smoke tests per platform (server for all, client for 21.1, 21.6, 21.11, 26.1, 26.3)
 * [x] Guest mods ([08](08-guest-mods.md)): one jar with `modularity.mod.json` and no loader metadata becomes a Fabric mod at startup; smoke-tested on every platform
-* [x] Loaders in the build: platforms `<loader>-<version>`, layer root stacks (`platforms/minecraft` + loader); Quilt 1.21.1 (the Fabric jar on Quilt Loader), NeoForge 1.21.1 (ModDevGradle), Forge 1.21.1 (ForgeGradle 7): Modularity, mvd and mpd load, server and client smoke pass
+* [x] Loaders in the build: platforms `<loader>-<version>`, layer root stacks (`platforms/minecraft` + loader); Quilt 1.21.1 (the Fabric jar on Quilt Loader), NeoForge 1.21.1 (ModDevGradle), Forge 1.21.1 (ForgeGradle 7): Modularity, mvd and mpd load, server and client smoke pass (the detectors are now inside Modularity, docs/06)
 * [x] Shared `platforms/minecraft` layer: plain Minecraft code moved out of `platforms/fabric` (package `lv.cebbys.mcmods.modularity.platform`), loader seams `LoaderInfo`, `RenderDataAccess`, `StorageBackend`, `LoaderHooks`/`ClientHooks` with Fabric implementations; NeoForge and Forge compile the shared layer
 * [ ] NeoForge and Forge 1.21.1 runtime: refabslab's feature set, then the rest of the API
 * [ ] Guest mods on Quilt, NeoForge and Forge

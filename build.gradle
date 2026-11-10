@@ -1,12 +1,11 @@
 plugins {
     // Configures the platforms of gradle/platforms.toml. It also brings Loom 1.19.3 (build-logic/build.gradle)
-    // onto the root classpath, so every project (platforms, utilities) shares one Loom: subprojects apply
+    // onto the root classpath, so every project (platforms) shares one Loom: subprojects apply
     // net.fabricmc.fabric-loom-remap / net.fabricmc.fabric-loom without a version.
     id 'lv.cebbys.modularity.root'
 }
 
-// utilities/ (mvd, mpd) configure themselves, so they can later move to their own repositories.
-configure(subprojects.findAll { !it.path.startsWith(':utilities') }) {
+subprojects {
     group = rootProject.group
     version = rootProject.version
 
@@ -45,11 +44,5 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
     }
 }
 
-// collectJars (lv.cebbys.modularity.root) copies every platform jar plus these to build/libs-all/.
-if (findProject(':utilities:mvd:mvd-fabric') != null) {
-    modularity.extraJars.addAll(':utilities:mvd:mvd-fabric:remapJar', ':utilities:mpd:mpd-fabric:remapJar',
-            ':utilities:mvd:mvd-neoforge:jar', ':utilities:mpd:mpd-neoforge:jar',
-            ':utilities:mvd:mvd-forge:jar', ':utilities:mpd:mpd-forge:jar')
-}
 // buildAll also runs the plugin unit tests (layer ordering, override and duplicate checks, table, metadata).
 tasks.named('buildAll') { dependsOn gradle.includedBuild('build-logic').task(':test') }

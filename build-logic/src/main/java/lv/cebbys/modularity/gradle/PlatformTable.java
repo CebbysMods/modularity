@@ -101,37 +101,16 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
     /**
      * Values for the generated loader metadata.
      *
-     * @param group         Maven group of the mod ({@code [mod] group}, default the id): the {@code quilt_loader.group}
-     *                      of {@code quilt.mod.json}
-     * @param companionMods the mods that sit next to Modularity, named once and without a loader
-     *                      ({@code :utilities:mvd:mvd}); {@link #companionProject} gives the build of one
+     * @param group Maven group of the mod ({@code [mod] group}, default the id): the {@code quilt_loader.group}
+     *              of {@code quilt.mod.json}
      */
     public record Mod(String id, String group, String name, String description, String license, List<String> authors,
                       String sources, String mixinPackage,
-                      Map<String, String> depends, String archivePrefix, List<String> nested,
-                      List<String> companionMods, String icon) {
+                      Map<String, String> depends, String archivePrefix, List<String> nested, String icon) {
 
         /** Jar path of the icon ({@code assets/<id>/icon.png}), or null without {@code icon}. */
         public String iconPath() {
             return icon == null ? null : "assets/" + id + "/icon.png";
-        }
-
-        /**
-         * The loader's build of a companion mod: {@code :utilities:mvd:mvd} and {@code NEOFORGE} give {@code -neoforge}.
-         * Quilt runs the Fabric build (it has no {@code -quilt} module, docs/06-utility-mods.md).
-         */
-        public static String companionProject(String companionMod, Loader loader) {
-            Loader build = loader == Loader.QUILT ? Loader.FABRIC : loader;
-            return companionMod + "-" + build.id();
-        }
-
-        /**
-         * The loader independent API of a companion mod ({@code :utilities:mvd:mvd} gives {@code -core}): the NeoForge
-         * and Forge builds pack it inside and do not export it, as its packages would otherwise be split between two
-         * module jars at run time.
-         */
-        public static String companionApi(String companionMod) {
-            return companionMod + "-core";
         }
     }
 
@@ -158,7 +137,6 @@ public record PlatformTable(Mod mod, List<Platform> platforms, String fabricLoad
                 (String) mod.get("sources"), str(mod, "mixin-package", "mod"), depends,
                 (String) mod.getOrDefault("archive-prefix", mod.get("id")),
                 (List<String>) mod.getOrDefault("nested", List.of()),
-                (List<String>) mod.getOrDefault("companion-mods", List.of()),
                 (String) mod.get("icon"));
 
         // Parchment is published per Minecraft version, not per loader: one entry applies to every platform of it.

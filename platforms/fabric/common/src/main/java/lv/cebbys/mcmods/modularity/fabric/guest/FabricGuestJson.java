@@ -7,12 +7,12 @@ import lv.cebbys.mcmods.modularity.platform.guest.GuestDescriptor;
 import java.util.List;
 
 /** Fabric metadata for a guest mod: its descriptor with the entrypoints as {@code "modularity"} entrypoints. */
-final class FabricGuestJson {
+public final class FabricGuestJson {
     private FabricGuestJson() {
     }
 
     /** The {@code fabric.mod.json} Fabric would have read if {@code guest} shipped one. */
-    static JsonObject of(GuestDescriptor guest) {
+    public static JsonObject of(GuestDescriptor guest) {
         JsonObject json = guest.json();
         JsonObject fabric = new JsonObject();
         fabric.addProperty("schemaVersion", 1);
