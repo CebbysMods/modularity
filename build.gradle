@@ -64,10 +64,17 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
     allure {
         adapter {
             // 3.x adapter line: allure-jupiter over allure-junit-platform (allure-junit5 is 2.x only).
-            allureJavaVersion = '3.1.1'
-            // No @Step/@Attachment in test code, so the AspectJ weaver is not needed.
-            aspectjWeaver = false
+            allureJavaVersion = rootProject.allure_java_version
+            // The tests write their steps with @Step, and only the AspectJ weaver turns that annotation into
+            // steps. The adapter adds -javaagent:aspectjweaver to the test JVM.
+            aspectjWeaver = true
         }
+    }
+
+    // The adapter adds to its results directory and never removes old files, so a second run would leave two
+    // results per test. The directory is cleared at the start of every run.
+    tasks.named('test') {
+        doFirst { delete layout.buildDirectory.dir('allure-results') }
     }
 }
 
@@ -85,6 +92,15 @@ tasks.named('allureAggregateReport') {
     // dependencies cleared above, which is nothing.
     resultsDirs.setFrom(layout.buildDirectory.dir('allure-results'))
     dependsOn 'allureCollectResults'
+    // The plugin writes a config with no grouping, and the report then groups the tests by Java package
+    // (lv > cebbys > mcmods > ...). allurerc.json groups them by epic, feature, story and functionality.
+    configFile.set(layout.projectDirectory.file('allurerc.json'))
+    // The Allure 3 CLI writes nothing when the output directory exists and still exits with 0. The task must
+    // remove the old report, or every run after the first leaves the first report in place.
+    clean.set(true)
+    // The plugin reads the results directory in the task body and does not declare it as an input, so Gradle keeps
+    // an old report when the results change. The report is cheap to write, so it always runs.
+    outputs.upToDateWhen { false }
 }
 
 // buildAll also runs the plugin unit tests (layer ordering, override and duplicate checks, table, metadata).

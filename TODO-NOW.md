@@ -65,20 +65,37 @@ AGENTS.md hard rule 1 apply to every check. Tick a box only when the check passe
 
 ### S1 — L1 unit tests
 
-- [ ] `./gradlew help` — the Allure plugins 4.3.0 resolve on Gradle 9.8.2.
-- [ ] `./gradlew -Pmodularity.platforms=none :modularity-api:test :modularity-testkit:test` — the 3.1.1
+- [x] `./gradlew help` — the Allure plugins 4.3.0 resolve on Gradle 9.8.2.
+- [x] `./gradlew -Pmodularity.platforms=none :modularity-api:test :modularity-testkit:test` — the 3.1.1
       adapter writes `build/allure-results` in both modules, with JUnit 5.10.3.
-- [ ] `./gradlew -Pmodularity.platforms=none allureAggregateReport` — one report under
+- [x] `./gradlew -Pmodularity.platforms=none allureAggregateReport` — one report under
       `build/reports/allure-report/` with the L1 tests of both modules.
+- [x] The report shows a link to pull request 4 on every test. Run on 2026-11-10: 50 tests, all passed.
+- [ ] Four-level tree and steps. The test run of 2026-11-10 17:34 passed (50 tests) and the raw results
+      hold the four labels and 176 steps; the report run failed because the HTTP server held the report
+      directory. Run `./gradlew -Pmodularity.platforms=none allureAggregateReport`, then check that the
+      tree is Modularity &gt; L1 Unit Tests &gt; API area &gt; behaviour &gt; test, that each test shows a
+      sentence, and that each test shows its `@Step` list.
 
 ### Risks
 
 - **Network at build time.** `downloadAllure` fetches the Allure 3 runtime on the first report run. The
   report stays out of `buildAll`, so offline builds keep working.
-- **Plugin on Gradle 9.8.2.** The plugin tests against 9.6.1; the pair here is unproven until the first
-  check above runs.
+- **Plugin on Gradle 9.8.2.** The plugin tests against 9.6.1. Both runs above passed, so the pair works.
+- **Stale report.** The aggregate plugin reads the results in the task body and does not declare them as
+  an input, so Gradle reported the task up-to-date after the results changed. Closed: the task always
+  runs. Keep this in mind when a report shows old results.
+- **Allure 3 CLI and an existing output directory.** The CLI writes nothing and exits with 0 when the
+  output directory exists. Closed: the report task runs with `clean = true`.
+- **Duplicate results in a module.** The adapter never clears its directory, so a second run left two
+  results per test. Closed: each `test` task deletes its `allure-results` first.
 - **Adapter 3.1.1 with JUnit 5.10.3.** The adapter does not constrain Jupiter, but the combination is
   unproven. A linkage error needs the owner's decision on the 2.x adapter.
+- **AspectJ weaver with the 3.1.1 adapter.** The steps need `aspectjWeaver = true`, and the owner recalled
+  a break between `@Step` and the weaver. If the run reports no steps, the fallback is `Allure.step(...)`
+  in the test code, which needs no weaver.
+- **Custom label name.** `@Functionality` writes the label `functionality`; the report groups by that name.
+  A rename must change both `Functionality.LABEL` and `allurerc.json`.
 - **`withDependencies` clearing.** The aggregate plugin links to every project, which would resolve every
   platform class path; the root build clears those links and points the task at `build/allure-results`.
   Check the task's input log line (`Input directories for allureAggregateReport`) on the first run.

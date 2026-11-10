@@ -4,6 +4,10 @@ description = 'Loader and Minecraft version independent API of Modularity'
 apply plugin: 'java-test-fixtures'
 
 dependencies {
+    // The test fixtures define the custom @Functionality label, which is a meta-annotation of Allure. The
+    // adapter adds Allure to the test configurations only, so the fixture source set names it itself.
+    testFixturesCompileOnly "io.qameta.allure:allure-java-commons:${allure_java_version}"
+
     testImplementation platform("org.junit:junit-bom:${junit_version}")
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
