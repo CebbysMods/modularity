@@ -93,6 +93,10 @@ public class ModularityRootPlugin implements Plugin<Project> {
                     t.from(project.getLayout().getBuildDirectory().dir("allure-results"));
                     t.dependsOn(project.getTasks().named("test"));
                 }
+                // The L2 build-contract tests are in the included build, which this build's aggregate plugin
+                // cannot see. Its results are copied as a plain path, and its test task is a named reference.
+                t.from(root.getLayout().getProjectDirectory().dir("build-logic/build/allure-results"));
+                t.dependsOn(root.getGradle().includedBuild("build-logic").task(":test"));
             }
         });
     }

@@ -1,5 +1,12 @@
 package lv.cebbys.modularity.gradle;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
+import lv.cebbys.modularity.gradle.allure.Functionality;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -15,10 +22,21 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Epics;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Features;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Functionalities;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Issues;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Stories;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** {@code quilt_loader.jars} is added to the built jar, not to the development resources. */
+@Epic(Epics.MODULARITY)
+@Feature(Features.INTEGRATION)
+@Story(Stories.QUILT_JAR)
+@Issue(Issues.PR_7)
+@Tag(Tags.PR_7)
 class QuiltJarMetadataTest {
 
     private static final String QUILT_MOD = """
@@ -31,6 +49,8 @@ class QuiltJarMetadataTest {
             """;
 
     @Test
+    @Functionality(Functionalities.NESTED_JARS)
+    @DisplayName("Nested jars are added inside the quilt_loader jars block")
     void addsNestedJarsInsideQuiltLoader(@TempDir Path dir) throws IOException {
         Path jar = dir.resolve("mod.jar");
         write(jar, Map.of(
@@ -56,6 +76,8 @@ class QuiltJarMetadataTest {
     }
 
     @Test
+    @Functionality(Functionalities.NESTED_JARS)
+    @DisplayName("A jar without nested jars is left untouched")
     void jarWithoutNestedJarsIsUntouched(@TempDir Path dir) throws IOException {
         Path jar = dir.resolve("mod.jar");
         write(jar, Map.of("quilt.mod.json", QUILT_MOD.getBytes(StandardCharsets.UTF_8)));

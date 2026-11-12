@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The platform detector: marker classes, source priority and failure reports. */
 @Epic(Epics.MODULARITY)
-@Feature(Features.L1_UNIT)
+@Feature(Features.UNIT)
 @Story(Stories.PLATFORM_DETECTION)
 @Issue(Issues.PR_4)
 @Tag(Tags.PR_4)
@@ -68,6 +68,8 @@ class PlatformDetectorTest {
             }
         }
     }
+
+    private List<PlatformSource> sources;
 
     private interface Detect {
         Optional<DetectedPlatform> run() throws Exception;
@@ -129,11 +131,12 @@ class PlatformDetectorTest {
     @Functionality(Functionalities.SOURCE_ORDERING)
     @DisplayName("The source with the highest priority wins")
     void highestPrioritySourceWins() {
-        DetectedPlatform platform = detect(
+        sources = List.of(
                 source("markers", 0, () -> Optional.of(DetectedPlatform.of(Loader.FABRIC, PlatformVersion.unknown(),
                         Optional.empty(), false, "markers"))),
                 source("loader", 1000, () -> Optional.of(DetectedPlatform.of(Loader.FABRIC,
                         PlatformVersion.parse("0.16.9"), Side.CLIENT, true, "loader"))));
+        DetectedPlatform platform = detect();
         assertSource(platform, "loader");
         assertText(platform, "FABRIC 0.16.9, CLIENT (development)");
         assertClientSide(platform);
@@ -143,13 +146,14 @@ class PlatformDetectorTest {
     @Functionality(Functionalities.SOURCE_ORDERING)
     @DisplayName("Detection skips an empty source and a source that throws")
     void fallsThroughEmptyAndFailingSources() {
-        DetectedPlatform platform = detect(
+        sources = List.of(
                 source("empty", 1000, Optional::empty),
                 source("broken", 500, () -> {
                     throw new IllegalStateException("boom");
                 }),
                 source("markers", 0, () -> Optional.of(DetectedPlatform.of(Loader.FORGE, PlatformVersion.unknown(),
                         Optional.empty(), false, "markers"))));
+        DetectedPlatform platform = detect();
         assertLoader(platform, Loader.FORGE);
         assertText(platform, "FORGE unknown, UNKNOWN");
     }
@@ -158,12 +162,13 @@ class PlatformDetectorTest {
     @Functionality(Functionalities.SOURCE_FAILURES)
     @DisplayName("A failed detection lists every source in priority order")
     void reportsEverySourceWhenAllFail() {
-        assertAllSourcesReported(
-                List.of("first: not applicable", "second: IllegalStateException: outer -> LinkageError: inner"),
+        sources = List.of(
                 source("second", 10, () -> {
                     throw new IllegalStateException("outer", new LinkageError("inner"));
                 }),
                 source("first", 20, Optional::empty));
+        assertAllSourcesReported(
+                List.of("first: not applicable", "second: IllegalStateException: outer -> LinkageError: inner"));
     }
 
     @Test
@@ -174,14 +179,12 @@ class PlatformDetectorTest {
     }
 
     @Test
-    @Functionality(Functionalities.BUILT_IN_SOURCES)
     @DisplayName("The built-in platform source reads marker classes")
     void builtInSourceIsMarkerClasses() {
         assertBuiltInSourceName();
     }
 
     @Test
-    @Functionality(Functionalities.SOURCE_INSTALLATION)
     @DisplayName("An installed source replaces the built-in source and is cached")
     void installRegistersAndCaches() {
         PlatformDetector.reset();
@@ -222,8 +225,8 @@ class PlatformDetectorTest {
     }
 
     @Step("Detect the platform from all sources, in priority order")
-    private DetectedPlatform detect(PlatformSource... sources) {
-        return PlatformDetector.detect(List.of(sources));
+    private DetectedPlatform detect() {
+        return PlatformDetector.detect(sources);
     }
 
     @Step("Check the client side and the loader version 0.16.9")
@@ -262,9 +265,9 @@ class PlatformDetectorTest {
     }
 
     @Step("Detect the platform when every source fails and check the failure list")
-    private void assertAllSourcesReported(List<String> expected, PlatformSource... sources) {
+    private void assertAllSourcesReported(List<String> expected) {
         PlatformDetectionException error = assertThrows(PlatformDetectionException.class,
-                () -> PlatformDetector.detect(List.of(sources)));
+                () -> PlatformDetector.detect(sources));
         assertEquals(expected, error.failures());
         assertTrue(error.getMessage().contains(PlatformDetectionException.ISSUES), "the message lists the issues");
     }

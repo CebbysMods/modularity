@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** The common, client and server stages of a mod and their order. */
 @Epic(Epics.MODULARITY)
-@Feature(Features.L1_UNIT)
+@Feature(Features.UNIT)
 @Story(Stories.MOD_LIFECYCLE)
 @Issue(Issues.PR_4)
 @Tag(Tags.PR_4)
@@ -52,40 +52,40 @@ class LifecycleTest {
         }
     }
 
+    private RecordingMod mod;
+
     @Test
     @Functionality(Functionalities.STARTUP_ORDER)
     @DisplayName("A client run initialises the common stage, then the client stage")
     void clientRunsCommonThenClient() {
-        RecordingMod mod = loadOnClient("example");
-        assertCalls(mod, List.of("common:example", "client:example"));
+        loadOnClient("example");
+        assertCalls(List.of("common:example", "client:example"));
     }
 
     @Test
     @Functionality(Functionalities.STARTUP_ORDER)
     @DisplayName("A dedicated server initialises the common stage, then the server stage")
     void dedicatedServerRunsCommonThenServer() {
-        RecordingMod mod = loadOnServer("example");
-        assertCalls(mod, List.of("common:example", "server:example"));
+        loadOnServer("example");
+        assertCalls(List.of("common:example", "server:example"));
     }
 
     @Step("Load the mod \"{0}\" on a client")
-    private RecordingMod loadOnClient(String modId) {
-        RecordingMod mod = new RecordingMod();
+    private void loadOnClient(String modId) {
+        mod = new RecordingMod();
         TestGame.create().load(modId, mod);
-        return mod;
     }
 
     @Step("Load the mod \"{0}\" on a dedicated server")
-    private RecordingMod loadOnServer(String modId) {
-        RecordingMod mod = new RecordingMod();
+    private void loadOnServer(String modId) {
+        mod = new RecordingMod();
         TestGame game = TestGame.create();
         game.testPlatform().side(Side.SERVER);
         game.load(modId, mod);
-        return mod;
     }
 
-    @Step("Check the call order {1}")
-    private void assertCalls(RecordingMod mod, List<String> expected) {
+    @Step("Check the call order {0}")
+    private void assertCalls(List<String> expected) {
         assertEquals(expected, mod.calls);
     }
 }

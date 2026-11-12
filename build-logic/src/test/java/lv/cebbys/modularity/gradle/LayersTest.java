@@ -1,5 +1,13 @@
 package lv.cebbys.modularity.gradle;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Step;
+import io.qameta.allure.Story;
+import lv.cebbys.modularity.gradle.allure.Functionality;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -9,11 +17,23 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Epics;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Features;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Functionalities;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Issues;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Stories;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** The layered sources of a platform: order, override and copy rules, and their errors. */
+@Epic(Epics.MODULARITY)
+@Feature(Features.INTEGRATION)
+@Story(Stories.LAYER_ASSEMBLY)
+@Issue(Issues.PR_8)
+@Tag(Tags.PR_8)
 class LayersTest {
 
     private static final String SUB = "src/main";
@@ -21,17 +41,21 @@ class LayersTest {
     @TempDir
     Path base;
 
+    @Step("Write {1} into layer {0}")
     private void write(String layer, String rel, String content) throws IOException {
         Path f = base.resolve(layer).resolve(SUB).resolve(rel);
         Files.createDirectories(f.getParent());
         Files.writeString(f, content);
     }
 
+    @Step("Resolve the layers of Minecraft {0}")
     private List<String> labels(String version) {
         return Layers.resolve(base, McVersion.parse(version), SUB).stream().map(Layers.Layer::label).toList();
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_PRECEDENCE)
+    @DisplayName("Layers apply in the order common, changes, versions")
     void layerOrder() throws IOException {
         write("common", "A.java", "a");
         write("changes/1.21.5+", "A.java", "a5");
@@ -48,6 +72,7 @@ class LayersTest {
     }
 
     @Test
+    @DisplayName("The root stack is ordered and a copy may cross two roots")
     void rootStackOrderAndCrossRootCopies() throws IOException {
         write("minecraft/common", "A.java", "a");
         write("minecraft/changes/26.1+", "A.java", "a26");
@@ -74,6 +99,8 @@ class LayersTest {
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_PRECEDENCE)
+    @DisplayName("A higher layer overrides a lower layer and the output is cleared")
     void higherLayerWins() throws IOException {
         write("common", "A.java", "a");
         write("common", "pkg/B.java", "b");
@@ -95,6 +122,8 @@ class LayersTest {
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_ERRORS)
+    @DisplayName("An identical copy in two layers fails")
     void identicalCopyFails() throws IOException {
         write("common", "A.java", "same");
         write("changes/1.21.5+", "A.java", "same");
@@ -104,6 +133,8 @@ class LayersTest {
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_ERRORS)
+    @DisplayName("An identical copy in a version folder fails")
     void identicalCopyInVersionFolderFails() throws IOException {
         write("common", "A.java", "a");
         write("changes/1.21.5+", "A.java", "a5");
@@ -114,6 +145,8 @@ class LayersTest {
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_PRECEDENCE)
+    @DisplayName("A removed marker hides the file of the layer below")
     void removedMarkerRemovesFileFromBelow() throws IOException {
         write("common", "Old.java", "o");
         write("changes/26.1+", "Old.java.removed", "");
@@ -124,6 +157,8 @@ class LayersTest {
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_ERRORS)
+    @DisplayName("A removed marker with no file below fails")
     void removedMarkerWithoutFileBelowFails() throws IOException {
         write("common", "A.java", "a");
         write("changes/26.1+", "Missing.java.removed", "");
@@ -133,6 +168,8 @@ class LayersTest {
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_ERRORS)
+    @DisplayName("An unparsable range folder fails")
     void unparsableRangeFolderFails() throws IOException {
         write("common", "A.java", "a");
         write("changes/1.21.5", "A.java", "x");
@@ -142,6 +179,8 @@ class LayersTest {
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_ERRORS)
+    @DisplayName("Two range folders with the same range fail")
     void duplicateRangeFails() throws IOException {
         write("changes/26.1+", "A.java", "x");
         write("changes/26.1.0+", "B.java", "y");
@@ -151,6 +190,8 @@ class LayersTest {
     }
 
     @Test
+    @Functionality(Functionalities.LAYER_ERRORS)
+    @DisplayName("One run reports every layer error")
     void allErrorsReportedAtOnce() throws IOException {
         write("common", "A.java", "a");
         write("common", "B.java", "b");
@@ -162,6 +203,7 @@ class LayersTest {
     }
 
     @Test
+    @DisplayName("The layer counts count the files of each layer")
     void counts() throws IOException {
         write("common", "A.java", "a");
         write("common", "B.java", "b");

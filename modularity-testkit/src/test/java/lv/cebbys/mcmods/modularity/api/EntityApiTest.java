@@ -33,7 +33,6 @@ import lv.cebbys.mcmods.modularity.api.world.Direction;
 import lv.cebbys.mcmods.modularity.api.world.Player;
 import lv.cebbys.mcmods.modularity.api.world.Pos;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
-import lv.cebbys.mcmods.modularity.testing.allure.Functionality;
 import lv.cebbys.mcmods.modularity.testkit.TestEntity;
 import lv.cebbys.mcmods.modularity.testkit.TestGame;
 import lv.cebbys.mcmods.modularity.testkit.TestItemStack;
@@ -50,7 +49,6 @@ import java.util.Optional;
 
 import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Epics;
 import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Features;
-import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Functionalities;
 import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Issues;
 import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Stories;
 import static lv.cebbys.mcmods.modularity.testing.allure.ModularityAllureConstants.Tags;
@@ -61,7 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Entities, items, channels, sounds and client hooks on the test platform. */
 @Epic(Epics.MODULARITY)
-@Feature(Features.L1_UNIT)
+@Feature(Features.UNIT)
 @Story(Stories.ENTITY_API)
 @Issue(Issues.PR_4)
 @Tag(Tags.PR_4)
@@ -153,6 +151,11 @@ class EntityApiTest {
     private CartMod mod;
     private TestLevel level;
     private TestPlayer player;
+    private TestEntity cart;
+    private TestLevel reloaded;
+    private TestGame other;
+    private ItemStackRef rest;
+    private ObjModel model;
 
     @BeforeEach
     @Step("Start a test game with a stone floor and a player at the origin")
@@ -168,75 +171,69 @@ class EntityApiTest {
     }
 
     @Test
-    @Functionality(Functionalities.ENTITY_SPAWNING)
     @DisplayName("Using the cart item on a block spawns the cart and consumes the stack")
     void itemSpawnsEntityAndIsConsumed() {
-        TestEntity cart = placeCart();
-        assertSpawn(cart);
+        placeCart();
+        assertSpawn();
         assertItemConsumed();
     }
 
     @Test
-    @Functionality(Functionalities.ENTITY_TICKING)
     @DisplayName("The cart ticks and keeps its saved data through a reload")
     void entityTicksAndKeepsSavedDataOnReload() {
-        TestEntity cart = placeCart();
-        setInput(cart, 0);
+        placeCart();
+        setInput(0);
         tickLevel(5);
-        assertTicks(cart, 5);
+        assertTicks(5);
 
-        setInput(cart, 3);
-        TestLevel reloaded = saveAndReload();
-        assertReloadedData(cart, reloaded);
+        setInput(3);
+        saveAndReload();
+        assertReloadedData();
     }
 
     @Test
-    @Functionality(Functionalities.ENTITY_RIDING)
     @DisplayName("A player rides the cart and the single seat stays full")
     void ridingRespectsSeatCount() {
-        TestEntity cart = placeCart();
-        mount(cart);
-        assertRiding(cart);
-        assertSeatFull(cart);
+        placeCart();
+        mount();
+        assertRiding();
+        assertSeatFull();
         dismount();
-        assertNoPassenger(cart);
+        assertNoPassenger();
     }
 
     @Test
-    @Functionality(Functionalities.FLUID_STORAGE)
     @DisplayName("A lava bucket fills the tank and the inventory merges stacks")
     void fluidTankFilledFromBucketAndInventoryMerges() {
-        TestEntity cart = placeCart();
-        useHeldItem(cart, Id.minecraft("lava_bucket"));
-        assertLavaFilled(cart);
+        placeCart();
+        useHeldItem(Id.minecraft("lava_bucket"));
+        assertLavaFilled();
 
-        useHeldItem(cart, Id.minecraft("water_bucket"));
-        assertWaterRefused(cart);
+        useHeldItem(Id.minecraft("water_bucket"));
+        assertWaterRefused();
 
-        ItemStackRef rest = insertCoal(cart);
-        assertInventoryRest(rest);
+        insertCoal();
+        assertInventoryRest();
     }
 
     @Test
-    @Functionality(Functionalities.NETWORKING)
     @DisplayName("A channel carries client input to the server, which moves the cart")
     void channelCarriesClientInputToServer() {
-        TestEntity cart = placeCart();
-        mount(cart);
+        placeCart();
+        mount();
         pressForward();
         runClientTick();
-        assertInput(cart, 1);
+        assertInput(1);
         tickLevel(1);
-        assertMoved(cart, 1.5);
+        assertMoved(1.5);
     }
 
     @Test
-    @Functionality(Functionalities.CLIENT_HOOKS)
     @DisplayName("Client key, camera, HUD and entity renderer hooks run for the cart")
     void clientHooks() {
-        TestEntity cart = placeCart();
+        placeCart();
         assertNoCamera();
-        mount(cart);
+        mount();
         assertCamera();
 
         tickLevel(2);
@@ -245,22 +242,20 @@ class EntityApiTest {
         pressHonk();
         assertHonk();
 
-        assertEntityRenderer(cart);
+        assertEntityRenderer();
     }
 
     @Test
-    @Functionality(Functionalities.SOUND)
     @DisplayName("A looping sound stops when its entity is removed")
     void loopingSoundsStopWithTheirEntity() {
-        TestEntity cart = placeCart();
-        TestGame other = playLoopingHum(cart);
-        assertSoundCount(other, 1);
-        removeCartAndTick(cart, other);
-        assertSoundCount(other, 0);
+        placeCart();
+        playLoopingHum();
+        assertSoundCount(1);
+        removeCartAndTick();
+        assertSoundCount(0);
     }
 
     @Test
-    @Functionality(Functionalities.BLOCK_COLLISIONS)
     @DisplayName("Block collisions use the real block shapes")
     void blockCollisionsUseRealShapes() {
         placeOakSlab();
@@ -268,17 +263,15 @@ class EntityApiTest {
     }
 
     @Test
-    @Functionality(Functionalities.OBJ_MODELS)
     @DisplayName("The OBJ parser reads groups and splits a polygon into triangles")
-    void objParserReadsGroupsAndFansPolygons() throws Exception {
-        ObjModel model = mod.model.model();
-        assertObjGroups(model);
-        assertObjFaces(model);
-        assertObjErrors(model);
+    void objParserReadsGroupsAndFansPolygons() {
+        model = mod.model.model();
+        assertObjGroups();
+        assertObjFaces();
+        assertObjErrors();
     }
 
     @Test
-    @Functionality(Functionalities.ROTATION)
     @DisplayName("Yaw 0 faces south and yaw 90 faces west")
     void yawRotationFollowsMinecraftConvention() {
         assertYawConvention();
@@ -293,16 +286,16 @@ class EntityApiTest {
     }
 
     @Step("Place the cart above the block under the player's feet")
-    private TestEntity placeCart() {
+    private void placeCart() {
         player.holding(mod.cartItem.stack(1));
         assertEquals(InteractionResult.SUCCESS,
                 game.useItemOn(level, player, new Pos(0, 63, 0), Direction.UP, new Vec3(0.5, 64, 0.5)),
                 "the item use succeeds");
-        return level.entities().stream().filter(e -> e.is(mod.cart)).findFirst().orElseThrow();
+        cart = level.entities().stream().filter(e -> e.is(mod.cart)).findFirst().orElseThrow();
     }
 
     @Step("Check the spawn position and yaw")
-    private void assertSpawn(TestEntity cart) {
+    private void assertSpawn() {
         assertEquals(new Vec3(0.5, 64, 0.5), cart.position());
         assertEquals(90.0F, cart.yaw());
     }
@@ -312,8 +305,8 @@ class EntityApiTest {
         assertTrue(player.mainHandItem().isEmpty(), "the stack is empty after the use");
     }
 
-    @Step("Set the input data to {1}")
-    private void setInput(TestEntity cart, int input) {
+    @Step("Set the input data to {0}")
+    private void setInput(int input) {
         cart.setData(INPUT, input);
     }
 
@@ -323,20 +316,20 @@ class EntityApiTest {
     }
 
     @Step("Save the level and load it again")
-    private TestLevel saveAndReload() {
-        return game.saveAndReload(level);
+    private void saveAndReload() {
+        reloaded = game.saveAndReload(level);
     }
 
     @Step("Check the saved data, the unsaved data and the position after the reload")
-    private void assertReloadedData(TestEntity before, TestLevel reloaded) {
+    private void assertReloadedData() {
         TestEntity loaded = reloaded.entities().stream().filter(e -> e.is(mod.cart)).findFirst().orElseThrow();
         assertEquals(5, loaded.data(TICKS), "saved data survives");
         assertEquals(0, loaded.data(INPUT), "notSaved data is reset");
-        assertEquals(before.position(), loaded.position(), "the position survives");
+        assertEquals(cart.position(), loaded.position(), "the position survives");
     }
 
     @Step("Interact with the cart as the player")
-    private void mount(TestEntity cart) {
+    private void mount() {
         game.interact(cart, player);
     }
 
@@ -346,19 +339,19 @@ class EntityApiTest {
     }
 
     @Step("Check that a second player cannot take the one seat")
-    private void assertSeatFull(TestEntity cart) {
+    private void assertSeatFull() {
         assertFalse(cart.addPassenger(level.add(new TestPlayer(), Vec3.ZERO)), "only one seat");
     }
 
-    @Step("Hold a {1} and interact with the cart")
-    private void useHeldItem(TestEntity cart, Id itemId) {
+    @Step("Hold a {0} and interact with the cart")
+    private void useHeldItem(Id itemId) {
         player.holding(TestItemStack.item(itemId));
         game.interact(cart, player);
     }
 
     @Step("Insert 200 coal into the cart inventory")
-    private ItemStackRef insertCoal(TestEntity cart) {
-        return cart.inventory().orElseThrow().insert(TestItemStack.item(Id.minecraft("coal"), 200, 64));
+    private void insertCoal() {
+        rest = cart.inventory().orElseThrow().insert(TestItemStack.item(Id.minecraft("coal"), 200, 64));
     }
 
     @Step("Press forward as the client")
@@ -379,9 +372,9 @@ class EntityApiTest {
     }
 
     @Step("Load a second game and play the hum as a looping sound of the cart")
-    private TestGame playLoopingHum(TestEntity cart) {
+    private void playLoopingHum() {
         ClientOnlyMod clientOnly = new ClientOnlyMod();
-        TestGame other = TestGame.create();
+        other = TestGame.create();
         other.load("other", clientOnly);
         clientOnly.client.play(new LoopingSound() {
             @Override
@@ -410,11 +403,10 @@ class EntityApiTest {
             }
         });
         other.clientTick();
-        return other;
     }
 
     @Step("Remove the cart and tick the second game client")
-    private void removeCartAndTick(TestEntity cart, TestGame other) {
+    private void removeCartAndTick() {
         cart.remove();
         other.clientTick();
     }
@@ -425,46 +417,46 @@ class EntityApiTest {
         level.set(new Pos(2, 64, 0), slab.defaultState());
     }
 
-    @Step("Check that the tick counter is {1}")
-    private void assertTicks(TestEntity cart, int ticks) {
+    @Step("Check that the tick counter is {0}")
+    private void assertTicks(int ticks) {
         assertEquals(ticks, cart.data(TICKS));
     }
 
     @Step("Check that the player is the only passenger and rides the cart")
-    private void assertRiding(TestEntity cart) {
+    private void assertRiding() {
         assertEquals(List.of(player), cart.passengers());
         assertEquals(Optional.of(cart), player.vehicle());
     }
 
     @Step("Check that the cart has no passenger")
-    private void assertNoPassenger(TestEntity cart) {
+    private void assertNoPassenger() {
         assertTrue(cart.passengers().isEmpty());
     }
 
     @Step("Check the tank holds 1000 mB and the player holds an empty bucket")
-    private void assertLavaFilled(TestEntity cart) {
+    private void assertLavaFilled() {
         assertEquals(1000, cart.fluidTank().orElseThrow().amount(), "the lava bucket fills 1000 mB");
         assertEquals(Id.minecraft("bucket"), player.mainHandItem().itemId(), "the player holds an empty bucket");
         assertTrue(cart.passengers().isEmpty(), "refuelling does not mount");
     }
 
     @Step("Check that the tank still holds 1000 mB")
-    private void assertWaterRefused(TestEntity cart) {
+    private void assertWaterRefused() {
         assertEquals(1000, cart.fluidTank().orElseThrow().amount(), "water is not accepted");
     }
 
     @Step("Check that 8 coal remain after the insert")
-    private void assertInventoryRest(ItemStackRef rest) {
+    private void assertInventoryRest() {
         assertEquals(8, rest.count(), "3 slots x 64 leaves 8 coal");
     }
 
-    @Step("Check that the server holds the input {1}")
-    private void assertInput(TestEntity cart, int input) {
+    @Step("Check that the server holds the input {0}")
+    private void assertInput(int input) {
         assertEquals(input, cart.data(INPUT));
     }
 
-    @Step("Check that the cart is at x = {1}")
-    private void assertMoved(TestEntity cart, double x) {
+    @Step("Check that the cart is at x = {0}")
+    private void assertMoved(double x) {
         assertEquals(x, cart.position().x(), 1e-9);
     }
 
@@ -490,14 +482,14 @@ class EntityApiTest {
     }
 
     @Step("Check the entity renderer calls in order")
-    private void assertEntityRenderer(TestEntity cart) {
+    private void assertEntityRenderer() {
         assertEquals(List.of("push", "rotateY 90.0", "model models/cube.obj#front", "pop"),
                 game.renderEntity(cart, 0.0F));
     }
 
-    @Step("Check that {1} sounds are playing")
-    private void assertSoundCount(TestGame game, int count) {
-        assertEquals(count, game.playingSounds().size());
+    @Step("Check that {0} sounds are playing")
+    private void assertSoundCount(int count) {
+        assertEquals(count, other.playingSounds().size());
     }
 
     @Step("Query the collisions in the slab column and in an air column")
@@ -509,19 +501,19 @@ class EntityApiTest {
     }
 
     @Step("Check the OBJ group names")
-    private void assertObjGroups(ObjModel model) {
+    private void assertObjGroups() {
         assertEquals(List.of("front", "fan"), List.copyOf(model.groupNames()));
     }
 
     @Step("Check the face count and the vertices")
-    private void assertObjFaces(ObjModel model) {
+    private void assertObjFaces() {
         assertEquals(1, model.faces("front").size(), "front is one face");
         assertEquals(4, model.faces("front").get(0).vertices().size(), "front is a quad");
         assertEquals(3, model.faces("fan").size(), "a pentagon becomes three triangles");
     }
 
     @Step("Check that a missing group and a two-vertex face are errors")
-    private void assertObjErrors(ObjModel model) {
+    private void assertObjErrors() {
         assertThrows(IllegalArgumentException.class, () -> model.faces("missing"));
         assertThrows(java.io.IOException.class, () -> ObjParser.parse(new StringReader("f 1 2")));
     }

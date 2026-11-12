@@ -1,11 +1,28 @@
 package lv.cebbys.modularity.gradle.smoke;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Epics;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Features;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Issues;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Stories;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** The smoke log checks: the lines a run must print, and the failures it must report. */
+@Epic(Epics.MODULARITY)
+@Feature(Features.UNIT)
+@Story(Stories.SMOKE_CHECKS)
+@Issue(Issues.PR_11)
+@Tag(Tags.PR_11)
 class SmokeCheckTest {
 
     private static final String SERVER_LOG = """
@@ -32,6 +49,7 @@ class SmokeCheckTest {
     }
 
     @Test
+    @DisplayName("A complete server log passes")
     void serverLogPasses() {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG, "1.21.10", SmokeCheck.Side.SERVER);
         assertTrue(r.ok(), r.problems().toString());
@@ -102,6 +120,7 @@ class SmokeCheckTest {
     }
 
     @Test
+    @DisplayName("A guest mod that does not initialize fails")
     void guestNotInitializedFails() {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG.replace("initialized=true", "initialized=false"), "1.21.10",
                 SmokeCheck.Side.SERVER);
@@ -109,6 +128,7 @@ class SmokeCheckTest {
     }
 
     @Test
+    @DisplayName("A log with another Minecraft version fails")
     void wrongVersionFails() {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG, "1.21.1", SmokeCheck.Side.SERVER);
         assertFalse(r.ok());
@@ -117,6 +137,7 @@ class SmokeCheckTest {
     }
 
     @Test
+    @DisplayName("A nested jar load fails")
     void nestedModFails() {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG.replace(
                         "Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no",
@@ -126,6 +147,7 @@ class SmokeCheckTest {
     }
 
     @Test
+    @DisplayName("A client log needs the client side and a screenshot")
     void clientNeedsClientSideAndScreenshot() {
         SmokeCheck.Result r = SmokeCheck.check(SERVER_LOG, "1.21.10", SmokeCheck.Side.CLIENT);
         assertFalse(r.ok());
@@ -277,6 +299,7 @@ class SmokeCheckTest {
     }
 
     @Test
+    @DisplayName("A Quilt server passes without the guest lines")
     void quiltServerPassesWithoutGuests() {
         String quilt = SERVER_LOG.replace("(fabric)", "(quilt)")
                 .replace("platform fabric:0.20.1", "platform quilt:0.30.2");
@@ -285,6 +308,7 @@ class SmokeCheckTest {
     }
 
     @Test
+    @DisplayName("A crash fails the check")
     void crashFails() {
         assertFalse(SmokeCheck.check(SERVER_LOG + "---- Minecraft Crash Report ----\n", "1.21.10", SmokeCheck.Side.SERVER).ok());
     }

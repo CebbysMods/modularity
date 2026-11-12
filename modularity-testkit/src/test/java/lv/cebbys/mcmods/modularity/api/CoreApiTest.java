@@ -30,16 +30,21 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Ids, ranges, versioned code, block definitions and data codecs. */
+/** Ids, block definitions, data codecs, version ranges and versioned code. */
 @Epic(Epics.MODULARITY)
-@Feature(Features.L1_UNIT)
-@Story(Stories.CORE_API)
+@Feature(Features.UNIT)
 @Issue(Issues.PR_4)
 @Tag(Tags.PR_4)
 class CoreApiTest {
 
+    private Versioned<String> implementation;
+    private IntegerProperty light;
+    private BlockDefinition definition;
+    private DataCodec<Pair> codec;
+    private MapData data;
+
     @Test
-    @Functionality(Functionalities.NAMESPACED_IDS)
+    @Story(Stories.CORE_API)
     @DisplayName("A namespaced id parses like a vanilla resource location")
     void idParsesLikeVanilla() {
         assertParsesLike("stone", Id.minecraft("stone"));
@@ -49,6 +54,7 @@ class CoreApiTest {
     }
 
     @Test
+    @Story(Stories.VERSION_MODEL)
     @Functionality(Functionalities.VERSION_COMPARISON)
     @DisplayName("Minecraft versions compare by number, not by text")
     void versionsCompareNumerically() {
@@ -60,7 +66,7 @@ class CoreApiTest {
     }
 
     @Test
-    @Functionality(Functionalities.VERSION_RANGES)
+    @Story(Stories.VERSION_MODEL)
     @DisplayName("A version range includes its lower bound and excludes its upper bound")
     void rangesAreHalfOpen() {
         VersionRange range = range("1.20", "1.21");
@@ -71,34 +77,34 @@ class CoreApiTest {
     }
 
     @Test
-    @Functionality(Functionalities.VERSIONED_SELECTION)
+    @Story(Stories.VERSION_MODEL)
     @DisplayName("Versioned code selects the newest implementation the game version supports")
     void versionedSelectsNewestCompatibleImplementation() {
-        Versioned<String> implementation = buildVersioned();
-        assertSelected(implementation, "1.21.4", "new");
-        assertSelected(implementation, "1.21.1", "mid");
-        assertSelected(implementation, "1.18.2", "legacy");
+        implementation = buildVersioned();
+        assertSelected("1.21.4", "new");
+        assertSelected("1.21.1", "mid");
+        assertSelected("1.18.2", "legacy");
         assertNoImplementation("1.19");
     }
 
     @Test
-    @Functionality(Functionalities.BLOCK_DEFINITIONS)
+    @Story(Stories.CORE_API)
     @DisplayName("A block definition rejects a default outside the property range")
     void blockDefinitionValidatesPropertyDefaults() {
-        IntegerProperty light = lightProperty();
-        BlockDefinition definition = blockDefinition(light, 3);
-        assertDefinition(light, definition);
+        light = lightProperty();
+        definition = blockDefinition(light, 3);
+        assertDefinition();
         assertDefaultRejected(light, 16);
     }
 
     @Test
-    @Functionality(Functionalities.DATA_CODECS)
+    @Story(Stories.CORE_API)
     @DisplayName("A data codec writes a value and reads it back")
     void codecsRoundTrip() {
-        DataCodec<Pair> codec = pairCodec();
-        MapData data = new MapData();
-        writePair(codec, data);
-        assertReadPair(codec, data);
+        createPairCodec();
+        createDataMap();
+        writePair();
+        assertReadPair();
     }
 
     /** The value the codec test writes and reads. */
@@ -172,8 +178,8 @@ class CoreApiTest {
                 .build();
     }
 
-    @Step("Select the implementation for Minecraft \"{1}\" and expect \"{2}\"")
-    private void assertSelected(Versioned<String> implementation, String version, String expected) {
+    @Step("Select the implementation for Minecraft \"{0}\" and expect \"{1}\"")
+    private void assertSelected(String version, String expected) {
         assertEquals(expected, implementation.select(MinecraftVersion.parse(version)));
     }
 
@@ -194,7 +200,7 @@ class CoreApiTest {
     }
 
     @Step("Check the default value 3 and the missing loot table")
-    private void assertDefinition(IntegerProperty light, BlockDefinition definition) {
+    private void assertDefinition() {
         assertEquals(3, definition.properties().get(light), "the default value is 3");
         assertFalse(definition.hasLootTable(), "the definition has no loot table");
     }
@@ -204,20 +210,25 @@ class CoreApiTest {
         assertThrows(IllegalArgumentException.class, () -> BlockDefinition.builder().property(light, defaultValue));
     }
 
-    @Step("Define a data codec for a pair of an id and a number")
-    private DataCodec<Pair> pairCodec() {
-        return DataCodec.of(
+    @Step("Create a data codec for a pair of an id and a number")
+    private void createPairCodec() {
+        codec = DataCodec.of(
                 (pair, out) -> out.putId("a", pair.a()).putInt("b", pair.b()),
                 in -> new Pair(in.getId("a"), in.getInt("b")));
     }
 
+    @Step("Create an empty data map")
+    private void createDataMap() {
+        data = new MapData();
+    }
+
     @Step("Write the pair oak_slab and 7 into the data map")
-    private void writePair(DataCodec<Pair> codec, MapData data) {
+    private void writePair() {
         codec.write(new Pair(Id.minecraft("oak_slab"), 7), data);
     }
 
     @Step("Read the pair back and compare it with the written value")
-    private void assertReadPair(DataCodec<Pair> codec, MapData data) {
+    private void assertReadPair() {
         assertEquals(new Pair(Id.minecraft("oak_slab"), 7), codec.read(data));
     }
 }

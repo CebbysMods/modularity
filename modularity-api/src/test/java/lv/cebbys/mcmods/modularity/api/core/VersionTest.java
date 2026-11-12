@@ -25,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Minecraft and platform version values: parsing, text form and comparison. */
 @Epic(Epics.MODULARITY)
-@Feature(Features.L1_UNIT)
-@Story(Stories.VERSION_API)
+@Feature(Features.UNIT)
+@Story(Stories.VERSION_MODEL)
 @Issue(Issues.PR_4)
 @Tag(Tags.PR_4)
 class VersionTest {

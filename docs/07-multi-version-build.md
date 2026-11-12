@@ -980,7 +980,7 @@ One report shows every layer. Each stage of the plan adds one layer; S1 (L1) is 
 Tasks:
 
 - `allureCollectResults` — `Sync` into `build/allure-results`. It copies the results of the two library
-  modules and depends on their `test` tasks. `-Pmodularity.allure.tests=false` copies without running a
+  modules and of the included build, and depends on their `test` tasks. `-Pmodularity.allure.tests=false` copies without running a
   test, which the CI jobs use after they have run the tests themselves. `executor.json` is left out: every
   project writes one and the report does not read it.
 - `allureAggregateReport` — writes `build/reports/allure-report/allureAggregateReport/`. The aggregate
@@ -1003,13 +1003,22 @@ Labels: the tree has four levels, and one test carries all four.
 | Level | Label | Value |
 |---|---|---|
 | 1 | `epic` | `Modularity` |
-| 2 | `feature` | the layer: `L1 Unit Tests`, `L2 Integration Tests`, `L3 End to End Tests`, `L4 Production Jar` |
-| 3 | `story` | the API area: `Version API`, `Platform Detection`, `Entity API`, ... |
-| 4 | `functionality` | the behaviour: `Version ranges`, `Source ordering`, `Entity riding`, ... |
+| 2 | `feature` | the layer: `Unit Tests`, `Integration Tests`, `End to End Tests`, `Production Jar` |
+| 3 | `story` | the API concern: `Version Model API`, `Core API`, `Platform Detection`, `Entity API`, ... |
+| 4 | `functionality` | the behaviour: `Minecraft version parsing`, `Source ordering`, `Yaw rotation`, ... |
 
 A test also carries the requirement id as `issue` and `tag`. The feature label is the filter that turns one
 report into the pyramid. Every test has a `@DisplayName` sentence, so the tree shows a sentence instead of
 a method name.
+
+The report sorts each level by name: `allurerc.json` sets `defaultSortBy` to `name,asc`. Allure's other
+sort mode, `order`, follows the order in which the report reads the result files, so two runs can show
+two different orders. The feature values carry no layer number, so the tree is alphabetical:
+`End to End Tests`, `Integration Tests`, `Production Jar`, `Unit Tests`.
+
+A behaviour gets a `functionality` label only when two or more tests prove it. A behaviour that one test
+proves has no label, so that test sits directly under its story and no group in the tree holds one test.
+The story is the concern that owns the behaviour; do not split one concern over two stories.
 
 Allure has no annotation for a custom label name. `@Functionality` in the test fixtures is therefore a
 meta-annotation of Allure's `LabelAnnotation`, and it writes the label `functionality`. The report groups by
@@ -1017,10 +1026,20 @@ that label name, so the name in `Functionality.LABEL` and the name in `allurerc.
 
 The values live in `ModularityAllureConstants`, published as test fixtures of `modularity-api`: one child
 class per label (`Epics`, `Features`, `Stories`, `Functionalities`, `Issues`, `Tags`), so a test names a
-constant instead of a string. The included build cannot consume them and keeps its own copy (stage S2).
+constant instead of a string. The included build cannot consume them, so `build-logic` keeps its own copy,
+`BuildAllureLabels`, with the same values and the same rule. The two copies must agree, or the two layers
+split in the report.
+
+L2 uses the same four levels. `Integration Tests` is the feature. The stories are the concerns of the
+build: `Layer Assembly`, `Platform Table and Metadata`, `Universal Jar`, `Version Plugin Tasks` and
+`Quilt Jar Metadata`. Two classes of the included build test plain Java, so they are `Unit Tests`:
+`Version Ranges` (`VersionsTest`) and `Smoke Log Checks` (`SmokeCheckTest`).
 
 Steps: each test calls small helper methods that carry `@Step`. Each helper does one action, or one check,
-and Allure writes it under the test. The adapter sets `aspectjWeaver = true`, which adds
+and Allure writes it under the test. A helper takes only text, numbers and values with a readable text
+form as parameters, because Allure writes every parameter into the report; an object without a text form
+would show as `lv.example.Codec$1@308a9264`. The objects a test creates are fields of the test instance.
+The adapter sets `aspectjWeaver = true`, which adds
 `-javaagent:aspectjweaver` to the test JVM; without the weaver, the `@Step` annotation has no effect. The
 test fixtures name `allure-java-commons` as `testFixturesCompileOnly`, because the adapter adds Allure to
 the test configurations only.
@@ -1031,7 +1050,11 @@ applies it at test time. A link with no URL is dropped by the report, so the pat
 pull-request link to appear. The `tag` label stays readable (`PR-4`) and filters the report.
 
 The included build is not a project of this build, so its results reach the report only through
-`allureCollectResults` (stage S2).
+`allureCollectResults`: the task copies `build-logic/build/allure-results` as a plain path and depends on
+`gradle.includedBuild('build-logic').task(':test')`. The aggregate plugin does not discover an included
+build, so a missing copy step leaves L2 out of the report without an error. `build-logic` declares the
+adapter plugin itself, with the version in its own `gradle.properties`, and keeps the AspectJ weaver off,
+because no L2 test writes a `@Step` helper.
 
 CI: `build.yml` has a `report` job that runs both test sets, writes the report and uploads
 `allure-report-build`; it fails last, so a red test still publishes the report. `smoke.yml` publishes
@@ -1041,5 +1064,20 @@ Status: L1 is wired and was run on 2026-11-10: `allureAggregateReport` wrote a r
 passed, from `modularity-api` (28) and `modularity-testkit` (22), with a pull-request link on each test.
 The same day the tests gained the four-level labels, the `@DisplayName` sentences and the `@Step` helpers.
 The test run of 2026-11-10 17:34 passed (50 tests) and wrote 176 steps, so the AspectJ weaver works with
-`@Step`. The report run after that change is open: it failed because the HTTP server held the report
-directory, and the server is stopped now. L2 and L3 are stage S2 and S3 of the bean epic.
+`@Step`. The report run of 2026-11-10 17:53 failed because the HTTP server held the report directory; the
+report was then written by the bundled Allure CLI. The report showed two defects: two stories owned the
+version tests (`Core API` and `Version API`), and most behaviour groups held one test. The tests were
+regrouped after that run: `Version Model API` replaces `Version API`, the version tests of `CoreApiTest`
+moved to it, and a behaviour keeps its `functionality` label only when two or more tests prove it. The
+step helpers no longer take objects as parameters. The regroup was then run on 2026-11-10: both test tasks
+passed (50 tests) and `allureAggregateReport` wrote the report. The tree holds no group with one test, and
+no step parameter shows an object identity string.
+
+S2 was run on 2026-11-10: `./gradlew -p build-logic test` passed (46 tests) and wrote
+`build-logic/build/allure-results`; `./gradlew -Pmodularity.platforms=none allureAggregateReport` then
+wrote one report of 96 tests: `Unit Tests` 65 (the 50 module tests and 15 build-logic tests) and
+`Integration Tests` 31. The L2 tree holds the five stories `Layer Assembly` (layer errors 6, layer
+precedence 3, 2 direct), `Platform Table and Metadata` (generated metadata 4, source scan 2, 3 direct),
+`Universal Jar` (relocation 3, loader trees in the jar 2), `Version Plugin Tasks` (task graph 3,
+1 direct) and `Quilt Jar Metadata` (nested jar wrapping 2); the L1 tree holds `Version Ranges` 8 and
+`Smoke Log Checks` 7 in the same report. No group holds one test. L3 is stage S3 of the bean epic.

@@ -110,11 +110,25 @@ AGENTS.md hard rule 1 apply to every check. Tick a box only when the check passe
 - [x] `./gradlew -Pmodularity.platforms=none allureAggregateReport` — one report under
       `build/reports/allure-report/` with the L1 tests of both modules.
 - [x] The report shows a link to pull request 4 on every test. Run on 2026-11-10: 50 tests, all passed.
-- [ ] Four-level tree and steps. The test run of 2026-11-10 17:34 passed (50 tests) and the raw results
-      hold the four labels and 176 steps; the report run failed because the HTTP server held the report
-      directory. Run `./gradlew -Pmodularity.platforms=none allureAggregateReport`, then check that the
-      tree is Modularity &gt; L1 Unit Tests &gt; API area &gt; behaviour &gt; test, that each test shows a
-      sentence, and that each test shows its `@Step` list.
+- [x] Four-level tree and steps. The first report showed two defects: two stories owned the version
+      tests, and most behaviour groups held one test. The tests were regrouped (story = the API concern,
+      `Version Model API`, a behaviour label only for two or more tests, no object parameters in the
+      steps). Run of 2026-11-10: `:modularity-api:test` and `:modularity-testkit:test` passed (50 tests),
+      and `allureAggregateReport` wrote the tree Modularity &gt; Unit Tests &gt; API concern &gt;
+      behaviour &gt; test. No group holds one test, and no step parameter shows an object identity string.
+
+### S2 — L2 build contract
+
+- [x] `./gradlew -p build-logic test` — the 3.1.1 adapter writes `build-logic/build/allure-results`, 46
+      tests pass, and no test fails on the new `@DisplayName`/label imports. Run of 2026-11-10:
+      BUILD SUCCESSFUL, 46 results, all passed.
+- [x] `./gradlew -Pmodularity.platforms=none allureAggregateReport` — `build/allure-results` holds results
+      from three producers, and the tree shows `Integration Tests` with the five stories and the two unit
+      concerns (`Version Ranges`, `Smoke Log Checks`) next to the unit modules. Run of 2026-11-10:
+      BUILD SUCCESSFUL, the report holds 96 tests, `Unit Tests` 65 and `Integration Tests` 31. The feature
+      names carry no layer number, and `allurerc.json` sorts every level by name.
+- [x] A second root report run does not duplicate a test: `allureCollectResults` is a `Sync`, and the
+      `build-logic` test task clears its own results first.
 
 ### Risks
 

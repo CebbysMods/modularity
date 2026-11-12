@@ -3,16 +3,34 @@ package lv.cebbys.modularity.gradle;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.testfixtures.ProjectBuilder;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
+import lv.cebbys.modularity.gradle.allure.Functionality;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 import java.util.List;
 
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Epics;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Features;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Functionalities;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Issues;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Stories;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The tasks of a version parent project ({@code :platforms:21.1}). */
+@Epic(Epics.MODULARITY)
+@Feature(Features.INTEGRATION)
+@Story(Stories.VERSION_PLUGIN)
+@Issue(Issues.PR_6)
+@Tag(Tags.PR_6)
 class ModularityVersionPluginTest {
 
     private static Project withChildren(Path dir) {
@@ -36,6 +54,8 @@ class ModularityVersionPluginTest {
     }
 
     @Test
+    @Functionality(Functionalities.TASK_GRAPH)
+    @DisplayName("compile builds the classes and the jars")
     void compileIsTheFastLoop(@TempDir Path dir) {
         Project parent = withChildren(dir);
         // Same name on the parent and the platforms (the platform plugin's compile runs compileJava).
@@ -44,6 +64,8 @@ class ModularityVersionPluginTest {
     }
 
     @Test
+    @Functionality(Functionalities.TASK_GRAPH)
+    @DisplayName("build runs the classes, the tests and the jars")
     void buildIsClassesTestsAndJars(@TempDir Path dir) {
         Project parent = withChildren(dir);
         // One jar for the whole version, built from the platform jars. Sources are not part of it: the shared
@@ -53,6 +75,8 @@ class ModularityVersionPluginTest {
     }
 
     @Test
+    @Functionality(Functionalities.TASK_GRAPH)
+    @DisplayName("clean and smoke fan out to every platform")
     void cleanAndSmokeFanOut(@TempDir Path dir) {
         Project parent = withChildren(dir);
         assertEquals(List.of(":21.1:21.1-fabric:clean", ":21.1:21.1-forge:clean"), dependencies(parent, "clean"));
@@ -61,6 +85,7 @@ class ModularityVersionPluginTest {
     }
 
     @Test
+    @DisplayName("The tasks of one platform wait for the decompilation of another")
     void tasksOfOnePlatformWaitForTheDecompilationOfAnother(@TempDir Path dir) {
         Project parent = withChildren(dir);
         ModularityVersionPlugin.orderBuildAfterSources(parent);

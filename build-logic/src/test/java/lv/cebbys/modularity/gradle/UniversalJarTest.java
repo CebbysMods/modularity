@@ -1,5 +1,12 @@
 package lv.cebbys.modularity.gradle;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
+import lv.cebbys.modularity.gradle.allure.Functionality;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.objectweb.asm.ClassWriter;
@@ -18,18 +25,31 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Epics;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Features;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Functionalities;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Issues;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Stories;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The merge of the platform jars into the one universal jar. */
+@Epic(Epics.MODULARITY)
+@Feature(Features.INTEGRATION)
+@Story(Stories.UNIVERSAL_JAR)
+@Issue(Issues.PR_10)
+@Tag(Tags.PR_10)
 class UniversalJarTest {
 
     private static final String ROOT = "lv/cebbys/mcmods/modularity";
     private static final String MIXIN_CONFIG = "modularity.mixins.json";
 
     @Test
+    @Functionality(Functionalities.RELOCATION)
+    @DisplayName("Every loader gets its own relocated class set")
     void everyLoaderGetsItsOwnRelocatedClassSet(@TempDir Path dir) throws IOException {
         Path fabricJar = platformJar(dir.resolve("fabric.jar"));
         Path forgeJar = platformJar(dir.resolve("forge.jar"));
@@ -58,6 +78,8 @@ class UniversalJarTest {
     }
 
     @Test
+    @Functionality(Functionalities.LOADER_TREES)
+    @DisplayName("Fabric entrypoints and mixin package follow the relocated tree")
     void fabricEntrypointsAndMixinPackageFollowTheRelocatedTree(@TempDir Path dir) throws IOException {
         Path out = dir.resolve("universal.jar");
         UniversalJar.write(out, List.of(
@@ -72,6 +94,8 @@ class UniversalJarTest {
     }
 
     @Test
+    @Functionality(Functionalities.LOADER_TREES)
+    @DisplayName("Quilt gets its own tree, metadata and mixin config")
     void quiltGetsItsOwnTreeMetadataAndMixinConfig(@TempDir Path dir) throws IOException {
         Path fabricJar = platformJar(dir.resolve("fabric.jar"));
         Path quiltJar = quiltPlatformJar(dir.resolve("quilt.jar"));
@@ -118,6 +142,8 @@ class UniversalJarTest {
     }
 
     @Test
+    @Functionality(Functionalities.RELOCATION)
+    @DisplayName("Only the classes of the mod are relocated")
     void onlyClassesOfTheModAreRelocated() {
         assertEquals(ROOT + "/universal/fabric/Target", UniversalJar.relocatedPath(ROOT + "/Target", Loader.FABRIC));
         // The API is a separate nested mod: its package must not move, or the platform classes would point at a
@@ -130,6 +156,8 @@ class UniversalJarTest {
     }
 
     @Test
+    @Functionality(Functionalities.RELOCATION)
+    @DisplayName("API classes and their references keep their package")
     void apiClassesAndReferencesKeepTheirPackage(@TempDir Path dir) throws IOException {
         Path jar = dir.resolve("fabric.jar");
         write(jar, Map.of(

@@ -32,11 +32,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The version detector: source priority, version.json, reflection and failure reports. */
 @Epic(Epics.MODULARITY)
-@Feature(Features.L1_UNIT)
+@Feature(Features.UNIT)
 @Story(Stories.VERSION_DETECTION)
 @Issue(Issues.PR_4)
 @Tag(Tags.PR_4)
 class VersionDetectorTest {
+    /** A version.json of a game directory: it has a numeric world version. */
+    private static final String GAME_JSON =
+            "{\n  \"id\": \"1.21.1\",\n  \"name\": \"1.21.1\",\n  \"world_version\": 3955,\n"
+                    + "  \"protocol_version\": 767\n}";
+    /** A version.json of another file: it has no numeric world version. */
+    private static final String OTHER_JSON = "{\"id\": \"some-other-file\"}";
+
+    private List<VersionSource> sources;
+    private VersionDetector.Result result;
+    private URLClassLoader loader;
+
     private interface Detect {
         Optional<MinecraftVersion> run() throws Exception;
     }
@@ -64,26 +75,28 @@ class VersionDetectorTest {
     @Functionality(Functionalities.SOURCE_ORDERING)
     @DisplayName("The version source with the highest priority wins")
     void highestPrioritySourceWins() {
-        VersionDetector.Result result = detect(
+        sources = List.of(
                 source("low", 0, () -> Optional.of(MinecraftVersion.parse("1.20.1"))),
                 source("high", 1000, () -> Optional.of(MinecraftVersion.parse("1.21.1"))),
                 source("mid", 100, () -> Optional.of(MinecraftVersion.parse("1.19.4"))));
-        assertVersion(result, "1.21.1");
-        assertSource(result, "high");
+        result = detect();
+        assertVersion("1.21.1");
+        assertSource("high");
     }
 
     @Test
     @Functionality(Functionalities.SOURCE_ORDERING)
     @DisplayName("Detection skips empty, failing and snapshot sources")
     void fallsThroughEmptyFailingAndUnparseableSources() {
-        VersionDetector.Result result = detect(
+        sources = List.of(
                 source("empty", 1000, Optional::empty),
                 source("broken", 500, () -> {
                     throw new IllegalStateException("boom");
                 }),
                 source("snapshot", 200, () -> Optional.of(MinecraftVersion.parse("24w14a"))),
                 source("good", 100, () -> Optional.of(MinecraftVersion.parse("1.21.1"))));
-        assertSource(result, "good");
+        result = detect();
+        assertSource("good");
     }
 
     @Test
@@ -101,14 +114,12 @@ class VersionDetectorTest {
     }
 
     @Test
-    @Functionality(Functionalities.BUILT_IN_SOURCES)
     @DisplayName("version.json runs before reflection")
     void builtInSourcesRunAfterInstalledOnes() {
         assertBuiltInOrder();
     }
 
     @Test
-    @Functionality(Functionalities.SOURCE_INSTALLATION)
     @DisplayName("An installed version source replaces the previous one and is cached")
     void installRegistersReplacesAndCaches() {
         VersionDetector.reset();
@@ -127,41 +138,38 @@ class VersionDetectorTest {
     @Functionality(Functionalities.VERSION_JSON)
     @DisplayName("The version id is read from version.json and other files are ignored")
     void versionJsonIdIsRead() {
-        assertJsonId("{\n  \"id\": \"1.21.1\",\n  \"name\": \"1.21.1\",\n  \"world_version\": 3955,\n  \"protocol_version\": 767\n}");
-        assertJsonIdIgnored("{\"id\": \"some-other-file\"}");
+        assertGameVersionJsonId();
+        assertOtherVersionJsonIgnored();
     }
 
     @Test
     @Functionality(Functionalities.VERSION_JSON)
     @DisplayName("version.json is found in a game directory on the class path")
     void versionJsonIsFoundOnTheClassPath(@TempDir Path dir) throws Exception {
-        try (URLClassLoader loader = classPathWithTwoDirectories(dir)) {
-            assertVersionJsonFound(loader);
-        }
+        classPathWithTwoDirectories(dir);
+        assertVersionJsonFound();
     }
 
     @Test
-    @Functionality(Functionalities.VERSION_PARSING)
     @DisplayName("A snapshot version.json is rejected and the next source answers")
     void snapshotVersionJsonFailsAndFallsThrough() {
-        VersionDetector.Result result = detect(
+        sources = List.of(
                 source("version-json", 100, () -> Optional.of(MinecraftVersion.parse("24w14a"))),
                 source("reflection", 0, () -> Optional.of(MinecraftVersion.parse("1.21.1"))));
-        assertVersion(result, "1.21.1");
+        result = detect();
+        assertVersion("1.21.1");
     }
 
     @Test
-    @Functionality(Functionalities.REFLECTION)
     @DisplayName("Reflection does not apply when the game classes are absent")
     void reflectionDoesNotApplyWithoutGameClasses() throws Exception {
-        try (URLClassLoader loader = new URLClassLoader(new URL[0], null)) {
-            assertReflectionNotApplicable(loader);
-        }
+        loader = new URLClassLoader(new URL[0], null);
+        assertReflectionNotApplicable();
     }
 
     @Step("Detect the Minecraft version from all sources, in priority order")
-    private VersionDetector.Result detect(VersionSource... sources) {
-        return VersionDetector.detect(List.of(sources));
+    private VersionDetector.Result detect() {
+        return VersionDetector.detect(sources);
     }
 
     @Step("Check that the built-in sources are version.json and reflection, in that order")
@@ -184,33 +192,33 @@ class VersionDetectorTest {
         assertTrue(error.getMessage().contains("no version sources"));
     }
 
-    @Step("Read the version id from the JSON text and expect 1.21.1")
-    private void assertJsonId(String json) {
-        assertEquals(Optional.of("1.21.1"), VersionJsonSource.parseId(json));
+    @Step("Read the version id from the JSON text of a game version.json and expect 1.21.1")
+    private void assertGameVersionJsonId() {
+        assertEquals(Optional.of("1.21.1"), VersionJsonSource.parseId(GAME_JSON));
     }
 
-    @Step("Read the version id from a JSON text that is not a game version and expect no id")
-    private void assertJsonIdIgnored(String json) {
-        assertEquals(Optional.empty(), VersionJsonSource.parseId(json));
+    @Step("Read the version id from the JSON text of another file and expect no id")
+    private void assertOtherVersionJsonIgnored() {
+        assertEquals(Optional.empty(), VersionJsonSource.parseId(OTHER_JSON));
     }
 
     @Step("Detect the version from version.json on the class path and expect 26.1.2")
-    private void assertVersionJsonFound(URLClassLoader loader) throws Exception {
+    private void assertVersionJsonFound() throws Exception {
         assertEquals(Optional.of(MinecraftVersion.parse("26.1.2")), new VersionJsonSource(loader).detect());
     }
 
     @Step("Run the reflection source with no game classes and expect no version")
-    private void assertReflectionNotApplicable(URLClassLoader loader) throws Exception {
+    private void assertReflectionNotApplicable() throws Exception {
         assertEquals(Optional.empty(), new ReflectionSource(loader).detect());
     }
 
-    @Step("Check that the version is \"{1}\"")
-    private void assertVersion(VersionDetector.Result result, String version) {
+    @Step("Check that the version is \"{0}\"")
+    private void assertVersion(String version) {
         assertEquals(version, result.version().toString());
     }
 
-    @Step("Check that the source is \"{1}\"")
-    private void assertSource(VersionDetector.Result result, String source) {
+    @Step("Check that the source is \"{0}\"")
+    private void assertSource(String source) {
         assertEquals(source, result.source());
     }
 
@@ -244,11 +252,11 @@ class VersionDetectorTest {
     }
 
     @Step("Write version.json into a game directory and an unrelated version.json into another directory")
-    private URLClassLoader classPathWithTwoDirectories(Path dir) throws IOException {
+    private void classPathWithTwoDirectories(Path dir) throws IOException {
         Path other = Files.createDirectories(dir.resolve("other"));
         Files.writeString(other.resolve("version.json"), "{\"id\": \"unrelated\"}");
         Path game = Files.createDirectories(dir.resolve("game"));
         Files.writeString(game.resolve("version.json"), "{\"id\": \"26.1.2\", \"world_version\": 1}");
-        return new URLClassLoader(new URL[]{other.toUri().toURL(), game.toUri().toURL()}, null);
+        loader = new URLClassLoader(new URL[]{other.toUri().toURL(), game.toUri().toURL()}, null);
     }
 }

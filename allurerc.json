@@ -2,7 +2,8 @@
     "plugins": {
         "awesome": {
             "options": {
-                "groupBy": ["epic", "feature", "story", "functionality"]
+                "groupBy": ["epic", "feature", "story", "functionality"],
+                "defaultSortBy": "name,asc"
             }
         }
     }

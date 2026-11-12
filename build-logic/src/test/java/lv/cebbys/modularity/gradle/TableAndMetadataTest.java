@@ -1,5 +1,12 @@
 package lv.cebbys.modularity.gradle;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Issue;
+import io.qameta.allure.Story;
+import lv.cebbys.modularity.gradle.allure.Functionality;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -9,12 +16,26 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Epics;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Features;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Functionalities;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Issues;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Stories;
+import static lv.cebbys.modularity.gradle.allure.BuildAllureLabels.Tags;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** The platform table and the loader metadata generated from it. */
+@Epic(Epics.MODULARITY)
+@Feature(Features.INTEGRATION)
+@Story(Stories.PLATFORM_TABLE)
+@Issue(Issues.PR_1)
+@Issue(Issues.PR_7)
+@Tag(Tags.PR_1)
+@Tag(Tags.PR_7)
 class TableAndMetadataTest {
 
     private static final String TABLE = """
@@ -49,6 +70,7 @@ class TableAndMetadataTest {
             """;
 
     @Test
+    @DisplayName("The table parses and sorts by version")
     void parsesTableSortedByVersion() {
         PlatformTable t = PlatformTable.parse(TABLE);
         assertEquals(List.of("fabric-21.1", "fabric-26.1"), t.platforms().stream().map(PlatformTable.Platform::id).toList());
@@ -73,6 +95,7 @@ class TableAndMetadataTest {
     }
 
     @Test
+    @DisplayName("Each loader has its own id, version and layer stack")
     void loadersHaveOwnIdsVersionsAndLayerStacks() {
         PlatformTable t = PlatformTable.parse(TABLE + """
 
@@ -113,6 +136,8 @@ class TableAndMetadataTest {
     }
 
     @Test
+    @Functionality(Functionalities.GENERATED_METADATA)
+    @DisplayName("NeoForge and Forge get a full mods.toml")
     void modsTomlForNeoForgeAndForge() {
         PlatformTable t = PlatformTable.parse(TABLE + """
 
@@ -164,6 +189,7 @@ class TableAndMetadataTest {
     }
 
     @Test
+    @DisplayName("A broken table reports every error")
     void tableErrors() {
         assertThrows(IllegalArgumentException.class,
                 () -> PlatformTable.parse(TABLE.replace("name = \"21.1\"", "name = \"26.1\"")), "duplicate");
@@ -177,6 +203,8 @@ class TableAndMetadataTest {
     }
 
     @Test
+    @Functionality(Functionalities.GENERATED_METADATA)
+    @DisplayName("fabric.mod.json names the exact Minecraft version and its dependencies")
     void modJsonHasExactMinecraftAndDependencies() {
         PlatformTable t = PlatformTable.parse(TABLE);
         String json = ModMetadata.fabricModJson(t.mod(), t.platform("fabric-21.1").orElseThrow(), t.fabricLoaderMin(), "0.1.0", true,
@@ -194,6 +222,8 @@ class TableAndMetadataTest {
     }
 
     @Test
+    @Functionality(Functionalities.GENERATED_METADATA)
+    @DisplayName("quilt.mod.json has the schema, the group mappings and the nested jars")
     void quiltModJsonHasSchemaGroupMappingsAndNestedJars() {
         PlatformTable t = PlatformTable.parse(TABLE + """
 
@@ -234,6 +264,8 @@ class TableAndMetadataTest {
     }
 
     @Test
+    @Functionality(Functionalities.GENERATED_METADATA)
+    @DisplayName("Parchment is per Minecraft version and optional")
     void parchmentIsPerMinecraftVersionAndOptional() {
         PlatformTable t = PlatformTable.parse(TABLE + """
 
@@ -256,6 +288,8 @@ class TableAndMetadataTest {
     }
 
     @Test
+    @Functionality(Functionalities.SOURCE_SCAN)
+    @DisplayName("Entrypoints are read from the sources")
     void entrypointsFromSources(@TempDir Path dir) throws IOException {
         Path pkg = dir.resolve("lv/example/entrypoint");
         Files.createDirectories(pkg.resolve("client"));
@@ -299,6 +333,8 @@ class TableAndMetadataTest {
     }
 
     @Test
+    @Functionality(Functionalities.SOURCE_SCAN)
+    @DisplayName("The mixin config is written from the sources")
     void mixinConfigFromSources(@TempDir Path dir) throws IOException {
         Path pkg = dir.resolve("lv/example/mixin");
         Files.createDirectories(pkg.resolve("client"));

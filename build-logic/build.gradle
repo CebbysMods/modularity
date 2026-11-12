@@ -1,5 +1,8 @@
 plugins {
     id 'java-gradle-plugin'
+    // The L2 build-contract tests write Allure results (docs/07, 7.11). An included build does not see the
+    // plugin management of the root build, so this build names the version itself.
+    id 'io.qameta.allure-adapter' version '4.3.0'
 }
 
 group = 'lv.cebbys.modularity'
@@ -31,8 +34,21 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+allure {
+    adapter {
+        // 3.x adapter line, the same as the L1 modules: one report holds both layers.
+        allureJavaVersion = providers.gradleProperty('allure_java_version').get()
+        // The L2 tests write their steps with @Step, and only the AspectJ weaver turns that annotation into
+        // steps in the report (docs/07 7.11).
+        aspectjWeaver = true
+    }
+}
+
 test {
     useJUnitPlatform()
+    // The adapter adds to its results directory and never removes old files, so a second run would leave two
+    // results per test. The directory is cleared at the start of every run.
+    doFirst { delete layout.buildDirectory.dir('allure-results') }
 }
 
 gradlePlugin {

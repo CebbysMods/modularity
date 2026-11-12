@@ -36,11 +36,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Rotations, entity parts and part interactions. */
 @Epic(Epics.MODULARITY)
-@Feature(Features.L1_UNIT)
+@Feature(Features.UNIT)
 @Story(Stories.MULTIPART_API)
 @Issue(Issues.PR_4)
 @Tag(Tags.PR_4)
 class MultipartApiTest {
+
+    private Rotation rotation;
+    private EntityPart body;
+    private EntityPart wheel;
+    private EntityDefinition definition;
+    private EntityBehaviour behaviour;
+    private final List<String> calls = new ArrayList<>();
 
     @Test
     @Functionality(Functionalities.ROTATION)
@@ -55,34 +62,31 @@ class MultipartApiTest {
     @Functionality(Functionalities.ROTATION)
     @DisplayName("Rotations compose, invert, slerp and keep their heading")
     void rotationsComposeAndInvert() {
-        Rotation rotation = composeYawAndPitch(40, -10);
-        assertInverseRotatesBack(rotation);
-        assertHeadingAndNose(rotation);
-        assertSlerpWithItself(rotation, new Vec3(1, 2, 3));
+        rotation = composeYawAndPitch(40, -10);
+        assertInverseRotatesBack();
+        assertHeadingAndNose();
+        assertSlerpWithItself();
         assertHalfYaw();
     }
 
     @Test
-    @Functionality(Functionalities.ENTITY_PARTS)
     @DisplayName("Entity parts are validated and the part reach is computed")
     void partsAreValidatedAndReachIsComputed() {
-        EntityPart body = bodyPart();
-        assertReach(body);
-        EntityDefinition definition = cartDefinition(body);
-        assertParts(definition);
-        assertPartReach(body, definition);
-        assertDuplicatePartRejected(body);
+        body = bodyPart();
+        assertReach();
+        definition = cartDefinition();
+        assertParts();
+        assertPartReach();
+        assertDuplicatePartRejected();
         assertFlatPartRejected();
         assertNotMultipart();
     }
 
     @Test
-    @Functionality(Functionalities.PART_INTERACTIONS)
     @DisplayName("A part interaction without an override calls the whole entity")
     void partInteractionsDefaultToTheWholeEntityAndCanBeOverridden() {
-        List<String> calls = new ArrayList<>();
-        EntityBehaviour behaviour = recordingBehaviour(calls);
-        assertPartCallsTheEntity(behaviour, wheelPart());
+        behaviour = recordingBehaviour();
+        assertPartCallsTheEntity();
         assertEquals(List.of("interact", "attacked 2.0"), calls, "the entity handled both calls");
     }
 
@@ -102,18 +106,19 @@ class MultipartApiTest {
     }
 
     @Step("Invert the rotation and rotate the vector back")
-    private void assertInverseRotatesBack(Rotation rotation) {
+    private void assertInverseRotatesBack() {
         Vec3 vector = new Vec3(1, 2, 3);
         assertVec(vector, rotation.inverse().rotate(rotation.rotate(vector)));
     }
 
     @Step("Slerp the rotation with itself by half and compare")
-    private void assertSlerpWithItself(Rotation rotation, Vec3 vector) {
+    private void assertSlerpWithItself() {
+        Vec3 vector = new Vec3(1, 2, 3);
         assertVec(rotation.rotate(vector), rotation.slerp(rotation, 0.5).rotate(vector));
     }
 
     @Step("Check that the yaw stays 40 and that the nose points up")
-    private void assertHeadingAndNose(Rotation rotation) {
+    private void assertHeadingAndNose() {
         assertEquals(40, rotation.yaw(), 1e-4, "pitch keeps the heading");
         assertTrue(rotation.rotate(new Vec3(0, 0, 1)).y() > 0.3, "the nose points up");
     }
@@ -124,18 +129,18 @@ class MultipartApiTest {
     }
 
     @Step("Check that the part reach is the length of the part offset")
-    private void assertReach(EntityPart body) {
+    private void assertReach() {
         assertEquals(new Vec3(1, 1.5, 2).length(), body.reach(), 1e-9);
     }
 
     @Step("Check that the definition is multipart and lists the body and the wheel")
-    private void assertParts(EntityDefinition definition) {
+    private void assertParts() {
         assertTrue(definition.isMultipart(), "two parts make a multipart entity");
         assertEquals(List.of("body", "wheel"), definition.parts().stream().map(EntityPart::name).toList());
     }
 
     @Step("Check that the part reach is the reach of the body")
-    private void assertPartReach(EntityPart body, EntityDefinition definition) {
+    private void assertPartReach() {
         assertEquals(body.reach(), definition.partReach(), 1e-9, "the body reaches furthest");
     }
 
@@ -145,7 +150,7 @@ class MultipartApiTest {
     }
 
     @Step("Call the part interact and the part attack without an override")
-    private void assertPartCallsTheEntity(EntityBehaviour behaviour, EntityPart wheel) {
+    private void assertPartCallsTheEntity() {
         assertEquals(InteractionResult.SUCCESS, behaviour.interactPart(null, null, wheel),
                 "the part interact calls the entity interact");
         assertTrue(behaviour.attackedPart(null, Optional.empty(), 2, wheel),
@@ -163,12 +168,13 @@ class MultipartApiTest {
     }
 
     @Step("Build the entity definition with the body and the wheel")
-    private EntityDefinition cartDefinition(EntityPart body) {
-        return EntityDefinition.builder().part(body).part(wheelPart()).build();
+    private EntityDefinition cartDefinition() {
+        wheel = wheelPart();
+        return EntityDefinition.builder().part(body).part(wheel).build();
     }
 
     @Step("Reject a definition with the same part twice")
-    private void assertDuplicatePartRejected(EntityPart body) {
+    private void assertDuplicatePartRejected() {
         assertThrows(IllegalArgumentException.class, () -> EntityDefinition.builder().part(body).part(body));
     }
 
@@ -178,7 +184,7 @@ class MultipartApiTest {
     }
 
     @Step("Create a behaviour that records its calls")
-    private EntityBehaviour recordingBehaviour(List<String> calls) {
+    private EntityBehaviour recordingBehaviour() {
         return new EntityBehaviour() {
             @Override
             public InteractionResult interact(EntityContext ctx, Player player) {
