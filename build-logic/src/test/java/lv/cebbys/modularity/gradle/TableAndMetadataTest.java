@@ -96,7 +96,7 @@ class TableAndMetadataTest {
         assertFalse(neo.remap(), "NeoForge runs with Mojang names");
         assertEquals("jar", neo.modJarTask());
         assertEquals("platforms/neoforge/versions/21.1", neo.projectDir());
-        assertEquals(List.of("minecraft", "common", "neoforge"), neo.loader().layerRoots());
+        assertEquals(List.of("minecraft", "common", "anvil", "neoforge"), neo.loader().layerRoots());
         PlatformTable.Platform quilt = t.platform("quilt-21.1").orElseThrow();
         assertTrue(quilt.remap());
         assertEquals(List.of("minecraft", "common", "loom", "quilt"), quilt.loader().layerRoots());
@@ -130,21 +130,29 @@ class TableAndMetadataTest {
                 forge = "52.1.21"
                 java = 21
                 """);
-        String neo = ModMetadata.modsToml(t.mod(), t.platform("neoforge-21.1").orElseThrow(), "0.1.0");
+        String neo = ModMetadata.modsToml(t.mod(), t.platform("neoforge-21.1").orElseThrow(), "0.1.0", false);
         assertTrue(neo.contains("modId=\"modularity\""), neo);
         assertTrue(neo.contains("modId=\"minecraft\"\ntype=\"required\"\nversionRange=\"[1.21.1]\""), neo);
         assertTrue(neo.contains("modId=\"neoforge\"\ntype=\"required\"\nversionRange=\"[21.1,)\""), neo);
         assertTrue(neo.contains("modId=\"example\"\ntype=\"required\"\nversionRange=\"[1.0.0,)\""), neo);
+        assertFalse(neo.contains("[[mixins]]"), neo);
         assertEquals("META-INF/neoforge.mods.toml", ModMetadata.metadataPath(t.platform("neoforge-21.1").orElseThrow()));
 
-        String forge = ModMetadata.modsToml(t.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0");
+        String neoMixins = ModMetadata.modsToml(t.mod(), t.platform("neoforge-21.1").orElseThrow(), "0.1.0", true);
+        assertTrue(neoMixins.contains("[[mixins]]\nconfig=\"modularity.neoforge.mixins.json\""), neoMixins);
+
+        String forge = ModMetadata.modsToml(t.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0", false);
         assertTrue(forge.contains("loaderVersion=\"[52,)\""), forge);
         assertTrue(forge.contains("modId=\"forge\"\nmandatory=true\nversionRange=\"[52,)\""), forge);
         assertEquals("META-INF/mods.toml", ModMetadata.metadataPath(t.platform("forge-21.1").orElseThrow()));
         assertFalse(forge.contains("logoFile"), forge);
+        // Forge has no mixin metadata field: the block still names the config, so the jar manifest and the metadata
+        // take the name from one place (docs/07 7.8).
+        assertTrue(ModMetadata.modsToml(t.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0", true)
+                .contains("[[mixins]]\nconfig=\"modularity.forge.mixins.json\""));
         PlatformTable withIcon = PlatformTable.parse(TABLE.replace("license = \"MIT\"", "license = \"MIT\"\nicon =\"images/x.png\""));
         assertEquals("assets/modularity/icon.png", withIcon.mod().iconPath());
-        assertTrue(ModMetadata.modsToml(withIcon.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0")
+        assertTrue(ModMetadata.modsToml(withIcon.mod(), t.platform("forge-21.1").orElseThrow(), "0.1.0", false)
                 .contains("logoFile=\"assets/modularity/icon.png\""));
         assertTrue(ModMetadata.fabricModJson(withIcon.mod(), t.platform("fabric-21.1").orElseThrow(), "0.16.0", "0.1.0", false,
                 Map.of())
@@ -216,6 +224,8 @@ class TableAndMetadataTest {
         assertFalse(json.contains("\"jars\""), json);
         assertEquals("modularity.mixins.json", ModMetadata.mixinConfigName(t.mod(), Loader.FABRIC));
         assertEquals("modularity.quilt.mixins.json", ModMetadata.mixinConfigName(t.mod(), Loader.QUILT));
+        assertEquals("modularity.neoforge.mixins.json", ModMetadata.mixinConfigName(t.mod(), Loader.NEOFORGE));
+        assertEquals("modularity.forge.mixins.json", ModMetadata.mixinConfigName(t.mod(), Loader.FORGE));
         // A 26.x platform has no intermediary mappings, so it cannot carry a native Quilt metadata file.
         assertThrows(IllegalArgumentException.class,
                 () -> ModMetadata.quiltModJson(t.mod(), new PlatformTable.Platform("26.1", Loader.QUILT,
@@ -304,5 +314,18 @@ class TableAndMetadataTest {
         assertTrue(cfg.contains("\"mixins\": [\n    \"LevelMixin\"\n  ]"), cfg);
         assertTrue(cfg.contains("\"client\": [\n    \"client.CameraMixin\"\n  ]"), cfg);
         assertTrue(cfg.contains("\"package\": \"lv.example.mixin\""), cfg);
+        // Only the Forge config is verbose: its route is the jar manifest and only a shipped-jar run can show it.
+        assertTrue(cfg.contains("\"verbose\": false"), cfg);
+        PlatformTable forgeTable = PlatformTable.parse(TABLE + """
+
+                [[platform]]
+                name = "21.1"
+                loader = "forge"
+                minecraft = "1.21.1"
+                forge = "52.1.21"
+                java = 21
+                """);
+        String forge = ModMetadata.mixinConfig(forgeTable.mod(), forgeTable.platform("forge-21.1").orElseThrow(), mixins);
+        assertTrue(forge.contains("\"verbose\": true"), forge);
     }
 }

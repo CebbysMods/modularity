@@ -4,6 +4,9 @@ description = 'Loader and Minecraft version independent API of Modularity'
 apply plugin: 'java-test-fixtures'
 
 dependencies {
+    // Nullness annotations. Compile time only, so the API stays dependency free at run time and in its metadata.
+    compileOnly 'org.jspecify:jspecify:1.0.0'
+
     // The test fixtures define the custom @Functionality label, which is a meta-annotation of Allure. The
     // adapter adds Allure to the test configurations only, so the fixture source set names it itself.
     testFixturesCompileOnly "io.qameta.allure:allure-java-commons:${allure_java_version}"

@@ -2,16 +2,21 @@ package lv.cebbys.mcmods.modularity.platform;
 
 import lv.cebbys.mcmods.modularity.api.block.BlockRef;
 import lv.cebbys.mcmods.modularity.api.block.BlockStateRef;
+import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.item.ItemStackRef;
 import lv.cebbys.mcmods.modularity.api.world.Direction;
 import lv.cebbys.mcmods.modularity.api.world.Pos;
 import lv.cebbys.mcmods.modularity.api.world.Vec3;
+import lv.cebbys.mcmods.modularity.platform.compat.Ids;
+import lv.cebbys.mcmods.modularity.platform.entity.ModularEntity;
 import lv.cebbys.mcmods.modularity.platform.world.McBlockRef;
 import lv.cebbys.mcmods.modularity.platform.world.McBlockStateRef;
 import lv.cebbys.mcmods.modularity.platform.world.McItemStack;
 import lv.cebbys.mcmods.modularity.platform.world.McLevel;
 import lv.cebbys.mcmods.modularity.platform.world.McPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -56,6 +61,17 @@ public final class Wrap {
 
     public static Block block(BlockRef block) {
         return block.unwrap(Block.class);
+    }
+
+    /** The registered block with that id; call it only after the block registry is open. */
+    public static Block block(Id id) {
+        return BuiltInRegistries.BLOCK.get(Ids.rl(id));
+    }
+
+    /** The registered entity type with that id; call it only after the entity registry is open. */
+    @SuppressWarnings("unchecked")
+    public static EntityType<ModularEntity> entityType(Id id) {
+        return (EntityType<ModularEntity>) BuiltInRegistries.ENTITY_TYPE.get(Ids.rl(id));
     }
 
     public static ItemStackRef stack(ItemStack stack) {

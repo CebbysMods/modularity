@@ -20,4 +20,10 @@ public interface StorageBackend {
 
     /** Moves fluid from the item in {@code player}'s main hand into {@code tank}; returns millibuckets moved. */
     long fillFromHeldItem(Player player, McFluidTank tank);
+
+    /**
+     * Moves fluid from {@code tank} into the item in {@code player}'s main hand, which is the other direction of
+     * {@link #fillFromHeldItem}. A bucket in the hand becomes the filled bucket. Returns millibuckets moved.
+     */
+    long drainToHeldItem(Player player, McFluidTank tank);
 }

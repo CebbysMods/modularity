@@ -63,8 +63,8 @@ throws `UnsupportedOperationException` does not count.
 |---|---|
 | all | `platforms/<loader>/**` (Fabric and Quilt share `loom`, so most code is common), `gradle/platforms.toml` (enabled platforms and versions) |
 | stubs | `grep -rn "UnsupportedOperationException" platforms --include=*.java` |
-| seams | `platforms/common/common/.../platform/loader/{LoaderHooks,ClientHooks,LoaderInfo,StorageBackend,RenderDataAccess}` — count the methods and compare with each implementation (`LoomLoaderHooks`, `NeoForgeLoaderHooks`, `NeoForgeClientHooks`, `NeoForgeRenderData`, `NeoForgeStorageBackend`, and the Forge counterparts if present) |
-| lifecycle | `ModularityCommon`, `ModularityClient`, `ModularityServer`, `ModularityLaunch`, the loader entrypoint classes (`Modularity{Fabric,Quilt,NeoForge,Forge}*`, `LoomEntrypoints`) |
+| seams | `platforms/common/common/.../platform/loader/{LoaderHooks,ClientHooks,LoaderInfo,StorageBackend,RenderDataAccess}` — count the methods and compare with each implementation (`ModularityLoomLoaderHooks`, `NeoForgeLoaderHooks`, `NeoForgeClientHooks`, `NeoForgeRenderData`, `NeoForgeStorageBackend`, and the Forge counterparts if present) |
+| lifecycle | `ModularityCommon`, `ModularityClient`, `ModularityServer`, `ModularityLaunch`, the loader entrypoint classes (`ModularityLoom{Common,Client,Server,Launch}`, `Modularity{Fabric,Quilt,NeoForge,Forge}*`) |
 | detection | `platforms/<loader>/.../detect/`, `platform.detect.DetectionLog` |
 | build | `build-logic/src/main/java/.../gradle/` (`ModMetadata`, `PlatformTable`, `UniversalJar`), `build-logic` tests |
 | verification | `docs/07-multi-version-build.md` §7.6 and §7.10 (recorded smoke runs), `docs/00-requirements.md` status column, `TODO-NOW.md` open checks, `.beans/` for open verification beans |

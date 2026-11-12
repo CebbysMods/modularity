@@ -2,6 +2,9 @@ description = 'Smoke test mods: the guest jar, and the layered roots the platfor
 
 dependencies {
     api project(':modularity-api')
+
+    // Nullness annotations, compile time only: the packages carry @NullMarked (docs/07 7.3).
+    compileOnly 'org.jspecify:jspecify:1.0.0'
 }
 
 tasks.named('jar') {

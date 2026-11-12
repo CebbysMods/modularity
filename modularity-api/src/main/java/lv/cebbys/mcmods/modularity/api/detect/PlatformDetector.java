@@ -15,8 +15,8 @@ import java.util.Optional;
  * }</pre>
  *
  * <p>A platform installs its own sources before the first detection:
- * {@code PlatformDetector.install(new LoomPlatformSource())}. The built-in marker-class source is
- * always present.
+ * {@code PlatformDetector.install(new ModularityLoomPlatformSource())}. The built-in marker-class
+ * source is always present.
  */
 public final class PlatformDetector {
     private static final Object LOCK = new Object();

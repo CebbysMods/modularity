@@ -18,6 +18,7 @@ public final class SmokeClient {
     private int ticks;
 
     public SmokeClient() {
+        NeoForgeStorageProbe.install();
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> tick(Minecraft.getInstance()));
     }
 

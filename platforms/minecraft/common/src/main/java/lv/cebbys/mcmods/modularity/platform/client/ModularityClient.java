@@ -19,16 +19,11 @@ import lv.cebbys.mcmods.modularity.api.core.Id;
 import lv.cebbys.mcmods.modularity.api.entity.EntityHandle;
 import lv.cebbys.mcmods.modularity.api.network.Channel;
 import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
-import lv.cebbys.mcmods.modularity.platform.Wrap;
-import lv.cebbys.mcmods.modularity.platform.compat.Ids;
-import lv.cebbys.mcmods.modularity.platform.entity.ModularEntity;
 import lv.cebbys.mcmods.modularity.platform.loader.ClientHooks;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
 import lv.cebbys.mcmods.modularity.platform.network.McChannel;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.entity.EntityType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,19 +71,19 @@ public final class ModularityClient {
 
         @Override
         public void blockModel(BlockHandle block, DynamicModel model) {
-            ClientRegistry.model(Wrap.block(block.get()), model);
+            // The registration keeps the id and not the native block: on the Forge family the client stage runs before
+            // the block registry is readable (docs/07 7.8), and the loader resolves the block when it bakes models.
+            ClientRegistry.model(block.id(), model);
         }
 
         @Override
         public void hitParticles(BlockHandle block, HitParticles particles) {
-            ClientRegistry.hitParticles(Wrap.block(block.get()), particles);
+            ClientRegistry.hitParticles(block.id(), particles);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public void entityRenderer(EntityHandle type, EntityRenderer renderer) {
-            var nativeType = (EntityType<ModularEntity>) BuiltInRegistries.ENTITY_TYPE.getOptional(Ids.rl(type.id())).orElseThrow();
-            Loaders.client().entityRenderer(nativeType, ctx -> new ModularEntityRenderer(ctx, renderer));
+            Loaders.client().entityRenderer(type.id(), ctx -> new ModularEntityRenderer(ctx, renderer));
         }
 
         @Override

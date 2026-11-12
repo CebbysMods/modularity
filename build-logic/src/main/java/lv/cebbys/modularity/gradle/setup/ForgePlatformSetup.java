@@ -2,7 +2,11 @@ package lv.cebbys.modularity.gradle.setup;
 
 import groovy.lang.Closure;
 import lv.cebbys.modularity.gradle.JarJarMetadataTask;
+import lv.cebbys.modularity.gradle.Loader;
+import lv.cebbys.modularity.gradle.ModMetadata;
 import lv.cebbys.modularity.gradle.PlatformTable;
+import lv.cebbys.modularity.gradle.ServiceFileTask;
+import lv.cebbys.modularity.gradle.UniversalJar;
 import lv.cebbys.modularity.gradle.smoke.SmokeSetup;
 import net.minecraftforge.gradle.ForgeGradleExtension;
 import net.minecraftforge.gradle.MavenizerInstance;
@@ -115,8 +119,28 @@ class ForgePlatformSetup extends AbstractForgeFamilyPlatformSetup {
                     t.getOutputDir().set(project.getLayout().getBuildDirectory().dir("generated/jarjar"));
                 });
         Configuration nested = project.getConfigurations().getByName(NESTED_CONFIGURATION);
+        String mixinConfig = ModMetadata.mixinConfigName(ctx.mod(), Loader.FORGE);
+        // FML offers a mods/ jar to ModLauncher only when the jar provides a locator service, and Mixin then reads
+        // the manifest attribute below. The file goes into the jar alone: on the development class path FML reads
+        // that entry as a transformer artifact and stops reading it as a mod (docs/07 7.8).
+        TaskProvider<ServiceFileTask> locatorService = project.getTasks().register("forgeLocatorService",
+                ServiceFileTask.class, t -> {
+                    t.setGroup("modularity");
+                    t.setDescription("Writes the Forge locator service file of the jar, never of the run class path");
+                    t.getService().set("net.minecraftforge.forgespi.locating.IDependencyLocator");
+                    t.getProvider().set(UniversalJar.ROOT.replace('/', '.')
+                            + ".forge.locating.ModularityForgeLocator");
+                    t.getOutputDir().set(project.getLayout().getBuildDirectory().dir("generated/forge-locator"));
+                });
         project.getTasks().named("jar", Jar.class, jar -> {
+            // Forge's mods.toml has no [[mixins]] block. Mixin reads this attribute from the manifest of every jar
+            // ModLauncher scans (docs/07 7.8), so the Forge config reaches Mixin the way the Mixin wiki gives.
+            jar.getManifest().attributes(Map.of(ModMetadata.MANIFEST_MIXIN_CONFIGS, mixinConfig));
+            // The generated metadata of the development output holds the same attribute, so a development run applies
+            // the config (GenerateModMetadataTask). The jar writes its own manifest, so that copy must not reach it.
+            jar.exclude("META-INF/MANIFEST.MF");
             jar.from(jarJarMetadata);
+            jar.from(locatorService);
             jar.from(nested, spec -> {
                 spec.into("META-INF/jarjar");
                 spec.rename(name -> nestedJarName(project, nestedIds, name));

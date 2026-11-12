@@ -40,6 +40,10 @@ public abstract class SmokeCheckTask extends DefaultTask {
     @OutputFile
     public abstract RegularFileProperty getSummary();
 
+    /** The PNG the client run wrote ({@code <run dir>/screenshots/smoke.png}); unset for a server run. */
+    @Internal
+    public abstract RegularFileProperty getScreenshot();
+
 
     @TaskAction
     public void check() {
@@ -47,14 +51,25 @@ public abstract class SmokeCheckTask extends DefaultTask {
         if (!Files.isRegularFile(log)) {
             throw new GradleException("No smoke log at " + log);
         }
+        // A client run that forgets the property would silently skip the frame check, so it is an error instead.
+        if (getSide().get() == SmokeCheck.Side.CLIENT && !getScreenshot().isPresent()) {
+            throw new GradleException("The client check needs the screenshot property (SmokeSetup sets "
+                    + "<run dir>/screenshots/smoke.png)");
+        }
         try {
             String text = new String(Files.readAllBytes(log), StandardCharsets.UTF_8);
             Path summary = getSummary().get().getAsFile().toPath();
             Files.createDirectories(summary.getParent());
             Files.copy(log, summary.resolveSibling(getSide().get().name().toLowerCase() + ".log"),
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            // The client check also reads the frame: a `Screenshot:` line alone does not say anything was drawn.
+            byte[] screenshot = null;
+            if (getScreenshot().isPresent()) {
+                Path png = getScreenshot().get().getAsFile().toPath();
+                screenshot = Files.isRegularFile(png) ? Files.readAllBytes(png) : new byte[0];
+            }
             SmokeCheck.Result result = SmokeCheck.check(text, getMinecraft().get(), getSide().get(), getPlatform().get(),
-                    getGuests().get());
+                    getGuests().get(), screenshot);
             Files.writeString(summary, String.join("\n", result.lines()) + "\n");
             if (!result.ok()) {
                 throw new GradleException("Smoke " + getSide().get() + " " + getMinecraft().get() + " failed ("
