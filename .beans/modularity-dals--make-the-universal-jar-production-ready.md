@@ -1,7 +1,7 @@
 ---
 # modularity-dals
 title: Make the universal jar production-ready
-status: todo
+status: scrapped
 type: task
 priority: high
 tags:
@@ -9,7 +9,7 @@ tags:
     - jar
     - mixin
 created_at: 2026-11-08T19:48:16Z
-updated_at: 2026-11-08T19:48:16Z
+updated_at: 2026-11-11T23:47:00Z
 ---
 
 Follow-up to "Ship one universal jar per Minecraft version": make the artifact work in real, non-development loaders,
@@ -32,3 +32,9 @@ not just in dev runs.
 - [ ] Refmap present and correct in the universal jar
 - [ ] Universal jar boots on all four loaders and Modularity initializes
 - [ ] Smoke harness can verify a built jar (not just dev classes)
+
+## Tracker cleanup 2026-11-12
+
+Scrapped as a duplicate, so the tracker has one owner for one piece of work. Its three gaps are now three owners: no refmap is needed on any loader (docs/00 PR-13, docs/07 7.8), mixins are `modularity-9rzu` on NeoForge and `modularity-6rm0` on Forge, and a load from the shipped jar is epic `modularity-xbj0`.
+
+The bean body stays as the record.

@@ -1,14 +1,14 @@
 ---
 # modularity-g9qp
 title: 'Phase 1: mvd/mpd core into modularity-api (api.detect)'
-status: todo
+status: completed
 type: task
 priority: high
 tags:
     - architecture
     - api
 created_at: 2026-11-10T09:08:03Z
-updated_at: 2026-11-10T09:08:03Z
+updated_at: 2026-11-11T23:46:54Z
 parent: modularity-km3b
 ---
 
@@ -38,3 +38,7 @@ Verification (on request): :modularity-api:test, :modularity-testkit:test, -p bu
   `MinecraftModContext`. Tests moved to `modularity-api/src/test` with marker stubs; 28 tests pass
   through a direct JUnit launcher. `javac --release 17` compiles the API, the testkit and the API
   tests. Gradle tasks were not run (not requested).
+
+## Tracker cleanup 2026-11-12
+
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `api.detect` is in `modularity-api`, `utilities/` is gone and all four loaders report the new detection line.

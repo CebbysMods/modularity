@@ -8,7 +8,7 @@ tags:
     - architecture
     - build
 created_at: 2026-11-10T09:07:59Z
-updated_at: 2026-11-10T11:02:20Z
+updated_at: 2026-11-11T23:39:06Z
 ---
 
 Implements .beans/modularity-9oz9 (merge mvd/mpd, retire companion-mods). Plan: C:\Users\valen\.claude-ollama\plans\serene-puzzling-otter.md
@@ -67,3 +67,5 @@ line without the prefix.
 - `./gradlew -Pmodularity.platforms=quilt-21.1 :platforms:21.1:21.1-quilt:smokeServer`: `smoke SERVER 1.21.1: ok`. The log shows `(server) platform quilt:0.30.2, minecraft:1.21.1`, `Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no` and `Server ticked 40 times, stopping`, plus the three Quilt entrypoints.
 
 Acceptance still open: the detection line must be seen on Fabric, NeoForge and Forge. Quilt is the only loader with a run. The S5 `smokeAll` pass in TODO-NOW.md covers the rest.
+
+2026-11-12: the detection line is now seen on all four loaders. The 2026-11-12 run is green and docs/07 §7.10 records `(server)/(client) platform fabric:0.20.1|quilt:0.30.2|neoforge:21.1.265|forge:52.1.21, minecraft:1.21.1`. Phases 2 to 5 are closed with that evidence. The epic stays open for one acceptance bullet: detection from the universal jar, which no run has shown (bean `modularity-xbj0`).

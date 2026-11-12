@@ -1,14 +1,14 @@
 ---
 # modularity-qbqz
 title: 'Phase 6: switch MinecraftRuntime, remove utilities, update docs'
-status: todo
+status: completed
 type: task
 priority: high
 tags:
     - build
     - docs
 created_at: 2026-11-10T09:08:11Z
-updated_at: 2026-11-10T09:08:11Z
+updated_at: 2026-11-11T23:46:54Z
 parent: modularity-km3b
 ---
 
@@ -37,3 +37,7 @@ includes, the `extraJars` block, `companion-mods` in the table, the companion he
 `[modularity] platform <LOADER> ...`. All docs listed above are updated; docs/07 §7.10 keeps the
 2026-11-06 record and marks the re-run as open. `modularity-9oz9` and the epic stay open until the
 runtime checks pass. Gradle tasks were not run (not requested).
+
+## Tracker cleanup 2026-11-12
+
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `MinecraftRuntime` is switched, `utilities/` is gone and the docs describe one mod.

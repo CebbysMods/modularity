@@ -14,7 +14,7 @@ parent: modularity-km3b
 Check that the `quilt_loader` mod container reports the version in `gradle/platforms.toml`
 (`quilt-loader = "0.30.2"`). TODO-NOW.md open check: Quilt loader version.
 
-Evidence in the tree: `LoomPlatformSource.detect` takes the version from the container
+Evidence in the tree: `ModularityLoomPlatformSource.detect` takes the version from the container
 `quilt_loader`; `ModMetadata` writes `quilt_loader >=0.30.2` into `quilt.mod.json`.
 
 Run (only when the owner asks):

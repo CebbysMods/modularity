@@ -1,14 +1,14 @@
 ---
 # modularity-9oz9
 title: Merge mvd and mpd into Modularity and retire companion-mods
-status: todo
+status: scrapped
 type: feature
 priority: normal
 tags:
     - build
     - architecture
 created_at: 2026-11-09T11:58:06Z
-updated_at: 2026-11-10T09:08:14Z
+updated_at: 2026-11-11T23:47:00Z
 blocked_by:
     - modularity-km3b
 ---
@@ -79,3 +79,9 @@ platform-setup refactor.
 - Smoke tests for all four loaders pass without the detector mods, and their checks assert the
   detection results through Modularity's own log lines.
 - Docs describe one mod, not three.
+
+## Tracker cleanup 2026-11-12
+
+Scrapped as a duplicate, so the tracker has one owner for one piece of work. Epic `modularity-km3b` is the live owner: it implemented this bean and carries the one open acceptance bullet, detection from the universal jar (`modularity-xbj0`).
+
+The bean body stays as the record.

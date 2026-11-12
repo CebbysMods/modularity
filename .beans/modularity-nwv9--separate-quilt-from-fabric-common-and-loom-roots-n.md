@@ -1,14 +1,14 @@
 ---
 # modularity-nwv9
 title: 'Separate Quilt from Fabric: common and loom roots, native Quilt jar'
-status: in-progress
+status: completed
 type: feature
 priority: high
 tags:
     - build
     - quilt
 created_at: 2026-11-09T15:08:37Z
-updated_at: 2026-11-09T15:25:49Z
+updated_at: 2026-11-11T23:47:02Z
 ---
 
 Implements the approved plan (plan file `serene-puzzling-otter.md`).
@@ -20,7 +20,7 @@ Done in the working tree:
 - `platforms/common` root: `EntryPoint`, `EntryPoints`, `ModularityCommon`, `ModularityServer`,
   `GuestDescriptor`, `LoaderInfo`, `Loaders` moved from `platforms/minecraft`.
 - `platforms/loom` root: Fabric-API code and version layers moved from `platforms/fabric`;
-  `Loom*` classes, `LoomEntrypoints`, `GuestCandidates`.
+  `Loom*` classes, `ModularityLoomEntrypoints`, `GuestCandidates`.
 - Native Quilt entrypoints `ModularityQuilt{Common,Client,Server,Launch}`; QMJ generation with
   `intermediate_mappings`, group, entrypoints, nested `jars`; per-loader mixin config names.
 - Universal jar: fourth (Quilt) part, per-part metadata rewrite; Quilt-only builds no longer fail.
@@ -61,3 +61,7 @@ the built jar from the actual `META-INF/jars/` entries, after Loom nests them. N
 `QuiltJarMetadataTest`.
 
 Open: the shipped universal jar in a real Quilt install (production metadata files in one jar).
+
+## Tracker cleanup 2026-11-12
+
+Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p build-logic test`, the eight 21.1 smokes, docs/07 7.10). The one open note, the shipped universal jar in a real Quilt install, is epic `modularity-xbj0`.
