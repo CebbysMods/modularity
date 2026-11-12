@@ -1,33 +1,23 @@
 package lv.cebbys.mcmods.modularity.loom.detect;
 
-import lv.cebbys.mcmods.modularity.api.core.MinecraftVersion;
-import lv.cebbys.mcmods.modularity.api.detect.VersionSource;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
+import lv.cebbys.mcmods.modularity.platform.detect.AbstractModularityVersionSource;
 import net.fabricmc.loader.api.FabricLoader;
 
-import java.util.Optional;
+/** Version source of a loader that runs the Fabric Loader API: Fabric and Quilt. */
+public abstract class ModularityLoomVersionSource extends AbstractModularityVersionSource {
 
-/**
- * Version of the built-in {@code minecraft} mod of Fabric Loader or Quilt Loader. Only applies when
- * Fabric Loader's API is present.
- */
-public final class ModularityLoomVersionSource implements VersionSource {
-    @Override
-    public int priority() {
-        return 1000;
-    }
+    protected abstract Loader getLoader();
 
     @Override
     public String name() {
-        return "fabric-loader";
+        return getLoader().id();
     }
 
     @Override
-    public Optional<MinecraftVersion> detect() {
-        if (!ModularityLoomClasses.exists(ModularityLoomClasses.FABRIC_LOADER)) {
-            return Optional.empty();
-        }
+    protected String getMinecraftVersionString() {
         return FabricLoader.getInstance().getModContainer("minecraft")
-                .map(container -> MinecraftVersion.parse(
-                        container.getMetadata().getVersion().getFriendlyString()));
+                .map(mod -> mod.getMetadata().getVersion().getFriendlyString())
+                .orElseThrow(() -> new IllegalStateException("Fabric Loader reports no minecraft mod"));
     }
 }

@@ -423,3 +423,11 @@ The loader facts and accepted costs are decisions in docs/07 §7.8; the refmap w
 
 - [ ] **Two metadata files in the universal jar.** Quilt's plugin must accept `quilt.mod.json`
       before Fabric reads `fabric.mod.json`; the shipped-jar smoke still must prove it.
+
+## Detection sources split — open check
+
+Each detection source now implements `detect()` itself; `platform.detect` keeps only the priority, and the `loom` bases keep the Fabric Loader calls that Fabric and Quilt share (docs/06 §6.1, docs/07 §7.5).
+The classes compile with `javac`, but no game run has read the new sources yet. The check is
+`modularity-0pwp`: the eight 21.1 smokes, server and client, must hold
+`(server|client) platform <loader>:<loaderVersion>, minecraft:1.21.1` for Fabric, Quilt, NeoForge and
+Forge. Run it on the owner's word (AGENTS.md hard rule 1).

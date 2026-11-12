@@ -1,6 +1,8 @@
 package lv.cebbys.mcmods.modularity.quilt.entrypoint;
 
 import lv.cebbys.mcmods.modularity.api.core.Loader;
+import lv.cebbys.mcmods.modularity.quilt.detect.ModularityQuiltPlatformSource;
+import lv.cebbys.mcmods.modularity.quilt.detect.ModularityQuiltVersionSource;
 import lv.cebbys.mcmods.modularity.loom.entrypoint.ModularityLoomCommon;
 import net.fabricmc.api.ModInitializer;
 
@@ -8,6 +10,6 @@ import net.fabricmc.api.ModInitializer;
 public final class ModularityQuiltCommon implements ModInitializer {
     @Override
     public void onInitialize() {
-        ModularityLoomCommon.init(Loader.QUILT);
+        ModularityLoomCommon.init(Loader.QUILT, new ModularityQuiltPlatformSource(), new ModularityQuiltVersionSource());
     }
 }

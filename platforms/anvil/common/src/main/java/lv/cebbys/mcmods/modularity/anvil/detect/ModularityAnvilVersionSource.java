@@ -1,27 +1,18 @@
 package lv.cebbys.mcmods.modularity.anvil.detect;
 
-import lv.cebbys.mcmods.modularity.anvil.detect.ModularityAnvilLoaderApi.Family;
-import lv.cebbys.mcmods.modularity.api.core.MinecraftVersion;
-import lv.cebbys.mcmods.modularity.api.detect.VersionSource;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
+import lv.cebbys.mcmods.modularity.platform.detect.AbstractModularityVersionSource;
 
-import java.util.Optional;
+/**
+ * Version source of a Forge-family loader. The class itself names no loader type; a child in the loader root reads the
+ * Minecraft version from its own FML (docs/07, 7.3).
+ */
+public abstract class ModularityAnvilVersionSource extends AbstractModularityVersionSource {
 
-/** Minecraft version as reported by the Forge-family mod loader; one source for NeoForge and Forge. */
-public final class ModularityAnvilVersionSource implements VersionSource {
-    @Override
-    public int priority() {
-        return 1000;
-    }
+    protected abstract Loader getLoader();
 
     @Override
     public String name() {
-        return ModularityAnvilLoaderApi.present().map(Family::sourceName).orElse("anvil-fml");
-    }
-
-    @Override
-    public Optional<MinecraftVersion> detect() {
-        return ModularityAnvilLoaderApi.present()
-                .flatMap(ModularityAnvilLoaderApi::minecraftVersion)
-                .map(MinecraftVersion::parse);
+        return getLoader().id();
     }
 }

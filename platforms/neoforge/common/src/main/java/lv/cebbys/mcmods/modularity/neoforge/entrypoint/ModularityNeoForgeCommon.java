@@ -3,6 +3,8 @@ package lv.cebbys.mcmods.modularity.neoforge.entrypoint;
 import lv.cebbys.mcmods.modularity.anvil.entrypoint.*;
 import lv.cebbys.mcmods.modularity.anvil.ModularityAnvilServices;
 import lv.cebbys.mcmods.modularity.api.core.Loader;
+import lv.cebbys.mcmods.modularity.neoforge.detect.ModularityNeoForgePlatformSource;
+import lv.cebbys.mcmods.modularity.neoforge.detect.ModularityNeoForgeVersionSource;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeLoaderHooks;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeLoaderInfo;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeRenderData;
@@ -32,7 +34,7 @@ public final class ModularityNeoForgeCommon {
         EntryPoints.active("mod-constructor", Loader.NEOFORGE);
         NeoForgeLoaderHooks hooks = new NeoForgeLoaderHooks(modBus);
         ModularityAnvilServices services = new ModularityAnvilServices(new NeoForgeLoaderInfo(), new NeoForgeRenderData(),
-                new NeoForgeStorageBackend(modBus), hooks);
+                new NeoForgeStorageBackend(modBus), hooks, new ModularityNeoForgePlatformSource(), new ModularityNeoForgeVersionSource());
         ModularityAnvilLaunch.init(Loader.NEOFORGE, services);
         modBus.addListener((RegisterEvent event) -> {
             if (commonRan) {

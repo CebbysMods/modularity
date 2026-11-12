@@ -15,7 +15,7 @@ parent: modularity-km3b
 Add the Fabric Loader detection source to the shared loom layer and install it.
 
 Tasks:
-- [x] loom.detect.ModularityLoomVersionSource (ported from FabricVersionSource)
+- [x] loom.detect.ModularityLoomVersionSource (ported from ModularityFabricVersionSource)
 - [x] loom.detect.ModularityLoomPlatformSource (Fabric; reports QUILT through the QuiltLoader marker)
 - [x] LoomEntrypoints.common installs both before ModularityCommon.init
 - [x] platform.detect.DetectionLog: one [modularity] platform line

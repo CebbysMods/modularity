@@ -29,7 +29,7 @@ platform-setup refactor.
   - version-independent logic and the SPI (`VersionDetector`, `DetectedVersion`, `VersionSource`,
     `PlatformDetector`, `DetectedPlatform`, `PlatformSource`, marker-class and `version.json` sources) —
     plain Java, no Minecraft or loader dependency;
-  - loader-specific sources (`FabricVersionSource`, `FabricPlatformSource`, NeoForge/Forge equivalents) —
+  - loader-specific sources (`ModularityFabricVersionSource`, `ModularityFabricPlatformSource`, NeoForge/Forge equivalents) —
     compiled against that loader.
   Map both onto the layer stack (`platforms/minecraft/common`, `platforms/<loader>/common`,
   `versions/<version>`) and decide whether the pure part goes into `modularity-api` (currently

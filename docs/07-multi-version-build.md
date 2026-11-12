@@ -123,7 +123,7 @@ loader root holds only what names the loader itself:
 | Functionality | `loom` classes | Loader-root part |
 |---|---|---|
 | Lifecycle and entrypoints | `ModularityLoomCommon`, `ModularityLoomClient`, `ModularityLoomServer`, `ModularityLoomLaunch`, `ModularityLoomSeams` | the four one-line entrypoints of `fabric` and `quilt` |
-| Detection | `ModularityLoomClasses`, `ModularityLoomPlatformSource`, `ModularityLoomVersionSource` | none |
+| Detection | `ModularityLoomPlatformSource`, `ModularityLoomVersionSource` (they supply the Fabric Loader values) | `ModularityFabricPlatformSource`/`ModularityFabricVersionSource` and `ModularityQuiltPlatformSource`/`ModularityQuiltVersionSource`: `getLoader()` (the source name follows from it); the platform child also adds `getModContainerName()` |
 | Content registration | `ModularityLoomLoaderHooks`, `compat.BlockViews`, `compat.CreativeTabs` | none |
 | Networking | `compat.Payloads`, the payload methods of both hooks | none |
 | Storage | `ModularityLoomStorageBackend`, `ModularityLoomTankStorage`, `compat.Storages` | none |
@@ -138,7 +138,7 @@ every other area is in the loader roots:
 | Functionality | `anvil` classes | Loader-root part |
 |---|---|---|
 | Lifecycle and entrypoints | `ModularityAnvilLifecycle` (the stage order), `ModularityAnvilSeams` (the seam holder) | the `@Mod` classes of `neoforge` and `forge`, each with its own events |
-| Detection | `ModularityAnvilLoaderApi`, `ModularityAnvilPlatformSource`, `ModularityAnvilVersionSource` | none |
+| Detection | `ModularityAnvilPlatformSource`, `ModularityAnvilVersionSource` (they name no loader type) | `ModularityNeoForgePlatformSource`/`ModularityNeoForgeVersionSource` and `ModularityForgePlatformSource`/`ModularityForgeVersionSource`: each supplies the values its own FML reports |
 | Content registration | none | `NeoForgeLoaderHooks`, `ForgeLoaderHooks` |
 | Networking | none | `NeoForgePayloads`, `ForgePayloads`, the payload methods of both hook pairs |
 | Storage | none | `NeoForgeStorageBackend`, `ForgeStorageBackend` and their tank handlers |
@@ -252,9 +252,11 @@ shipped jar).
 
 Modularity detects the Minecraft version and the loader itself (docs/06). `api.detect` holds the
 detector, the source interface and the built-in sources; each loader layer holds its own source and
-installs it in the entrypoint. The detector runs the installed sources first and the built-in ones
-after them, and caches the first result. Each install point logs one line,
-`(<side>) platform <loader>:<loaderVersion>, minecraft:<version>`.
+installs it in the entrypoint. Each source implements `detect()` itself: the `loom` bases hold the Fabric Loader calls that Fabric
+and Quilt share, and the children in `fabric`, `quilt`, `neoforge` and `forge` hold the loader, the
+source name and the calls into their own loader API.
+The detector runs the installed sources first and the built-in ones after them, and caches the first
+result. Each install point logs one line, `(<side>) platform <loader>:<loaderVersion>, minecraft:<version>`.
 
 Detection uses explicit `install(...)` and not `ServiceLoader`, so it needs no service file. The jar has one
 service file, and it is not for detection: `META-INF/services/net.minecraftforge.forgespi.locating.IDependencyLocator`
@@ -430,7 +432,7 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | Final smoke run one platform per Gradle call (daemon stopped in between) instead of one `smokeAll` | On the 32 GB dev machine a single `smokeAll` was killed for low system memory; the per-platform `smoke` tasks are the same checks. CI runs one job per platform, each with one platform per Gradle call. |
 | Mod Menu in every platform's runs (`modmenu` per table entry, development only) | Shows the loaded mods, guest mods included, in every version; newest Mod Menu release per Minecraft version from Modrinth, checked on the Terraformers maven. |
 | Platforms keyed by loader and version (`fabric-21.1`); shared roots `minecraft` (Minecraft code) and `common` (non-Minecraft code), then the loader family (`loom`) and the loader | Most code is plain Minecraft code; version changes in it are made once for every loader. Code that is shared but names no Minecraft type (`EntryPoint`, the mod lifecycle, `Loaders`, `GuestDescriptor`) lives in `common`, so the split follows what a file depends on, not which loader happens to use it first. |
-| `loom` root for Fabric and Quilt; `anvil` root for NeoForge and Forge | Fabric API code that both Fabric and Quilt Loader run needs one home. `anvil` holds the Forge-family stage order (`ModularityAnvilLifecycle`), the seam holder (`ModularityAnvilSeams`) and the detection sources (`ModularityAnvilLoaderApi`). It names no loader type, because NeoForge and Forge publish their APIs in different packages; a file that needs one of them stays in `neoforge` or `forge`. |
+| `loom` root for Fabric and Quilt; `anvil` root for NeoForge and Forge | Fabric API code that both Fabric and Quilt Loader run needs one home. `anvil` holds the Forge-family stage order (`ModularityAnvilLifecycle`), the seam holder (`ModularityAnvilSeams`) and the detection bases (`AbstractModularityPlatformSource`, `AbstractModularityVersionSource`). It names no loader type, because NeoForge and Forge publish their APIs in different packages; a file that needs one of them stays in `neoforge` or `forge`. |
 | Quilt has its own class set, `quilt.mod.json`, entrypoints and mixin config in the universal jar | Full loader separation: Quilt Loader reads native metadata, not Fabric's; the universal jar carries `fabric.mod.json` and `quilt.mod.json` side by side. Quilt Loader 0.30.2 dispatches `main`/`client`/`server` to `ModInitializer`/`ClientModInitializer`/`DedicatedServerModInitializer` and `pre_launch` to `PreLaunchEntrypoint` (checked in the loader's sources), so the Quilt entrypoints reuse the same interfaces for the first three roles. |
 | Quilt uses Fabric API as its library; QSL is not used | QSL for 1.21.1 is alpha-only and discontinued, and it lacks transfer/fluid, item and entity lookups, client events and model loading. Quilt Loader provides the Fabric Loader API, so `loom` compiles once. |
 | The universal jar carries one full class set per loader, Quilt included | Real separation costs the duplicated shared `common`/`loom`/`minecraft` classes. Sharing the Fabric tree instead would leak Quilt overrides into Fabric. |
@@ -469,6 +471,7 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | A tank handler reads its fluid before it drains | `ForgeTankHandler` and `NeoForgeTankHandler` built the returned stack from `tank.nativeFluid()` after emptying the tank, and an empty tank holds `Fluids.EMPTY`, so the caller got an empty stack and reported `0 mB` although the fluid left. The run of 2026-11-12 showed the tank falling from 1000 to 0 with `bucket took 0 mB`. Both handlers now capture the fluid first. |
 | The Fabric item swap of a drain is a second transaction | On Quilt, `tank.nativeFluid().getBucket()` gave a blank variant and `ContainerItemContext.exchange` threw `Transfer variant may not be blank`; because the throw was inside the move transaction, the whole drain rolled back. The move now commits on its own, the swap is guarded, and water maps to `Items.WATER_BUCKET` without asking the fluid instance. |
 | Loader identity travels as the `Loader` enum, never as a string | `Loader` already existed in `api.core` for `Platform.loader()`, but every entrypoint passed `"fabric"`, `"quilt"`, `"neoforge"` or `"forge"` by hand through `EntryPoints`, `ModularityCommon`, `ModularityLaunch` and the `loom`/`anvil` stages. A string accepts a typo that only a run finds. `Loader.id()` gives the lower-case name for the log lines, so the logs stay the same. `LaunchContext.loader()` now returns the enum too. |
+| The platform base assembles `detect()`; the sources answer it | `AbstractModularityPlatformSource` holds the loader priority, 1000, and the `DetectedPlatform` assembly. `ModularityLoomPlatformSource`/`ModularityLoomVersionSource` hold the Fabric Loader calls that Fabric and Quilt share, so their children add `getLoader()` (the source name follows from it); the platform child also adds `getModContainerName()`. NeoForge and Forge share no type, so their four sources extend `ModularityAnvilPlatformSource`/`ModularityAnvilVersionSource`, which hold the source name, and call their own FML directly. The `classesExist()` gate is gone: each source is installed by its own loader, and the detector already moves on when a source throws. The split also deletes `ModularityAnvilLoaderApi` and its reflection, so a rename in one FML cannot pass unnoticed. Quilt reports `quilt`, Fabric `fabric`; the priorities and the `(<side>) platform …` line do not change. |
 | 21.1 move verified by jar diff | Every class in the 21.1 jar is byte-identical before and after the move; only `fabric.mod.json` (exact `minecraft`, `fabricloader >=0.20.1`) and the order of two client mixins changed. |
 | `assembleLayers` inputs are only `*/src/<set>/**` of the layers | `versions/<v>` is also the project dir; its `build/` and `run/` must not be inputs. |
 | Smoke tests built before the ports (goal step 7 moved before step 5) | Every port commit is verified with the same `smoke` task for that version and all earlier ones. |

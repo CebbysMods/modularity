@@ -9,7 +9,7 @@ updated_at: 2026-11-11T23:46:53Z
 parent: modularity-yrjc
 ---
 
-Files: `neoforge/detect/{NeoForgePlatformSource,NeoForgeVersionSource}.java`.
+Files: `neoforge/detect/{ModularityNeoForgePlatformSource,ModularityNeoForgeVersionSource}.java`.
 Work: audit against the Fabric reference; the version comes from `FMLLoader`, the platform from the NeoForge marker class.
 Check: the smoke log holds `platform neoforge:<version>, minecraft:<version>`.
 

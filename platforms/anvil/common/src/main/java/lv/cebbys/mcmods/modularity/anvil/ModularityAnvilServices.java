@@ -1,9 +1,9 @@
 package lv.cebbys.mcmods.modularity.anvil;
 
-import lv.cebbys.mcmods.modularity.anvil.detect.ModularityAnvilPlatformSource;
-import lv.cebbys.mcmods.modularity.anvil.detect.ModularityAnvilVersionSource;
 import lv.cebbys.mcmods.modularity.api.detect.PlatformDetector;
+import lv.cebbys.mcmods.modularity.api.detect.PlatformSource;
 import lv.cebbys.mcmods.modularity.api.detect.VersionDetector;
+import lv.cebbys.mcmods.modularity.api.detect.VersionSource;
 import lv.cebbys.mcmods.modularity.platform.loader.LoaderHooks;
 import lv.cebbys.mcmods.modularity.platform.loader.LoaderInfo;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
@@ -18,13 +18,15 @@ import java.util.Objects;
  * them through {@link #install()}.
  */
 public record ModularityAnvilServices(LoaderInfo info, RenderDataAccess renderData, StorageBackend storage,
-                                      LoaderHooks hooks) {
+                                      LoaderHooks hooks, PlatformSource platformSource, VersionSource versionSource) {
 
     public ModularityAnvilServices {
         Objects.requireNonNull(info, "info");
         Objects.requireNonNull(renderData, "renderData");
         Objects.requireNonNull(storage, "storage");
         Objects.requireNonNull(hooks, "hooks");
+        Objects.requireNonNull(platformSource, "platformSource");
+        Objects.requireNonNull(versionSource, "versionSource");
     }
 
     /**
@@ -32,8 +34,8 @@ public record ModularityAnvilServices(LoaderInfo info, RenderDataAccess renderDa
      * installed by the client stage. A second call is harmless.
      */
     public void install() {
-        VersionDetector.install(new ModularityAnvilVersionSource());
-        PlatformDetector.install(new ModularityAnvilPlatformSource());
+        VersionDetector.install(versionSource);
+        PlatformDetector.install(platformSource);
         Loaders.install(info, renderData, storage, hooks);
     }
 }

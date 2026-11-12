@@ -3,6 +3,8 @@ package lv.cebbys.mcmods.modularity.forge;
 import lv.cebbys.mcmods.modularity.anvil.entrypoint.*;
 import lv.cebbys.mcmods.modularity.anvil.ModularityAnvilServices;
 import lv.cebbys.mcmods.modularity.api.core.Loader;
+import lv.cebbys.mcmods.modularity.forge.detect.ModularityForgePlatformSource;
+import lv.cebbys.mcmods.modularity.forge.detect.ModularityForgeVersionSource;
 import lv.cebbys.mcmods.modularity.forge.entrypoint.ModularityForgeClient;
 import lv.cebbys.mcmods.modularity.forge.entrypoint.ModularityForgeServer;
 import lv.cebbys.mcmods.modularity.forge.loader.ForgeLoaderHooks;
@@ -38,7 +40,7 @@ public final class ModularityForge {
         EntryPoints.active("mod-constructor", Loader.FORGE);
         ForgeLoaderHooks hooks = new ForgeLoaderHooks(modBus);
         ModularityAnvilServices services = new ModularityAnvilServices(new ForgeLoaderInfo(), new ForgeRenderData(),
-                new ForgeStorageBackend(), hooks);
+                new ForgeStorageBackend(), hooks, new ModularityForgePlatformSource(), new ModularityForgeVersionSource());
         ModularityAnvilLaunch.init(Loader.FORGE, services);
         modBus.addListener((RegisterEvent event) -> {
             if (commonRan) {

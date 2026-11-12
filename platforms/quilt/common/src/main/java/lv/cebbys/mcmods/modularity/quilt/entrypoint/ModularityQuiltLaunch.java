@@ -4,6 +4,8 @@ import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.loom.entrypoint.ModularityLoomLaunch;
 import lv.cebbys.mcmods.modularity.loom.guest.GuestCandidates;
 import lv.cebbys.mcmods.modularity.platform.guest.GuestDescriptor;
+import lv.cebbys.mcmods.modularity.quilt.detect.ModularityQuiltPlatformSource;
+import lv.cebbys.mcmods.modularity.quilt.detect.ModularityQuiltVersionSource;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import org.slf4j.Logger;
@@ -20,7 +22,7 @@ public final class ModularityQuiltLaunch implements PreLaunchEntrypoint {
 
     @Override
     public void onPreLaunch(ModContainer mod) {
-        ModularityLoomLaunch.init(Loader.QUILT);
+        ModularityLoomLaunch.init(Loader.QUILT, new ModularityQuiltPlatformSource(), new ModularityQuiltVersionSource());
         List<GuestDescriptor> guests = GuestCandidates.find();
         if (!guests.isEmpty()) {
             // LoaderInjection uses Fabric Loader internals, which Quilt Loader does not have (docs/08).

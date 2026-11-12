@@ -11,7 +11,7 @@ public interface PlatformSource {
     /** Higher runs first. Loader sources use 1000, marker classes 0. */
     int priority();
 
-    /** Short name shown in logs and errors, e.g. {@code fabric-loader}. */
+    /** Short name shown in logs and errors: the loader id, e.g. {@code fabric}. */
     String name();
 
     /**

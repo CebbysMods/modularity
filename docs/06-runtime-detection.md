@@ -9,15 +9,21 @@ Modularity itself, in `modularity-api`; no separate detector mod is needed.
 |---|---|---|
 | `modularity-api` | `api.core` | `Version`, `MinecraftVersion`, `PlatformVersion`, `Loader`, `Side` |
 | `modularity-api` | `api.detect` | `VersionDetector`, `PlatformDetector`, the source interfaces, `DetectedPlatform`, the built-in sources and the exceptions |
-| `platforms/loom` | `loom.detect` | `ModularityLoomVersionSource`, `ModularityLoomPlatformSource` (Fabric Loader API; Quilt Loader provides it) |
-| `platforms/anvil` | `anvil.detect` | `ModularityAnvilVersionSource`, `ModularityAnvilPlatformSource` (both loaders) |
-| `platforms/common` | `platform.detect` | `DetectionLog` — one log line, called by every loader entrypoint |
+| `platforms/loom` | `loom.detect` | `ModularityLoomPlatformSource`, `ModularityLoomVersionSource` — the Fabric Loader calls both Loom loaders share; they implement `detect()` |
+| `platforms/fabric`, `platforms/quilt` | `fabric.detect`, `quilt.detect` | `ModularityFabricPlatformSource`/`ModularityFabricVersionSource`, `ModularityQuiltPlatformSource`/`ModularityQuiltVersionSource` — the loader, the source name and the version container |
+| `platforms/anvil` | `anvil.detect` | `ModularityAnvilPlatformSource`, `ModularityAnvilVersionSource` — the `DetectedPlatform` assembly and the source name both Forge-family loaders share; they name no loader type |
+| `platforms/neoforge`, `platforms/forge` | `neoforge.detect`, `forge.detect` | `ModularityNeoForgePlatformSource`/`ModularityNeoForgeVersionSource`, `ModularityForgePlatformSource`/`ModularityForgeVersionSource` — each supplies the values its own FML reports |
+| `platforms/common` | `platform.detect` | `AbstractModularityPlatformSource` — the loader priority and the `detect()` assembly; `AbstractModularityVersionSource` — the loader priority and the version parse; `DetectionLog` — one log line, called by every loader entrypoint |
 
 `api.detect` depends on `java.*` only. It ships inside the nested `modularity-api` jar, which the
 universal jar does not relocate. A loader source lives in its loader's layer root and references only
-`api.detect` types and its own loader API. `platforms/anvil` reaches the Forge-family loader by
-reflection, because NeoForge and Forge publish the same classes under different packages, so one source
-serves both.
+`api.detect` types and its own loader API.
+
+`AbstractModularityPlatformSource` assembles `detect()`; a source answers loader, version, side and
+development from its own loader API. Fabric and Quilt share the calls into the Fabric Loader API, so
+`ModularityLoomPlatformSource` and `ModularityLoomVersionSource` hold them; every `loom` source adds `getLoader()`,
+and the platform source also adds `getModContainerName()`. NeoForge and Forge share no type, so their four sources extend the `anvil`
+bases, which hold only the source name, and read their own FML.
 
 ## 6.2 Version model
 
@@ -80,7 +86,7 @@ Sources in priority order:
 
 | Priority | Source | Where | Result |
 |---|---|---|---|
-| 1000 | loader source | `loom`, `neoforge`, `forge` | Minecraft version, loader version, side, development flag |
+| 1000 | loader source | `loom` base with the child in `fabric`/`quilt`, or the child in `neoforge`/`forge` | Minecraft version, loader version, side, development flag |
 | 100 | `version-json` | `api.detect` | Minecraft version from `version.json` of the game jar |
 | 0 | `reflection` | `api.detect` | Minecraft version from `SharedConstants` or `DetectedVersion`; Mojang names only |
 | 0 | `marker-classes` | `api.detect` | Loader from a present entry class, Quilt before Fabric, then NeoForge and Forge; no version, no side |
@@ -89,10 +95,10 @@ Sources in priority order:
 
 | Loader | Install point |
 |---|---|
-| Fabric | `ModularityLoomCommon.init("fabric")`, before `ModularityCommon.init` |
-| Quilt | `ModularityLoomCommon.init("quilt")` — same code path, `ModularityLoomPlatformSource` reports `QUILT` |
-| NeoForge | `ModularityNeoForgeCommon` constructor |
-| Forge | `ModularityForge` constructor |
+| Fabric | `ModularityLoomCommon.init(Loader.FABRIC, new ModularityFabricPlatformSource(), new ModularityFabricVersionSource())`, before `ModularityCommon.init`; the launch stage passes the same sources |
+| Quilt | `ModularityLoomCommon.init(Loader.QUILT, new ModularityQuiltPlatformSource(), new ModularityQuiltVersionSource())` — same code path; the Quilt sources report `quilt` |
+| NeoForge | `ModularityNeoForgeCommon` constructor, through `ModularityAnvilServices` with `ModularityNeoForgePlatformSource` and `ModularityNeoForgeVersionSource` |
+| Forge | `ModularityForge` constructor, through `ModularityAnvilServices` with `ModularityForgePlatformSource` and `ModularityForgeVersionSource` |
 
 Each install point then calls `DetectionLog.log()`, which writes one line:
 
