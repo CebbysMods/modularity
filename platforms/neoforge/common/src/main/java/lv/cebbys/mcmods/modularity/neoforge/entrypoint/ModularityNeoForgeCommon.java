@@ -1,46 +1,50 @@
 package lv.cebbys.mcmods.modularity.neoforge.entrypoint;
 
-import lv.cebbys.mcmods.modularity.api.detect.PlatformDetector;
-import lv.cebbys.mcmods.modularity.api.detect.VersionDetector;
-import lv.cebbys.mcmods.modularity.neoforge.detect.NeoForgePlatformSource;
-import lv.cebbys.mcmods.modularity.neoforge.detect.NeoForgeVersionSource;
+import lv.cebbys.mcmods.modularity.anvil.entrypoint.*;
+import lv.cebbys.mcmods.modularity.anvil.ModularityAnvilServices;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeLoaderHooks;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeLoaderInfo;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeRenderData;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeStorageBackend;
-import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
-import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
-import lv.cebbys.mcmods.modularity.platform.compat.SyncedData;
-import lv.cebbys.mcmods.modularity.platform.detect.DetectionLog;
-import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Common NeoForge entrypoint of Modularity. NeoForge constructs this class on both sides; the client and server
- * classes, selected by {@code dist}, run their own init. The constructor installs the seams and registers the
- * common setup listener. The init itself runs in {@code enqueueWork}, on the main thread after the parallel phase.
+ * classes, selected by {@code dist}, run their own init. The constructor runs the detection and the launch stage, and
+ * the common stage runs on the first {@link RegisterEvent}: NeoForge freezes the vanilla registries at the end of mod
+ * construction and unfreezes them only for the {@code RegisterEvent} pass, so a value that is constructed eagerly (a
+ * {@code Block}, for example) throws "Registry is already frozen" in {@code NewRegistryEvent}, which is posted before
+ * {@code GameData.unfreezeData}. The event fires after every mod is constructed, so a dependent mod can still register
+ * itself in its own constructor.
  */
 @Mod("modularity")
 public final class ModularityNeoForgeCommon {
     private static final Logger LOGGER = LoggerFactory.getLogger("modularity");
+    private boolean commonRan;
 
     public ModularityNeoForgeCommon(IEventBus modBus) {
-        VersionDetector.install(new NeoForgeVersionSource());
-        PlatformDetector.install(new NeoForgePlatformSource());
-        EntryPoints.active("mod-constructor", "neoforge");
-        Loaders.install(new NeoForgeLoaderInfo(), new NeoForgeRenderData(),
-                new NeoForgeStorageBackend(), new NeoForgeLoaderHooks());
-        modBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
-            EntryPoints.active(EntryPoint.COMMON, "neoforge");
-            SyncedData.init();
-            DetectionLog.log();
-            ModularityCommon.init("neoforge");
-        }));
+                EntryPoints.active("mod-constructor", "neoforge");
+        NeoForgeLoaderHooks hooks = new NeoForgeLoaderHooks(modBus);
+        ModularityAnvilServices services = new ModularityAnvilServices(new NeoForgeLoaderInfo(), new NeoForgeRenderData(),
+                new NeoForgeStorageBackend(modBus), hooks);
+        ModularityAnvilLaunch.init("neoforge", services);
+        modBus.addListener((RegisterEvent event) -> {
+            if (commonRan) {
+                return;
+            }
+            commonRan = true;
+            ModularityAnvilLaunch.initMods("neoforge");
+            ModularityAnvilCommon.init("neoforge", services);
+            hooks.replay(event);
+            // NeoForge posts its client registration events before its setup events, so the client stage runs here,
+            // where the registries hold the values of the common stage (7.8).
+            ModularityAnvilClient.runPending("neoforge");
+        });
         LOGGER.info("NeoForge platform loaded");
     }
 }
