@@ -9,7 +9,7 @@ tags:
     - architecture
     - jar
 created_at: 2026-11-08T19:47:53Z
-updated_at: 2026-11-08T19:47:53Z
+updated_at: 2026-11-11T23:47:20Z
 ---
 
 Goal: `:platforms:<version>:build` produces one artifact, `modularity-1.21.1-<modversion>.jar`, loadable by Fabric,
@@ -44,3 +44,12 @@ Scope narrowed 2026-11-08: parchment (bean 2a9k) and assembling the single jar n
 - [x] `:platforms:21.1:build` leaves exactly one jar in platforms/versions/21.1/build/libs, named
       modularity-1.21.1-<modversion>.jar
 - [ ] It loads and initializes Modularity on Fabric, Quilt, Forge and NeoForge 1.21.1
+
+## Note, 2026-11-12
+
+`:platforms:21.1:jar` ran and passed (BUILD SUCCESSFUL in 2s). The artifact is
+`platforms/versions/21.1/build/libs/modularity-1.21.1-0.1.0-SNAPSHOT.jar`, 1,141,046 bytes. It holds the
+five metadata files, the four mixin configs, both nested-API routes and relocated entrypoint packages.
+This proves packaging only. The second acceptance box stays open: no run starts the game from the jar
+(`modularity-xbj0`), and every smoke loads from a classes directory with `nested=no`. Details in docs/07
+§7.10 and `PORT-REVIEW.md`.
