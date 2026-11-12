@@ -32,7 +32,7 @@ decision text still describes the old behaviour.
 ## Changes
 
 1. **Extract the selector and test it.** Add
-   `build-logic/src/main/java/lv/cebbys/modularity/gradle/PlatformSelection.java` with
+   `modularity-gradle/src/main/java/lv/cebbys/modularity/gradle/PlatformSelection.java` with
    `static List<PlatformTable.Platform> select(PlatformTable table, String value)`. Move the body of
    `ModularitySettingsPlugin.apply` (lines 36–55) into it unchanged: `none` gives an empty list,
    `all` gives `table.enabled()`, and any other value is a comma list of `<loader>-<name>` ids or bare
@@ -41,7 +41,7 @@ decision text still describes the old behaviour.
    behaviour does not change. Improve the error message while moving it: it must name the accepted
    form and the known ids and versions, not only `(see gradle/platforms.toml)`.
 2. **Test the selector.** Add
-   `build-logic/src/test/java/lv/cebbys/modularity/gradle/PlatformSelectionTest.java`, in the style of
+   `modularity-gradle/src/test/java/lv/cebbys/modularity/gradle/PlatformSelectionTest.java`, in the style of
    `LayersTest` (plain JUnit 5, no Gradle runner). Build the fixture with `PlatformTable.parse(...)`
    from a small inline TOML string, as `TableAndMetadataTest` already does; no file writes. Cases:
    `all` gives only `enabled` rows; `none` gives empty; `fabric-21.1` gives one platform; `21.1`
@@ -70,7 +70,7 @@ notes.
 ## Verification (run only on request)
 
 ````
-./gradlew -p build-logic test
+./gradlew -p modularity-gradle test
 ./gradlew -Pmodularity.platforms=21.1 buildAll
 ./gradlew -Pmodularity.platforms=21.1 smokeAll --continue
 ````

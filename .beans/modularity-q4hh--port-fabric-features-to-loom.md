@@ -17,7 +17,7 @@ Branch: `feature/port-loom`.
 
 Steps: one task per functionality area — mod lifecycle and entrypoints; detection; content registration; networking; storage; client; mixins; guest mods; verification.
 
-Exit check: the `loom` audit table in docs/07 §7.3 marks each area as implemented in `loom`, and `-p build-logic test` plus the 21.1 Fabric smoke pass. Gradle runs wait for the owner's word.
+Exit check: the `loom` audit table in docs/07 §7.3 marks each area as implemented in `loom`, and `-p modularity-gradle test` plus the 21.1 Fabric smoke pass. Gradle runs wait for the owner's word.
 
 2026-11-10: stage opened on branch `feature/port-loom`. Task beans: `modularity-pnv1` lifecycle, `modularity-xt51` detection, `modularity-8yym` registration, `modularity-7kd6` networking, `modularity-dgzs` storage, `modularity-dga9` client, `modularity-bggb` mixins, `modularity-p999` guests, `modularity-l2mx` verification. The audit table is in docs/07 §7.2.
 

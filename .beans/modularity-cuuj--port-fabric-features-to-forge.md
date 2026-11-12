@@ -21,7 +21,7 @@ Stage 5 state, 2026-11-11: the Forge sources are in the tree and `javac --releas
 
 
 
-Stage 5 state, 2026-11-11 (run): `./gradlew -p build-logic test` passes, and the Forge server and client smokes pass for `:platforms:21.1:21.1-forge` (`(server)/(client) platform forge:52.1.21, minecraft:1.21.1`, world join and screenshot on the client). The lifecycle, detection, registration, networking, storage and client seams are therefore proven in a development run. Still open: Forge mixins (`modularity-6rm0`, no declaration route yet), dynamic block models in a rendered frame (`modularity-hcru`), the shipped jar and its jar-in-jar load (`nested=no` in every dev run), and `allureAggregateReport`.
+Stage 5 state, 2026-11-11 (run): `./gradlew -p modularity-gradle test` passes, and the Forge server and client smokes pass for `:platforms:21.1:21.1-forge` (`(server)/(client) platform forge:52.1.21, minecraft:1.21.1`, world join and screenshot on the client). The lifecycle, detection, registration, networking, storage and client seams are therefore proven in a development run. Still open: Forge mixins (`modularity-6rm0`, no declaration route yet), dynamic block models in a rendered frame (`modularity-hcru`), the shipped jar and its jar-in-jar load (`nested=no` in every dev run), and `allureAggregateReport`.
 
 
 New blocker, 2026-11-11: `modularity-4uol`. A dependent mod cannot register on this loader family, because
@@ -40,7 +40,7 @@ Decision 2026-11-12: Forge mixins are a stated limit, not an open task. PR-13 no
 
 ## Closed by the run of 2026-11-12
 
-`./gradlew -p build-logic test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
+`./gradlew -p modularity-gradle test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
 every server and client log holds both `Smoke features:` lines with `present=true`, so a block, an item and
 a payload channel registered through the API resolve on both sides. The first pass failed on NeoForge and
 Forge with `Registry is already frozen`: `NewRegistryEvent` precedes `GameData.unfreezeData`. The common

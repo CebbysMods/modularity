@@ -19,4 +19,4 @@ Status: done in the working tree.
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `AGENTS.md`, `docs/07` and `docs/08` name `modularity-smoke`.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `AGENTS.md`, `docs/07` and `docs/08` name `modularity-smoke`.

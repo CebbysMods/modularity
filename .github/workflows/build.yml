@@ -78,7 +78,7 @@ jobs:
       - name: Plugin and build-contract tests
         id: tests-logic
         continue-on-error: true
-        run: ./gradlew -p build-logic test --continue
+        run: ./gradlew -p modularity-gradle test --continue
       # Runs even when a test task failed: the report is what names the failure.
       - name: Write the report
         if: always()

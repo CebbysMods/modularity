@@ -21,12 +21,12 @@ formatting rules are configured once, in the build, rather than per editor.
   (AOSP vs Google vs Palantir vs Eclipse style knobs: indent, line length, import order, javadoc), and how it
   handles a project with no formatter config yet (one-off reformat diff).
 - Check that every candidate supports the layout here: a multi-project build plus the included build
-  `build-logic`, sources that are *generated or copied* (`build/layered`, `build/generated`, `tools/smoke`
+  `modularity-gradle`, sources that are *generated or copied* (`build/layered`, `build/generated`, `tools/smoke`
   layers) must be excluded, and version parents/`platforms` have no sources of their own.
 
 ## Implementation
-- Configure the chosen plugin in the build-logic convention plugins so every Java project (modules,
-  utilities, platforms, smoke, `build-logic` itself) is covered with one config.
+- Configure the chosen plugin in the modularity-gradle convention plugins so every Java project (modules,
+  utilities, platforms, smoke, `modularity-gradle` itself) is covered with one config.
 - Tasks: a `format`/`spotlessApply`-style task per project and an aggregate root task; a `check`-bound verify
   task that fails on unformatted code.
 - CI: run the verify task in the existing workflow(s) once the tree is reformatted, so the first green run is

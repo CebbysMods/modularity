@@ -39,4 +39,4 @@ Platform projects now live under one parent per Minecraft version: `:platforms:2
 
 `PlatformTable` gained `projectName()`, `parentPath()`, `parentDir()`, `platformByProjectName()` and `parentPaths()`. A new `ModularityVersionPlugin` adds `compileAll`, `build`, `smoke` and `genSources` to each parent; tasks a child lacks (NeoForge/Forge `genSources`) are skipped.
 
-Verified with `./gradlew projects`, dry-runs of all aggregates, `:platforms:21.1:compileAll`, and `./gradlew -p build-logic test`.
+Verified with `./gradlew projects`, dry-runs of all aggregates, `:platforms:21.1:compileAll`, and `./gradlew -p modularity-gradle test`.

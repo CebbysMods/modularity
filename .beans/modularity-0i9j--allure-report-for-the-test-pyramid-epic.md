@@ -17,7 +17,7 @@ Plan: C:\Users\valen\.claude-ollama\plans\serene-puzzling-otter.md
 
 Stages (child beans):
 1. S1 L1 unit tests: root wiring, modularity-api, modularity-testkit
-2. S2 L2 build contract: build-logic adapter, included-build bridge
+2. S2 L2 build contract: modularity-gradle adapter, included-build bridge
 3. S3 L3 in-game smoke: writer and task plumbing, one bean per platform, CI
 4. S4 L4 production jar: blocked by modularity-xbj0
 

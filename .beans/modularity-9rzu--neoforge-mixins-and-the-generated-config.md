@@ -29,4 +29,4 @@ The remaining open part is the shipped jar: every dev run reports `nested=no`, s
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The NeoForge log holds no mixin error. The shipped-jar half of the mixin area is `modularity-xbj0`.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The NeoForge log holds no mixin error. The shipped-jar half of the mixin area is `modularity-xbj0`.

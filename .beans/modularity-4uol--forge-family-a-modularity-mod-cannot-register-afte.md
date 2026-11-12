@@ -90,7 +90,7 @@ Forge smokes still pass. The closing command is `./gradlew -Pmodularity.platform
 
 ## The run of 2026-11-12 disproved the first fix
 
-The owner authorized the full pass. `-p build-logic test` passed (50 tests). Of the eight 21.1 smokes,
+The owner authorized the full pass. `-p modularity-gradle test` passed (50 tests). Of the eight 21.1 smokes,
 Fabric and Quilt passed and logged both `Smoke features:` lines, including `resolved client block=modularity_smoke:feature_block present=true`.
 NeoForge and Forge failed the check: `missing log line /Smoke features: declared .../`.
 

@@ -29,7 +29,7 @@ payload types queued in that stage register on NeoForge.
 
 ## Closed by the run of 2026-11-12
 
-`./gradlew -p build-logic test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
+`./gradlew -p modularity-gradle test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
 every server and client log holds both `Smoke features:` lines with `present=true`, so a block, an item and
 a payload channel registered through the API resolve on both sides. The first pass failed on NeoForge and
 Forge with `Registry is already frozen`: `NewRegistryEvent` precedes `GameData.unfreezeData`. The common
@@ -38,4 +38,4 @@ Recorded in docs/07 7.6, 7.8 and 7.10, TODO-NOW, PORT-REVIEW and bean `modularit
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The NeoForge log holds both `Smoke features:` lines with `present=true`.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The NeoForge log holds both `Smoke features:` lines with `present=true`.

@@ -2,7 +2,7 @@ package lv.cebbys.modularity.gradle.allure;
 
 /**
  * Values of the Allure labels of the L2 build-contract tests (docs/07, 7.11). This is the copy for the included
- * build: {@code build-logic} cannot read the test fixtures of {@code modularity-api}, so the values it uses are
+ * build: {@code modularity-gradle} cannot read the test fixtures of {@code modularity-api}, so the values it uses are
  * declared here. The values must match {@code ModularityAllureConstants}, or the two layers split in the report.
  *
  * <p>The report tree has four levels: epic, feature, story and functionality. The story is the concern. The

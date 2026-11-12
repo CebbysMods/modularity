@@ -33,4 +33,4 @@ The eight smokes of the final 2026-11-11 pass run with the strengthened `SmokeCh
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The NeoForge log holds the launch, common and side stage lines.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The NeoForge log holds the launch, common and side stage lines.

@@ -11,9 +11,9 @@ updated_at: 2026-11-10T20:54:39Z
 parent: modularity-0i9j
 ---
 
-Stage 2: the included build `build-logic` writes Allure results and the root report reads them.
+Stage 2: the included build `modularity-gradle` writes Allure results and the root report reads them.
 
-Child beans: build-logic adapter and labels; the included-build bridge.
+Child beans: modularity-gradle adapter and labels; the included-build bridge.
 
 Starts only after the owner approves S1.
 

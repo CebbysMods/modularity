@@ -33,7 +33,7 @@ Scope narrowed 2026-11-08: parchment (bean 2a9k) and assembling the single jar n
   modularity-vk1z
 
 ## Work
-- [x] UniversalJarTask in build-logic: merge the platform jars, ASM-relocate each class set, rewrite mixin configs,
+- [x] UniversalJarTask in modularity-gradle: merge the platform jars, ASM-relocate each class set, rewrite mixin configs,
       merge metadata + nested jars; output build/libs/modularity-<minecraft>-<version>.jar
 - [x] Replace collectJars at the version parent; root collectJars/buildAll pick up the universal jar
 - [ ] Spike: Forge and NeoForge both scan the jar for @Mod("modularity"); confirm duplicate entry classes are

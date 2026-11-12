@@ -18,7 +18,7 @@ plugin calls `Mixins.addConfiguration` with the Forge part's relocated config na
 one-universal-jar shape for Forge and it is unproven: no evidence shows that ModLauncher finds a
 `ILaunchPluginService` inside a nested jar, or that Mixin applies a config registered that late.
 
-Files: `build-logic/.../UniversalJar.java` (the nested artifact and its manifest), a Forge launch plugin
+Files: `modularity-gradle/.../UniversalJar.java` (the nested artifact and its manifest), a Forge launch plugin
 in `platforms/forge`, `gradle/platforms.toml` only if a new jar task is needed.
 Check: the Forge smoke log shows `Mixing` lines for Modularity's targets, and the jar still loads on
 Fabric, Quilt and NeoForge unchanged.

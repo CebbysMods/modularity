@@ -17,4 +17,4 @@ Implement LoaderInfo for Forge: side from FMLEnvironment.dist, loaded mods and v
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `ForgeLoaderInfo` is in the tree and the Forge detection line is in the log.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `ForgeLoaderInfo` is in the tree and the Forge detection line is in the log.

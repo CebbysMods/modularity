@@ -23,7 +23,7 @@ Design plan: `C:\Users\valen\.claude-ollama\plans\serene-puzzling-otter.md`.
 ## Scope
 - Fix the universal jar's API relocation bug found while designing this (blocks everything else).
 - Add `[modularity] entrypoint <name> active (<loader>)` logging to every entry point.
-- Hand-rolled launcher in build-logic: vanilla install from Mojang's manifest, loader installers, `inheritsFrom`
+- Hand-rolled launcher in modularity-gradle: vanilla install from Mojang's manifest, loader installers, `inheritsFrom`
   merge, rules/placeholders, natives, classpath, cached flat world, process management.
 - `smokeJarClient` / `smokeJar` / `smokeJars` Gradle tasks and a CI job.
 

@@ -40,4 +40,4 @@ runtime checks pass. Gradle tasks were not run (not requested).
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `MinecraftRuntime` is switched, `utilities/` is gone and the docs describe one mod.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `MinecraftRuntime` is switched, `utilities/` is gone and the docs describe one mod.

@@ -18,4 +18,4 @@ In the tree: the detection sources moved to `anvil` (`ModularityAnvilLoaderApi`,
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The NeoForge log holds `(...) platform neoforge:21.1.265, minecraft:1.21.1`.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The NeoForge log holds `(...) platform neoforge:21.1.265, minecraft:1.21.1`.

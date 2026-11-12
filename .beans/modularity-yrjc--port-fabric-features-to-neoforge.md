@@ -33,7 +33,7 @@ smoke covers this family too. No run has proved it yet.
 
 ## Closed by the run of 2026-11-12
 
-`./gradlew -p build-logic test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
+`./gradlew -p modularity-gradle test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
 every server and client log holds both `Smoke features:` lines with `present=true`, so a block, an item and
 a payload channel registered through the API resolve on both sides. The first pass failed on NeoForge and
 Forge with `Registry is already frozen`: `NewRegistryEvent` precedes `GameData.unfreezeData`. The common

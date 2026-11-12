@@ -31,4 +31,4 @@ Risks are tracked in TODO-NOW.md.
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p build-logic test`, the eight 21.1 smokes, docs/07 7.10). The module is in `settings.gradle` and every smoke assembles from it.
+Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p modularity-gradle test`, the eight 21.1 smokes, docs/07 7.10). The module is in `settings.gradle` and every smoke assembles from it.

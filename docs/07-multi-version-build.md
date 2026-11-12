@@ -3,7 +3,7 @@
 Modularity ships one Fabric platform jar per Minecraft version, from 1.21.1 to the latest stable
 release. The code is written once and layered: Fabric code common to every version, then only the
 changes per version range, then the few details of a single version. Our own Gradle plugin
-(`lv.cebbys.modularity`, in `build-logic/`) assembles every platform from these layers.
+(`lv.cebbys.modularity`, in `modularity-gradle/`) assembles every platform from these layers.
 
 ## 7.1 Versions
 
@@ -37,7 +37,7 @@ Fabric Loader: 0.20.1 (latest stable) for every platform.
 
 ```
 gradle/platforms.toml                      version table: one entry per loader and Minecraft version
-build-logic/                               included build: the lv.cebbys.modularity plugins
+modularity-gradle/                               included build: the lv.cebbys.modularity plugins
 platforms/
   minecraft/                               plain Minecraft code shared by every loader (see 7.3), package
                                            lv.cebbys.mcmods.modularity.platform: runtime, blocks, entities,
@@ -130,7 +130,7 @@ loader root holds only what names the loader itself:
 | Client | `ModularityLoomClientHooks`, `HudHook`, `DynamicBakedModel`, `DynamicUnbakedModel`, `ObjModelReloadListener`, `compat.KeyMappings` | none |
 | Mixins | the mixin sources of `minecraft/mixin` and the config the build generates | the metadata of the loader |
 | Guest mods | `guest.GuestCandidates` | `fabric/guest/FabricGuestJson` and `LoaderInjection` (Fabric Loader internals) |
-| Verification | the smoke setup and task of `build-logic` | the platform's `smokeServer` and `smokeClient` |
+| Verification | the smoke setup and task of `modularity-gradle` | the platform's `smokeServer` and `smokeClient` |
 
 Forge-family audit (stages 3 to 5 of the port programme). Only what both loaders can share lives in `anvil`;
 every other area is in the loader roots:
@@ -170,7 +170,7 @@ form. Never copy common code into a version folder.
 
 ## 7.4 Plugin responsibilities
 
-Two plugins in `build-logic/`:
+Two plugins in `modularity-gradle/`:
 
 * `lv.cebbys.modularity.settings` (settings plugin): reads `gradle/platforms.toml`, includes one parent
   project per Minecraft version, `:platforms:<version>` (dir `platforms/versions/<version>`), and one
@@ -454,7 +454,7 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 | NeoForge/Forge: the client stage runs at the end of the common stage, inside the first `RegisterEvent`, and a client registration keeps an id that the loader resolves in its own event | NeoForge and Forge post `EntityRenderersEvent.RegisterRenderers`, `RegisterKeyMappingsEvent`, `RegisterClientReloadListenersEvent` and Forge's `AddGuiOverlayLayersEvent` from `ClientHooks.initClientHooks` while `Minecraft` is constructed. `CommonModLoader.load` posts `FMLCommonSetupEvent` and `FMLClientSetupEvent` later, during the first resource reload, so a client stage on `FMLClientSetupEvent` adds its listeners after those events have fired: the smoke run of 2026-11-12 crashed with `NullPointerException … "entityrenderer" is null` at `EntityRenderDispatcher.shouldRender`. No Forge-family event exists between the end of the registry pass and the client hooks, so the client stage must run inside the registry pass. The block and entity registries are not readable there, so `ClientHooks.blockModels` and `ClientHooks.entityRenderer` take an id and the loader resolves the block or the entity type when its own event fires; `ClientRegistry` keys its tables by id for the same reason. A mod's client stage therefore sees the registrations of the pass up to that point, as the common stage already does, and the smoke resolves its block on the first client tick. |
 | NeoForge/Forge utility mods: the bundled core is not also a runtime dependency | Both load mods as Java modules; the core's package may come from one module only (Forge refused the split package). |
 | Forge smoke "nested" check by jar path (`META-INF/jarjar/`) | Forge's mod file API names no parent file (NeoForge's does). |
-| `build-logic` compiled for Java 25 | Loom 1.19.3 is published as Java 25 bytecode, so plugins depending on it must be too. |
+| `modularity-gradle` compiled for Java 25 | Loom 1.19.3 is published as Java 25 bytecode, so plugins depending on it must be too. |
 | Mixin config `compatibilityLevel` JAVA_21 for every platform | The mixins use no newer language features; one value every shipped Mixin knows. |
 | Mixins listed from `@Mixin` classes in the assembled sources, `client.*` under `client` | A version layer can add or remove a mixin without editing a config. |
 | Mixin names sorted as strings | Windows sorts paths case-insensitively; the generated config must be identical on every OS. |
@@ -581,7 +581,7 @@ Smoke log lines (`build/smoke/{server,client}.txt`):
 
 ### Re-run after the mvd/mpd merge (2026-11-10)
 
-`./gradlew -p build-logic test` passes: 46 tests, no failure, including the seven `SmokeCheck` tests
+`./gradlew -p modularity-gradle test` passes: 46 tests, no failure, including the seven `SmokeCheck` tests
 that expect the capital-letter log lines.
 
 `./gradlew -Pmodularity.platforms=quilt-21.1 :platforms:21.1:21.1-quilt:smokeServer` passes. The Quilt
@@ -606,7 +606,7 @@ in `platforms/*/versions/21.1/build/libs` now carry the current metadata.
 
 ### Re-run of the four loaders, 21.1 (2026-11-11)
 
-`./gradlew -p build-logic test` passes. It ran before the `SmokeCheck` change below; the smoke tasks of
+`./gradlew -p modularity-gradle test` passes. It ran before the `SmokeCheck` change below; the smoke tasks of
 the final pass compile the changed check, and its tests were checked with `javac` and a plain runner,
 not by a second Gradle test run.
 
@@ -646,7 +646,7 @@ with the first `RegisterEvent` (7.8); the two runs are the record of that change
 
 ### Runs of 2026-11-12: the feature smoke and the dispatch point
 
-`./gradlew -p build-logic test` — BUILD SUCCESSFUL: 50 tests, 0 failures (`LayersTest` 11,
+`./gradlew -p modularity-gradle test` — BUILD SUCCESSFUL: 50 tests, 0 failures (`LayersTest` 11,
 `ModularityVersionPluginTest` 4, `QuiltJarMetadataTest` 2, `SmokeCheckTest` 11, `TableAndMetadataTest` 9,
 `UniversalJarTest` 5, `VersionsTest` 8).
 
@@ -659,7 +659,7 @@ frame). The run of 2026-11-12 (third pass, below) proves them.
 
 ### Third pass of 2026-11-12: the network, storage and frame checks
 
-`./gradlew -p build-logic test` — BUILD SUCCESSFUL, 57 tests, 0 failures (`LayersTest` 11,
+`./gradlew -p modularity-gradle test` — BUILD SUCCESSFUL, 57 tests, 0 failures (`LayersTest` 11,
 `ModularityVersionPluginTest` 4, `QuiltJarMetadataTest` 2, `SmokeCheckTest` 17, `TableAndMetadataTest` 9,
 `UniversalJarTest` 6, `VersionsTest` 8).
 
@@ -788,14 +788,14 @@ holds seven `Mixing … from modularity.forge.mixins.json` lines:
 
 The same pass re-ran the build contract and rebuilt the jars:
 
-    ./gradlew -p build-logic test
+    ./gradlew -p modularity-gradle test
     BUILD SUCCESSFUL in 3s
 
     ./gradlew -Pmodularity.platforms=fabric-21.1,quilt-21.1,neoforge-21.1,forge-21.1 \
       :platforms:21.1:21.1-forge:build :platforms:21.1:jar
     BUILD SUCCESSFUL in 4s
 
-The build-logic results hold 59 tests and 0 failures.
+The modularity-gradle results hold 59 tests and 0 failures.
 
 The Forge jar holds one `META-INF/MANIFEST.MF` of 69 bytes with `MixinConfigs: modularity.forge.mixins.json`
 and `modularity.forge.mixins.json`; the copy in the generated metadata does not reach the jar (§7.8). The
@@ -824,7 +824,7 @@ frame held no object. The parse-only line proved the resource and the parser, no
 entity renderer now draws the parsed cube with `RenderOutput.model` and a vanilla texture, centred on the
 spawned entity, and the check requires both the parse and the draw:
 
-    ./gradlew -p build-logic test
+    ./gradlew -p modularity-gradle test
     BUILD SUCCESSFUL in 3s
 
     ./gradlew -Pmodularity.platforms=fabric-21.1,quilt-21.1,neoforge-21.1,forge-21.1 \
@@ -832,7 +832,7 @@ spawned entity, and the check requires both the parse and the draw:
       :platforms:21.1:21.1-neoforge:smoke :platforms:21.1:21.1-forge:smoke
     BUILD SUCCESSFUL in 2m 19s
 
-The build-logic results hold 59 tests and 0 failures.
+The modularity-gradle results hold 59 tests and 0 failures.
 
 Every client log holds both lines, and every screenshot shows the stone-textured cube in front of the
 player. The OBJ is a unit cube with per-face UVs; the first version carried no UVs, so it sampled one
@@ -865,10 +865,10 @@ With those fixed, the four 21.1 smoke runs are green and every client log holds 
       :platforms:21.1:21.1-neoforge:smoke :platforms:21.1:21.1-forge:smoke
     BUILD SUCCESSFUL in 2m 53s
 
-    ./gradlew -p build-logic test
+    ./gradlew -p modularity-gradle test
     BUILD SUCCESSFUL in 3s
 
-The build-logic results hold 59 tests and 0 failures.
+The modularity-gradle results hold 59 tests and 0 failures.
 
 The Forge screenshot shows the emptied bucket in the first hotbar slot, which proves that the item moved as
 well as the fluid. The stone cube of the OBJ model now fills exactly the space of the block that was mined:
@@ -907,10 +907,10 @@ Final run, all four loaders, every client log with the same six lines:
       :platforms:21.1:21.1-neoforge:smoke :platforms:21.1:21.1-forge:smoke
     BUILD SUCCESSFUL in 3m 28s
 
-    ./gradlew -p build-logic test
+    ./gradlew -p modularity-gradle test
     BUILD SUCCESSFUL in 3s
 
-The build-logic results hold 59 tests and 0 failures.
+The modularity-gradle results hold 59 tests and 0 failures.
 
 This proves the full fluid cycle on an entity tank, through player actions, on all four loaders: fill from a
 bucket, take it out, and refuse a second empty bucket. It does not prove a modded container item, and it
@@ -973,8 +973,8 @@ One report shows every layer. Each stage of the plan adds one layer; S1 (L1) is 
 
 | Layer | Producer | Written as |
 |---|---|---|
-| L1 unit tests | `:modularity-api:test`, `:modularity-testkit:test`, `-p build-logic test` | Allure results from the JUnit 5 engine, through the `allure-jupiter` adapter |
-| L2 build contract | the build-logic tests (`LayersTest`, `TableAndMetadataTest`, …) | the same engine, inside the included build |
+| L1 unit tests | `:modularity-api:test`, `:modularity-testkit:test`, `-p modularity-gradle test` | Allure results from the JUnit 5 engine, through the `allure-jupiter` adapter |
+| L2 build contract | the modularity-gradle tests (`LayersTest`, `TableAndMetadataTest`, …) | the same engine, inside the included build |
 | L3 in-game smoke | `smokeServer` / `smokeClient` per platform | one result file per run, with the log, the summary and the screenshot attached |
 | L4 production jar | `modularity-xbj0` | not yet |
 
@@ -1027,7 +1027,7 @@ that label name, so the name in `Functionality.LABEL` and the name in `allurerc.
 
 The values live in `ModularityAllureConstants`, published as test fixtures of `modularity-api`: one child
 class per label (`Epics`, `Features`, `Stories`, `Functionalities`, `Issues`, `Tags`), so a test names a
-constant instead of a string. The included build cannot consume them, so `build-logic` keeps its own copy,
+constant instead of a string. The included build cannot consume them, so `modularity-gradle` keeps its own copy,
 `BuildAllureLabels`, with the same values and the same rule. The two copies must agree, or the two layers
 split in the report.
 
@@ -1051,9 +1051,9 @@ applies it at test time. A link with no URL is dropped by the report, so the pat
 pull-request link to appear. The `tag` label stays readable (`PR-4`) and filters the report.
 
 The included build is not a project of this build, so its results reach the report only through
-`allureCollectResults`: the task copies `build-logic/build/allure-results` as a plain path and depends on
-`gradle.includedBuild('build-logic').task(':test')`. The aggregate plugin does not discover an included
-build, so a missing copy step leaves L2 out of the report without an error. `build-logic` declares the
+`allureCollectResults`: the task copies `modularity-gradle/build/allure-results` as a plain path and depends on
+`gradle.includedBuild('modularity-gradle').task(':test')`. The aggregate plugin does not discover an included
+build, so a missing copy step leaves L2 out of the report without an error. `modularity-gradle` declares the
 adapter plugin itself, with the version in its own `gradle.properties`, and keeps the AspectJ weaver off,
 because no L2 test writes a `@Step` helper.
 
@@ -1074,9 +1074,9 @@ step helpers no longer take objects as parameters. The regroup was then run on 2
 passed (50 tests) and `allureAggregateReport` wrote the report. The tree holds no group with one test, and
 no step parameter shows an object identity string.
 
-S2 was run on 2026-11-10: `./gradlew -p build-logic test` passed (46 tests) and wrote
-`build-logic/build/allure-results`; `./gradlew -Pmodularity.platforms=none allureAggregateReport` then
-wrote one report of 96 tests: `Unit Tests` 65 (the 50 module tests and 15 build-logic tests) and
+S2 was run on 2026-11-10: `./gradlew -p modularity-gradle test` passed (46 tests) and wrote
+`modularity-gradle/build/allure-results`; `./gradlew -Pmodularity.platforms=none allureAggregateReport` then
+wrote one report of 96 tests: `Unit Tests` 65 (the 50 module tests and 15 modularity-gradle tests) and
 `Integration Tests` 31. The L2 tree holds the five stories `Layer Assembly` (layer errors 6, layer
 precedence 3, 2 direct), `Platform Table and Metadata` (generated metadata 4, source scan 2, 3 direct),
 `Universal Jar` (relocation 3, loader trees in the jar 2), `Version Plugin Tasks` (task graph 3,

@@ -199,7 +199,7 @@ loader; FML evidence is from compiled classes.
     `StorageBackend`, `LoaderHooks`.
 
 21. **The generated per-mod adapter does not exist.** A search of `platforms/neoforge`, `platforms/forge` and
-    `build-logic/src` outside `build/` finds no adapter class and no adapter generator. The only `@Mod` classes
+    `modularity-gradle/src` outside `build/` finds no adapter class and no adapter generator. The only `@Mod` classes
     are Modularity's four entry points. Option 2 needs new generator and template work before it can run at all.
 
 22. **Option 2 would also need a dependency ordering guarantee.** A guest adapter constructor can only call the
@@ -304,7 +304,7 @@ No code changes are made here. The change list, file by file:
   check (log line on every platform, before the common line), and move PR-12 to the new state.
 * `docs/07-multi-version-build.md`: record the decision in 7.8, with the reason that no lifecycle event qualifies
   and that `RegisterEvent` is the dispatch point.
-* `build-logic/src/main/java/lv/cebbys/modularity/gradle/smoke/SmokeCheck.java`: add the launch entry-point line
+* `modularity-gradle/src/main/java/lv/cebbys/modularity/gradle/smoke/SmokeCheck.java`: add the launch entry-point line
   to the expectations, so a run proves the stage ran. The line format from
   `platforms/common/common/src/main/java/lv/cebbys/mcmods/modularity/platform/EntryPoints.java` is
   `entrypoint launch active (<loader>)`.

@@ -18,4 +18,4 @@ The rule is split as the two loaders need it. `GenerateModMetadataTask` writes `
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed, with one correction: the rule lives in `build-logic`, not in `anvil`. `GenerateModMetadataTask` writes both configs and `ModMetadata` holds the per-loader name, and the 2026-11-12 run shows no mixin error on either loader. The Forge config does not load in a development run at all, so the Forge proof is `modularity-6rm0`.
+Closed as completed, with one correction: the rule lives in `modularity-gradle`, not in `anvil`. `GenerateModMetadataTask` writes both configs and `ModMetadata` holds the per-loader name, and the 2026-11-12 run shows no mixin error on either loader. The Forge config does not load in a development run at all, so the Forge proof is `modularity-6rm0`.

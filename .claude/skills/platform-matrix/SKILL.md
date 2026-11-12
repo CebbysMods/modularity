@@ -66,7 +66,7 @@ throws `UnsupportedOperationException` does not count.
 | seams | `platforms/common/common/.../platform/loader/{LoaderHooks,ClientHooks,LoaderInfo,StorageBackend,RenderDataAccess}` — count the methods and compare with each implementation (`ModularityLoomLoaderHooks`, `NeoForgeLoaderHooks`, `NeoForgeClientHooks`, `NeoForgeRenderData`, `NeoForgeStorageBackend`, and the Forge counterparts if present) |
 | lifecycle | `ModularityCommon`, `ModularityClient`, `ModularityServer`, `ModularityLaunch`, the loader entrypoint classes (`ModularityLoom{Common,Client,Server,Launch}`, `Modularity{Fabric,Quilt,NeoForge,Forge}*`) |
 | detection | `platforms/<loader>/.../detect/`, `platform.detect.DetectionLog` |
-| build | `build-logic/src/main/java/.../gradle/` (`ModMetadata`, `PlatformTable`, `UniversalJar`), `build-logic` tests |
+| build | `modularity-gradle/src/main/java/.../gradle/` (`ModMetadata`, `PlatformTable`, `UniversalJar`), `modularity-gradle` tests |
 | verification | `docs/07-multi-version-build.md` §7.6 and §7.10 (recorded smoke runs), `docs/00-requirements.md` status column, `TODO-NOW.md` open checks, `.beans/` for open verification beans |
 
 Rules for verification evidence:

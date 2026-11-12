@@ -20,4 +20,4 @@ Status: done in the working tree (not verified by a build).
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `settings.gradle` includes `modularity-smoke`, the root configures it at release 17, and its jar is `smoke_guest.jar`.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `settings.gradle` includes `modularity-smoke`, the root configures it at release 17, and its jar is `smoke_guest.jar`.

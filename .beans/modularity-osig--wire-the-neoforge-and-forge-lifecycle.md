@@ -16,4 +16,4 @@ Start Modularity's runtime on NeoForge 21.1.265 and Forge 52.1.21: install the l
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p build-logic test`, the eight 21.1 smokes, docs/07 7.10). The lifecycle it planned, on both loaders, is proved in the logs.
+Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p modularity-gradle test`, the eight 21.1 smokes, docs/07 7.10). The lifecycle it planned, on both loaders, is proved in the logs.

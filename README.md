@@ -35,7 +35,7 @@ public final class RefabslabMod implements ModularityModCommon, ModularityModCli
 | `modularity-api` | The API (Java 17) | no |
 | `modularity-testkit` | In-memory game to unit test mods | no |
 | `platforms/` | Fabric, Quilt, NeoForge and Forge implementations, one jar per Minecraft version (`gradle/platforms.toml`), layered from the shared roots `minecraft`, `common` and `loom` (`anvil` later for the Forge family), then the loader's `common`, `changes/<range>`, `versions/<version>` ([docs/07](docs/07-multi-version-build.md)) | yes |
-| `build-logic` | Gradle plugins `lv.cebbys.modularity*` that build the platforms | no |
+| `modularity-gradle` | Gradle plugins `lv.cebbys.modularity*` that build the platforms | no |
 
 ## Building
 

@@ -27,7 +27,7 @@ Tasks:
 - [x] modularity-api/build.gradle with the JUnit test block
 - [x] docs/03-api-design.md package table
 
-Verification (on request): :modularity-api:test, :modularity-testkit:test, -p build-logic test.
+Verification (on request): :modularity-api:test, :modularity-testkit:test, -p modularity-gradle test.
 
 ## Progress
 
@@ -41,4 +41,4 @@ Verification (on request): :modularity-api:test, :modularity-testkit:test, -p bu
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `api.detect` is in `modularity-api`, `utilities/` is gone and all four loaders report the new detection line.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `api.detect` is in `modularity-api`, `utilities/` is gone and all four loaders report the new detection line.

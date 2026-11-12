@@ -24,7 +24,7 @@ Verified on the current `build/libs-all/modularity-1.21.1-0.1.0-SNAPSHOT.jar`:
 The first production client therefore fails with `NoClassDefFoundError`. This blocks the smoke epic.
 
 ## Work
-- `UniversalJar.relocate` (`build-logic/src/main/java/lv/cebbys/modularity/gradle/UniversalJar.java`): do not
+- `UniversalJar.relocate` (`modularity-gradle/src/main/java/lv/cebbys/modularity/gradle/UniversalJar.java`): do not
   remap internal names under `ROOT + "/api/"`; keep remapping `platform`, `fabric`, `forge`, `neoforge`.
 - Any `ROOT + "/api/"` entries that appear in a platform jar must likewise stay unrelocated.
 - Add `UniversalJarTest`: a relocated platform class references `lv/cebbys/mcmods/modularity/api/...` (never
@@ -32,6 +32,6 @@ The first production client therefore fails with `NoClassDefFoundError`. This bl
 
 ## Acceptance
 - `javap -c` on the rebuilt relocated `ModularityCore` shows only real `api/*` references.
-- `./gradlew -p build-logic test` is green.
+- `./gradlew -p modularity-gradle test` is green.
 - The rebuilt universal jar contains no `lv/cebbys/mcmods/modularity/universal/*/api/` entries and its nested API
   jar is unchanged.

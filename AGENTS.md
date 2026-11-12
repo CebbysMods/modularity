@@ -6,7 +6,7 @@ file.
 
 Modularity is a multi-version, multi-loader modding API for Minecraft: one universal jar per Minecraft
 version loads on Fabric, Quilt, NeoForge and Forge. Sources live in layers under `platforms/`; the build
-is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `build-logic/`.
+is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `modularity-gradle/`.
 
 ## Read before changing behaviour
 
@@ -20,7 +20,7 @@ is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `bu
 ## Hard rules
 
 1. **Build commands.** Never run `./gradlew` — any task, from any working directory, including
-   `-p build-logic` — unless the user asked for that run in the current turn, or asked you to push (then
+   `-p modularity-gradle` — unless the user asked for that run in the current turn, or asked you to push (then
    run the tests once immediately before pushing). Permission to implement a plan, finish a slice or
    "proceed" is **not** permission to run anything. If a run would help, ask and wait for the answer.
 2. **Commits.** Do not commit unless asked. Leave changes in the working tree so they can be reviewed.
@@ -48,8 +48,8 @@ is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `bu
 
 | Path | What |
 |---|---|
-| `build-logic/` | Included build: settings, root and platform plugins, tasks, table parser, smoke harness |
-| `build-logic/.../gradle/setup/` | One `*PlatformSetup` per loader, over shared Loom and Forge-family bases |
+| `modularity-gradle/` | Included build: settings, root and platform plugins, tasks, table parser, smoke harness |
+| `modularity-gradle/.../gradle/setup/` | One `*PlatformSetup` per loader, over shared Loom and Forge-family bases |
 | `platforms/minecraft`, `common`, `loom`, `fabric`, `quilt`, `neoforge`, `forge` | Layer roots (`common/`, `changes/<range>/`, `versions/<version>/`); `loom` is shared by Fabric and Quilt, `anvil` is reserved for the Forge family |
 | `platforms/versions/<version>/` | Version parent projects; no sources, no build files |
 | `modularity-api/` | The dependency-free API, nested into the platform jars; includes the detectors (`api.detect`) |
@@ -59,7 +59,7 @@ is configured entirely from `gradle/platforms.toml` by the Gradle plugins in `bu
 
 ## Workflow
 
-- Change shared behaviour in the platform layers; change the build only in `build-logic`.
+- Change shared behaviour in the platform layers; change the build only in `modularity-gradle`.
 - Verify with the checks named by the requirement you touched — when the rules above allow running.
 - The test pyramid report (`allureAggregateReport`) is its own task, not part of `buildAll`: it downloads
   the Allure runtime and reads the results of every layer (docs/07 §7.11).

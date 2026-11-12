@@ -27,7 +27,7 @@ Done in the working tree:
 - Smoke: shared sources in `tools/smoke/loom`, `tools/smoke/quilt` QMJ.
 - Docs updated.
 
-Open: run `./gradlew -p build-logic test`, the Fabric and Quilt smokes, and the universal jar; then
+Open: run `./gradlew -p modularity-gradle test`, the Fabric and Quilt smokes, and the universal jar; then
 check the shipped jar (Quilt QMJ + Fabric FMJ in one jar). The NeoForge `ModContext` smoke failure is
 separate.
 
@@ -42,13 +42,13 @@ Update 2026-11-09:
 - Verification runs are still outstanding (not run in this session).
 
 
-Verified 2026-11-09: `./gradlew -p build-logic test` — BUILD SUCCESSFUL (compileJava, compileTestJava, test executed).
+Verified 2026-11-09: `./gradlew -p modularity-gradle test` — BUILD SUCCESSFUL (compileJava, compileTestJava, test executed).
 The platform builds and smokes in the Open list still need their own runs.
 
 
 Verified 2026-11-09:
 - `./gradlew -Pmodularity.platforms=quilt-21.1 buildAll` — BUILD SUCCESSFUL, including
-  `:build-logic:test` and the universal jar with a Quilt class set.
+  `:modularity-gradle:test` and the universal jar with a Quilt class set.
 - `./gradlew -Pmodularity.platforms=quilt-21.1 :platforms:21.1:21.1-quilt:smoke` — BUILD SUCCESSFUL
   (server and client). mpd reports `QUILT 0.30.2`; the four Quilt entrypoints ran; no guest on Quilt.
 - Universal jar inspected: `quilt.mod.json` entrypoints under `universal.quilt.quilt.entrypoint`,
@@ -64,4 +64,4 @@ Open: the shipped universal jar in a real Quilt install (production metadata fil
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p build-logic test`, the eight 21.1 smokes, docs/07 7.10). The one open note, the shipped universal jar in a real Quilt install, is epic `modularity-xbj0`.
+Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p modularity-gradle test`, the eight 21.1 smokes, docs/07 7.10). The one open note, the shipped universal jar in a real Quilt install, is epic `modularity-xbj0`.

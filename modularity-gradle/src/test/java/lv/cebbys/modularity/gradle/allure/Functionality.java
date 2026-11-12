@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * The behaviour a test proves, as an Allure label named {@code functionality} (docs/07, 7.11). Allure has no
  * annotation for a custom label name, so this annotation is a meta-annotation of {@link LabelAnnotation}.
  *
- * <p>This is the copy for the included build: {@code build-logic} cannot read the test fixtures of
+ * <p>This is the copy for the included build: {@code modularity-gradle} cannot read the test fixtures of
  * {@code modularity-api}. The label name must match {@link #LABEL} and the name in {@code allurerc.json}.
  */
 @Documented

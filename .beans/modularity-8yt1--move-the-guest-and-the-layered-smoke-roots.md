@@ -19,4 +19,4 @@ Status: done in the working tree; no content changes.
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The roots and the guest sources are under `modularity-smoke` and `tools/smoke` is gone.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The roots and the guest sources are under `modularity-smoke` and `tools/smoke` is gone.

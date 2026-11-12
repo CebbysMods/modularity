@@ -36,7 +36,7 @@ is the two seam methods that no run has called:
   Forge capability on `AttachCapabilitiesEvent`).
 
 Files: `modularity-smoke/minecraft/common/.../SmokeFeatures.java`, `SmokeScenario.java`,
-`build-logic/.../smoke/SmokeCheck.java` and `SmokeCheckTest.java`, the four `*StorageBackend.java` if the
+`modularity-gradle/.../smoke/SmokeCheck.java` and `SmokeCheckTest.java`, the four `*StorageBackend.java` if the
 run finds a defect.
 Check: every client and server log holds the two new lines with the expected numbers.
 Command: `./gradlew -Pmodularity.platforms=fabric-21.1,quilt-21.1,neoforge-21.1,forge-21.1
@@ -70,5 +70,5 @@ and `Guest mod smoke_guest: loaded=true initialized=true`.
 Eight 21.1 smokes green (server and client, four loaders); the mod lifecycle and entrypoints; detection;
 content registration; networking in both directions; the fluid unit and the portable view; the client seam
 (dynamic model, hit particles, HUD, key mapping, entity renderer); the Forge development mixin config
-(seven `Mixing` lines); `-p build-logic test` 59 tests; the four per-loader jars and the universal jar
+(seven `Mixing` lines); `-p modularity-gradle test` 59 tests; the four per-loader jars and the universal jar
 (1,142,719 bytes). See docs/07 §7.10 and PORT-REVIEW.md.

@@ -6,7 +6,7 @@ only.
 
 State on 2026-11-12: every stage below has code in the working tree, and the eight 21.1 smokes (server and
 client) pass for all four loaders with the strengthened `SmokeCheck`. The third pass of the day also proves
-the payload round trip, the loader's fluid unit and a rendered frame, and `-p build-logic test` is green
+the payload round trip, the loader's fluid unit and a rendered frame, and `-p modularity-gradle test` is green
 (57 tests). The four per-loader jars and the universal jar also build. The new client-side smoke code
 (`SmokeFeatures` client stage, `SmokeScenario`) compiles outside Gradle for 1.21.1, 1.21.10 and 1.21.11; the
 26.x lines cannot be compiled offline for lack of Fabric API jars. The fourth pass fixed the Forge-family
@@ -40,7 +40,7 @@ The `git status --short` half lists the new files (`??`) under that stage's root
 the edits and the deletions. Use `git diff --stat HEAD -- <paths>`, the same form, when the stage is
 staged.
 
-`build-logic`, `modularity-smoke` and `docs` hold the build, the feature smoke and the records; they belong to
+`modularity-gradle`, `modularity-smoke` and `docs` hold the build, the feature smoke and the records; they belong to
 no single stage and are reviewed once. The five `feature/port-<platform>` branches exist at `5daf9d7`, so a
 stage becomes a commit on its branch as soon as the owner allows it.
 
@@ -63,7 +63,7 @@ stage becomes a commit on its branch as soon as the owner allows it.
 
 Removed: `loom/entrypoint/ModularityLoomEntrypoints.java`, replaced by the five classes above.
 
-Closes when: `-p build-logic test`; the 21.1 Fabric and Quilt `smokeServer` and `smokeClient` pass.
+Closes when: `-p modularity-gradle test`; the 21.1 Fabric and Quilt `smokeServer` and `smokeClient` pass.
 
 ## Stage 2 — quilt
 
@@ -90,7 +90,7 @@ Removed: `neoforge/detect/NeoForge{Platform,Version}Source.java` and `forge/dete
 their work moved here.
 
 Closes when: the layer compiles with neither loader on the class path (done, `javac` exit 0) and
-`-p build-logic test` shows `anvil` in the NeoForge and Forge layer stacks.
+`-p modularity-gradle test` shows `anvil` in the NeoForge and Forge layer stacks.
 
 ## Stage 4 — neoforge
 
@@ -107,7 +107,7 @@ Closes when: the layer compiles with neither loader on the class path (done, `ja
 | `neoforge/client/NeoForgeDynamicBakedModel.java` | dynamic models through `getModelData` and `getQuads` |
 | `neoforge/network/NeoForgePayloads.java` | one payload channel built at common setup |
 
-Closes when: `-p build-logic test`; the 21.1 NeoForge `smokeServer` and `smokeClient` pass; a client smoke renders the
+Closes when: `-p modularity-gradle test`; the 21.1 NeoForge `smokeServer` and `smokeClient` pass; a client smoke renders the
 HUD layer and a dynamic-model block; the log shows no mixin error.
 
 ## Stage 5 — forge
@@ -125,7 +125,7 @@ HUD layer and a dynamic-model block; the log shows no mixin error.
 | `forge/client/ForgeDynamicBakedModel.java` | dynamic models through `getModelData` and `getQuads` |
 | `forge/network/ForgePayloads.java` | one payload channel built at common setup |
 
-Closes when: `-p build-logic test`; the 21.1 Forge `smokeServer` and `smokeClient` pass; a client smoke renders the HUD
+Closes when: `-p modularity-gradle test`; the 21.1 Forge `smokeServer` and `smokeClient` pass; a client smoke renders the HUD
 layer and a dynamic-model block.
 
 ## Runs of 2026-11-11
@@ -136,7 +136,7 @@ pass then ran the same eight smokes with the strengthened `SmokeCheck` (entrypoi
 
 | Command | Result |
 |---|---|
-| `./gradlew -p build-logic test` | BUILD SUCCESSFUL |
+| `./gradlew -p modularity-gradle test` | BUILD SUCCESSFUL |
 | `:platforms:21.1:21.1-fabric:smokeServer` / `smokeClient` | both ok |
 | `:platforms:21.1:21.1-quilt:smokeServer` / `smokeClient` | both ok |
 | `:platforms:21.1:21.1-neoforge:smokeServer` / `smokeClient` | both ok |
@@ -149,14 +149,14 @@ written, and the Fabric, Quilt, NeoForge and Forge runs all pass again.
 
 ## Runs of 2026-11-12
 
-The owner authorized the feature-smoke pass. `-p build-logic test` is green (50 tests). The first pass of the
+The owner authorized the feature-smoke pass. `-p modularity-gradle test` is green (50 tests). The first pass of the
 eight 21.1 smokes failed on NeoForge and Forge: `NewRegistryEvent` is posted before `GameData.unfreezeData`,
 so `Block.<init>` threw `Registry is already frozen`. The common stage moved to the first `RegisterEvent`
 (docs/07 §7.8); the second pass is green:
 
 | Command | Result |
 |---|---|
-| `./gradlew -p build-logic test` | BUILD SUCCESSFUL, 50 tests, 0 failures |
+| `./gradlew -p modularity-gradle test` | BUILD SUCCESSFUL, 50 tests, 0 failures |
 | the eight 21.1 smokes, first pass | Fabric and Quilt pass; NeoForge and Forge fail with `missing log line /Smoke features: declared …/` |
 | the eight 21.1 smokes, after the fix | BUILD SUCCESSFUL in 4m 14s; all eight pass, every server and client log of the four loaders holds both `Smoke features:` lines with `present=true` |
 | `:platforms:21.1:21.1-{fabric,quilt,neoforge,forge}:build` | BUILD SUCCESSFUL in 9s; the four per-loader jars exist |
@@ -166,13 +166,13 @@ so `Block.<init>` threw `Registry is already frozen`. The common stage moved to 
 
 The owner authorized one pass of the tests and the eight smokes after the three new in-game checks were
 added: the C2S→S2C payload round trip, the fluid unit of the loader, and the rendered-frame check on the
-client screenshot. `-p build-logic test` is green with 57 tests. The Forge smoke then failed, because a
+client screenshot. `-p modularity-gradle test` is green with 57 tests. The Forge smoke then failed, because a
 locator service file on the development class path makes FML drop the mod; the file is now generated for
 the `jar` task alone (`ServiceFileTask`, docs/07 §7.5 and §7.8). After that fix every smoke passes:
 
 | Command | Result |
 |---|---|
-| `./gradlew -p build-logic test` | BUILD SUCCESSFUL, 57 tests, 0 failures |
+| `./gradlew -p modularity-gradle test` | BUILD SUCCESSFUL, 57 tests, 0 failures |
 | the eight 21.1 smokes, first pass | seven pass; Forge fails with `Mod 'modularity_smoke' requires 'modularity' … is not installed` |
 | the eight 21.1 smokes, after the fix | BUILD SUCCESSFUL in 2m 58s; all eight pass, every log holds `Smoke storage:` with the loader's own `unitsPerMb`, and every client log holds both `Smoke network:` lines |
 
@@ -183,9 +183,9 @@ outstanding for that stage.
 
 | Stage | Ran | Did not run |
 |---|---|---|
-| 1 loom | `-p build-logic test` (57 tests, 2026-11-12); 21.1 Fabric and Quilt `smokeServer` + `smokeClient` with the payload round trip, the fluid unit and the frame check; the two platform builds | the six client lines of `dga9` (written, not run: model, HUD, key mapping, placement, quads, hit particles); the entity renderer; the held-item fill and the exposed tank (`modularity-dgzs`); a load from the shipped jar |
+| 1 loom | `-p modularity-gradle test` (57 tests, 2026-11-12); 21.1 Fabric and Quilt `smokeServer` + `smokeClient` with the payload round trip, the fluid unit and the frame check; the two platform builds | the six client lines of `dga9` (written, not run: model, HUD, key mapping, placement, quads, hit particles); the entity renderer; the held-item fill and the exposed tank (`modularity-dgzs`); a load from the shipped jar |
 | 2 quilt | 21.1 Quilt `smokeServer` + `smokeClient` with no guest line, as docs/08 requires; `:platforms:21.1:21.1-quilt:build` | the six client lines of `yrlm` (written, not run); the entity renderer; the held-item fill and the exposed tank (`modularity-mizg`); guest injection, which epic `modularity-ecjq` owns (docs/08) |
-| 3 anvil | `javac` of the `anvil` layer with no loader on the class path (exit 0); `-p build-logic test` shows `anvil` in the NeoForge and Forge layer stacks | nothing of its own; its effects are proved through stages 4 and 5 |
+| 3 anvil | `javac` of the `anvil` layer with no loader on the class path (exit 0); `-p modularity-gradle test` shows `anvil` in the NeoForge and Forge layer stacks | nothing of its own; its effects are proved through stages 4 and 5 |
 | 4 neoforge | 21.1 NeoForge `smokeServer` + `smokeClient` with the payload round trip, the fluid unit and the frame; the mixins apply and `Interceptors` install (docs/07 §7.8); `:platforms:21.1:21.1-neoforge:build` | the six client lines of `lf0u` (written, not run); the entity renderer; the held-item fill and the exposed tank (`modularity-gz97`); a load from the shipped jar |
 | 5 forge | 21.1 Forge `smokeServer` + `smokeClient` (green 2026-11-12, third pass, with the payload round trip, the fluid unit and the frame); `:platforms:21.1:21.1-forge:build`; the jar manifest and its jar-in-jar metadata | the six client lines of `hcru` (written, not run; a green hit-particle line would also prove the Forge mixins); the entity renderer; the held-item fill and the exposed tank (`modularity-tll2`); the mixins: the jar names the config in its manifest and now provides the locator service, but Mixin reads neither in a development run (docs/07 §7.8, bean `modularity-6rm0`); the service entry in the built jar; a load from the shipped jar |
 | all | `:platforms:21.1:jar` (universal jar) | `smokeAll`; `allureAggregateReport`; a client start from the jar |
@@ -196,7 +196,7 @@ Two lines are done; the third needs a word from the owner. Each line names what 
 
 | Command | Closes or proves |
 |---|---|
-| `./gradlew -p build-logic test` | DONE 2026-11-12: BUILD SUCCESSFUL, 57 tests, 0 failures |
+| `./gradlew -p modularity-gradle test` | DONE 2026-11-12: BUILD SUCCESSFUL, 57 tests, 0 failures |
 | the same command | DONE 2026-11-12: BUILD SUCCESSFUL in 2m 58s, all eight smokes green with the network round trip, the fluid unit and the frame check. Closed the four networking beans (`7kd6`, `koa2`, `ra61`, `w922`) and the unit and frame halves of the storage and client beans |
 | the eight 21.1 smokes again | **green on 2026-11-12 10:52** (`BUILD SUCCESSFUL in 2m 58s`): every client log holds `Smoke model: registered for …`, `Smoke client: hud drawn …`, `Smoke keys: binding=…`, `Smoke scenario: placed …`, `Smoke model: quads at …`, `Smoke particles: hit …` and `Smoke entity: rendered …`, and every client run saves a screenshot. Closed `dga9`, `yrlm`, `lf0u`, `hcru` (docs/07 §7.10) |
 | the eight 21.1 smokes, sixth pass | **green on 2026-11-12** (`BUILD SUCCESSFUL in 2m 53s`): every client log holds `Smoke storage: held item moved 1000 mB` and `Smoke storage: exposed 500 mB`, and the Forge screenshot shows the emptied bucket in the hotbar. Closed `dgzs`, `mizg`, `gz97`, `tll2` (docs/07 §7.6, §7.10) |

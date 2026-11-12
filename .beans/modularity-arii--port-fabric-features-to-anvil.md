@@ -33,7 +33,7 @@ smoke covers this family too. No run has proved it yet.
 
 ## Closed by the run of 2026-11-12
 
-`./gradlew -p build-logic test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
+`./gradlew -p modularity-gradle test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
 every server and client log holds both `Smoke features:` lines with `present=true`, so a block, an item and
 a payload channel registered through the API resolve on both sides. The first pass failed on NeoForge and
 Forge with `Registry is already frozen`: `NewRegistryEvent` precedes `GameData.unfreezeData`. The common
@@ -42,4 +42,4 @@ Recorded in docs/07 7.6, 7.8 and 7.10, TODO-NOW, PORT-REVIEW and bean `modularit
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p build-logic test`, the eight 21.1 smokes, docs/07 7.10). The root exists, both Forge-family platforms assemble it, and the NeoForge and Forge copies are gone.
+Closed as completed: every child bean is closed and the exit check ran green on 2026-11-12 (`-p modularity-gradle test`, the eight 21.1 smokes, docs/07 7.10). The root exists, both Forge-family platforms assemble it, and the NeoForge and Forge copies are gone.

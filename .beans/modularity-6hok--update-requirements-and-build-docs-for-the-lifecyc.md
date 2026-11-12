@@ -18,4 +18,4 @@ Update PR-11 and PR-12 status in docs/00-requirements.md, add the seam and lifec
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `docs/00` PR-11 and PR-12 are `met` and `docs/07` 7.8 carries the seam and lifecycle rows.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). `docs/00` PR-11 and PR-12 are `met` and `docs/07` 7.8 carries the seam and lifecycle rows.

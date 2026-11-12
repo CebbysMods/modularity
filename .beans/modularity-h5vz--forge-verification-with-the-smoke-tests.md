@@ -9,14 +9,14 @@ updated_at: 2026-11-11T23:46:53Z
 parent: modularity-cuuj
 ---
 
-Check: `-p build-logic test`; `-Pmodularity.platforms=forge-21.1 :platforms:21.1:smoke`; inspect `META-INF/jarjar/metadata.json`; `allureAggregateReport`.
+Check: `-p modularity-gradle test`; `-Pmodularity.platforms=forge-21.1 :platforms:21.1:smoke`; inspect `META-INF/jarjar/metadata.json`; `allureAggregateReport`.
 
-Not run. Only a `javac --release 21` compile ran: 97 sources from platforms/minecraft/common, platforms/common/common, platforms/anvil/common and platforms/forge/common, exit 0, no errors. No Gradle task, no server smoke, no client smoke. Open checks, in order: `./gradlew -p build-logic test`; `./gradlew :platforms:21.1:21.1-forge:smokeServer`; the same for `smokeClient`; then the launch, platform, registration, payload, storage and HUD lines in the smoke output.
+Not run. Only a `javac --release 21` compile ran: 97 sources from platforms/minecraft/common, platforms/common/common, platforms/anvil/common and platforms/forge/common, exit 0, no errors. No Gradle task, no server smoke, no client smoke. Open checks, in order: `./gradlew -p modularity-gradle test`; `./gradlew :platforms:21.1:21.1-forge:smokeServer`; the same for `smokeClient`; then the launch, platform, registration, payload, storage and HUD lines in the smoke output.
 
 
 
 ## Run 2026-11-11 (owner authorized the run)
-- `./gradlew -p build-logic test`: BUILD SUCCESSFUL.
+- `./gradlew -p modularity-gradle test`: BUILD SUCCESSFUL.
 - `:platforms:21.1:21.1-forge:smokeServer`: `smoke SERVER 1.21.1: ok`, `build/smoke/server.txt` holds `Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no`, `(server) platform forge:52.1.21, minecraft:1.21.1` and `Server ticked 40 times, stopping`.
 - `:platforms:21.1:21.1-forge:smokeClient`: `smoke CLIENT 1.21.1: ok`, `(client) platform forge:52.1.21, minecraft:1.21.1`, `Client joined world`, `Screenshot: Saved screenshot as smoke.png`, `Client done`; the screenshot is at `build/smoke/run/screenshots/smoke.png`.
 Still open: `META-INF/jarjar/metadata.json` inspection of the shipped jar, the jar-in-jar load in a real install (`nested=no` in the dev run), Forge mixins (not wired, PR-13) and `allureAggregateReport`.
@@ -34,7 +34,7 @@ Decision 2026-11-12: Forge mixins are a stated limit (PR-13, docs/07 7.8). The m
 
 ## Closed by the run of 2026-11-12
 
-`./gradlew -p build-logic test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
+`./gradlew -p modularity-gradle test` is green (50 tests). The eight 21.1 smokes pass for all four loaders, and
 every server and client log holds both `Smoke features:` lines with `present=true`, so a block, an item and
 a payload channel registered through the API resolve on both sides. The first pass failed on NeoForge and
 Forge with `Registry is already frozen`: `NewRegistryEvent` precedes `GameData.unfreezeData`. The common
@@ -50,4 +50,4 @@ with no mixin activity, fails the check.
 
 ## Tracker cleanup 2026-11-12
 
-Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p build-logic test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The Forge log holds no mixin error. A Forge development run cannot apply the config at all, so the mixin proof moved to `modularity-6rm0` and `modularity-xbj0`.
+Closed as completed: the run of 2026-11-12 is green, and its logs hold the lines this check names. `-p modularity-gradle test` passed and the eight 21.1 smokes passed for all four loaders (docs/07 7.10, PORT-REVIEW). The Forge log holds no mixin error. A Forge development run cannot apply the config at all, so the mixin proof moved to `modularity-6rm0` and `modularity-xbj0`.

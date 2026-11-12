@@ -1,4 +1,4 @@
-# Platforms built by the lv.cebbys.modularity plugins (build-logic/, docs/07-multi-version-build.md).
+# Platforms built by the lv.cebbys.modularity plugins (modularity-gradle/, docs/07-multi-version-build.md).
 # Values from meta.fabricmc.net and maven.fabricmc.net (newest Fabric API build per exact version) and
 # Mojang's version manifest (Java), checked 2026-11-06. Never guess them: re-check when adding a version.
 # smoke-client = true: smokeAll also runs the client smoke test (docs/07, 7.6).

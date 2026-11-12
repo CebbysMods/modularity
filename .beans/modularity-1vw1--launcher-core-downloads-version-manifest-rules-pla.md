@@ -6,13 +6,13 @@ type: feature
 priority: high
 tags:
     - launcher
-    - build-logic
+    - modularity-gradle
 created_at: 2026-11-09T07:58:39Z
 updated_at: 2026-11-09T07:58:39Z
 parent: modularity-xbj0
 ---
 
-Pure, unit-tested half of the hand-rolled launcher in `build-logic/src/main/java/lv/cebbys/modularity/gradle/`
+Pure, unit-tested half of the hand-rolled launcher in `modularity-gradle/src/main/java/lv/cebbys/modularity/gradle/`
 (one package, matching the existing style). No launcher library exists on Maven Central.
 
 ## Classes
@@ -36,5 +36,5 @@ Pure, unit-tested half of the hand-rolled launcher in `build-logic/src/main/java
 
 ## Acceptance
 - Tests with inline 1.21.1 fixtures: `VersionManifestTest`, `RulesTest`, `LaunchArgumentsTest`, `LibrariesTest`.
-- `./gradlew -p build-logic test` is green.
+- `./gradlew -p modularity-gradle test` is green.
 - Existing dev smoke (`smokeAll`) is unaffected.

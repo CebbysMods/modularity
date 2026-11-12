@@ -11,13 +11,13 @@ box only when the change is in and verified.
 Order: NeoForge before Forge, because `NeoForgeSetup` owned `loaderModule`/`coreModule` (shared by
 both) and because it left the plugin's legacy body holding Forge alone.
 
-- [x] Verify: `-p build-logic test` and `:platforms:21.1:21.1-neoforge:smokeClient` both pass (2026-11-12).
+- [x] Verify: `-p modularity-gradle test` and `:platforms:21.1:21.1-neoforge:smokeClient` both pass (2026-11-12).
 
 ## S4 — Forge last (and it finishes the job)
 
 *Implemented and committed (`cc256b1`); the verify run below is outstanding.*
 
-- [x] Verify: `-p build-logic test` and `:platforms:21.1:21.1-forge:build` pass (2026-11-12). The Forge jar
+- [x] Verify: `-p modularity-gradle test` and `:platforms:21.1:21.1-forge:build` pass (2026-11-12). The Forge jar
       holds `META-INF/jarjar/metadata.json` and the nested API jar, and its manifest carries
       `MixinConfigs: modularity.forge.mixins.json`. `:platforms:21.1:21.1-forge:smokeClient` passes.
 
@@ -119,7 +119,7 @@ AGENTS.md hard rule 1 apply to every check. Tick a box only when the check passe
 
 ### S2 — L2 build contract
 
-- [x] `./gradlew -p build-logic test` — the 3.1.1 adapter writes `build-logic/build/allure-results`, 46
+- [x] `./gradlew -p modularity-gradle test` — the 3.1.1 adapter writes `modularity-gradle/build/allure-results`, 46
       tests pass, and no test fails on the new `@DisplayName`/label imports. Run of 2026-11-10:
       BUILD SUCCESSFUL, 46 results, all passed.
 - [x] `./gradlew -Pmodularity.platforms=none allureAggregateReport` — `build/allure-results` holds results
@@ -128,7 +128,7 @@ AGENTS.md hard rule 1 apply to every check. Tick a box only when the check passe
       BUILD SUCCESSFUL, the report holds 96 tests, `Unit Tests` 65 and `Integration Tests` 31. The feature
       names carry no layer number, and `allurerc.json` sorts every level by name.
 - [x] A second root report run does not duplicate a test: `allureCollectResults` is a `Sync`, and the
-      `build-logic` test task clears its own results first.
+      `modularity-gradle` test task clears its own results first.
 
 ### Risks
 
@@ -152,7 +152,7 @@ AGENTS.md hard rule 1 apply to every check. Tick a box only when the check passe
 - **`withDependencies` clearing.** The aggregate plugin links to every project, which would resolve every
   platform class path; the root build clears those links and points the task at `build/allure-results`.
   Check the task's input log line (`Input directories for allureAggregateReport`) on the first run.
-- **Included-build boundary (S2).** The aggregate plugin cannot see `build-logic`; a missing copy step
+- **Included-build boundary (S2).** The aggregate plugin cannot see `modularity-gradle`; a missing copy step
   silently leaves L2 out of the report.
 - **Duplicate results (S3).** Smoke results use a deterministic `historyId` and the writer clears its
   directory; `allureCollectResults` is a `Sync`.
@@ -212,7 +212,7 @@ it for Forge and NeoForge. No discrepancy found; the per-platform checks above s
   a class from it. A shared file moves to `anvil` only when it names no Fabric type.
 - **Layering.** A port adds files under the loader root and `changes/<range>` only. A copied shared file
   breaks the layering check in `LayersTest`.
-- **Proved by the runs of 2026-11-12 (third pass).** `-p build-logic test` is green (57 tests) and the
+- **Proved by the runs of 2026-11-12 (third pass).** `-p modularity-gradle test` is green (57 tests) and the
   eight 21.1 smokes pass on the four loaders with the new checks: the payload round trip, the fluid unit
   and a rendered frame (docs/07 §7.10).
 - **Payload and tank checks (proved 2026-11-12).** Both payload directions and the loader's fluid unit are
@@ -309,7 +309,7 @@ pass proves the stage in development: the Fabric and the Quilt server and client
       and the check requires `Loaded guest mod smoke_guest` and `Guest mod smoke_guest: loaded=true
       initialized=true` (docs/07 §7.10), so the guest route works in the development run. The shipped-jar
       case is `modularity-xbj0`.
-- [x] `modularity-l2mx` verification: `-p build-logic test` passes (57 tests, 2026-11-12) and the 21.1
+- [x] `modularity-l2mx` verification: `-p modularity-gradle test` passes (57 tests, 2026-11-12) and the 21.1
       Fabric and Quilt server and client smokes pass with the strengthened check.
 
 ### Stage 2 — quilt

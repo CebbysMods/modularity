@@ -62,7 +62,7 @@ line without the prefix.
 
 2026-11-10 (three runs, owner-approved): all eight merge checks pass, so TODO-NOW.md no longer lists open items for the merge.
 
-- `./gradlew -p build-logic test`: BUILD SUCCESSFUL, 46 tests, no failure. The seven `SmokeCheck` tests expect the capital-letter line format.
+- `./gradlew -p modularity-gradle test`: BUILD SUCCESSFUL, 46 tests, no failure. The seven `SmokeCheck` tests expect the capital-letter line format.
 - `./gradlew -Pmodularity.platforms=21.1 :platforms:21.1:jar`: BUILD SUCCESSFUL in 9s. The universal jar holds 495 files and no `META-INF/services` entry (`modularity-f5e2` closed).
 - `./gradlew -Pmodularity.platforms=quilt-21.1 :platforms:21.1:21.1-quilt:smokeServer`: `smoke SERVER 1.21.1: ok`. The log shows `(server) platform quilt:0.30.2, minecraft:1.21.1`, `Mod modularity: loaded=true version=0.1.0-SNAPSHOT nested=no` and `Server ticked 40 times, stopping`, plus the three Quilt entrypoints.
 
