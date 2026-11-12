@@ -16,6 +16,7 @@ public final class SmokeClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        LoomStorageProbe.install();
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
     }
 

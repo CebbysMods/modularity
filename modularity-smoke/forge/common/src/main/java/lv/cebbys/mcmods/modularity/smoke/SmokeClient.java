@@ -19,6 +19,7 @@ final class SmokeClient {
     }
 
     static void install() {
+        ForgeStorageProbe.install();
         MinecraftForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent.Post event) -> tick(Minecraft.getInstance()));
     }
 

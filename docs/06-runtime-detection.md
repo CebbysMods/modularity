@@ -9,14 +9,15 @@ Modularity itself, in `modularity-api`; no separate detector mod is needed.
 |---|---|---|
 | `modularity-api` | `api.core` | `Version`, `MinecraftVersion`, `PlatformVersion`, `Loader`, `Side` |
 | `modularity-api` | `api.detect` | `VersionDetector`, `PlatformDetector`, the source interfaces, `DetectedPlatform`, the built-in sources and the exceptions |
-| `platforms/loom` | `loom.detect` | `LoomVersionSource`, `LoomPlatformSource` (Fabric Loader API; Quilt Loader provides it) |
-| `platforms/neoforge` | `neoforge.detect` | `NeoForgeVersionSource`, `NeoForgePlatformSource` |
-| `platforms/forge` | `forge.detect` | `ForgeVersionSource`, `ForgePlatformSource` |
+| `platforms/loom` | `loom.detect` | `ModularityLoomVersionSource`, `ModularityLoomPlatformSource` (Fabric Loader API; Quilt Loader provides it) |
+| `platforms/anvil` | `anvil.detect` | `ModularityAnvilVersionSource`, `ModularityAnvilPlatformSource` (both loaders) |
 | `platforms/common` | `platform.detect` | `DetectionLog` — one log line, called by every loader entrypoint |
 
 `api.detect` depends on `java.*` only. It ships inside the nested `modularity-api` jar, which the
 universal jar does not relocate. A loader source lives in its loader's layer root and references only
-`api.detect` types and its own loader API.
+`api.detect` types and its own loader API. `platforms/anvil` reaches the Forge-family loader by
+reflection, because NeoForge and Forge publish the same classes under different packages, so one source
+serves both.
 
 ## 6.2 Version model
 
@@ -88,9 +89,9 @@ Sources in priority order:
 
 | Loader | Install point |
 |---|---|
-| Fabric | `LoomEntrypoints.common("fabric")`, before `ModularityCommon.init` |
-| Quilt | `LoomEntrypoints.common("quilt")` — same code path, `LoomPlatformSource` reports `QUILT` |
-| NeoForge | `ModularityNeoForgeCommon` constructor; the detection runs in `enqueueWork` |
+| Fabric | `ModularityLoomCommon.init("fabric")`, before `ModularityCommon.init` |
+| Quilt | `ModularityLoomCommon.init("quilt")` — same code path, `ModularityLoomPlatformSource` reports `QUILT` |
+| NeoForge | `ModularityNeoForgeCommon` constructor |
 | Forge | `ModularityForge` constructor |
 
 Each install point then calls `DetectionLog.log()`, which writes one line:

@@ -22,10 +22,10 @@ import java.util.zip.ZipOutputStream;
  * the intermediary-mapped (Fabric, Quilt) and official-mapped (Forge, NeoForge) trees can coexist, plus one metadata
  * file per loader (docs/07).
  */
-final class UniversalJar {
+public final class UniversalJar {
 
     /** Package root of the mod's own classes in every platform jar. */
-    static final String ROOT = "lv/cebbys/mcmods/modularity";
+    public static final String ROOT = "lv/cebbys/mcmods/modularity";
     private static final String RELOCATED = ROOT + "/universal/";
     /**
      * The API lives in its own module, nested in the universal jar and loaded as a mod under this real package
@@ -72,6 +72,11 @@ final class UniversalJar {
                         } else if (name.equals(metadata)) {
                             // Entry points are the only class names in the metadata; the mixin config is referenced
                             // by file name.
+                            write(zip, written, name, replace(bytes, ROOT.replace('/', '.') + ".",
+                                    relocatedPackage(ROOT.replace('/', '.'), part.loader()) + "."));
+                        } else if (name.startsWith("META-INF/services/")) {
+                            // A service file names a class, and that class moves with its tree. The interface in the
+                            // file name is a loader API and stays (Forge: the locator service, docs/07 7.8).
                             write(zip, written, name, replace(bytes, ROOT.replace('/', '.') + ".",
                                     relocatedPackage(ROOT.replace('/', '.'), part.loader()) + "."));
                         } else {

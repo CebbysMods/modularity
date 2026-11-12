@@ -6,7 +6,8 @@
   "environment": "*",
   "entrypoints": {
     "main": ["lv.cebbys.mcmods.modularity.smoke.SmokeMod"],
-    "client": ["lv.cebbys.mcmods.modularity.smoke.SmokeClient"]
+      "client": ["lv.cebbys.mcmods.modularity.smoke.SmokeClient"],
+    "modularity": ["lv.cebbys.mcmods.modularity.smoke.SmokeFeatures"]
   },
   "depends": { "fabricloader": "*", "fabric-api": "*", "modularity": "*", "minecraft": "*" }
 }

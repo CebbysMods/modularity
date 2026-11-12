@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.smoke;
 
+import lv.cebbys.mcmods.modularity.api.Modularity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.ModContainer;
@@ -23,6 +24,9 @@ public final class SmokeMod {
     private int ticks;
 
     public SmokeMod() {
+        // The smoke mod is a Modularity mod on every loader. Modularity runs its common stage on NewRegistryEvent,
+        // which fires after this constructor, so the registration is accepted (bean modularity-4uol).
+        Modularity.registerMod(SmokeFeatures.MOD_ID, new SmokeFeatures());
         Optional<? extends ModContainer> container = ModList.get().getModContainerById("modularity");
         LOGGER.info("Mod modularity: loaded={} version={} nested={}", container.isPresent(),
                 container.map(c -> c.getModInfo().getVersion().toString()).orElse("-"),

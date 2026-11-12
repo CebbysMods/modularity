@@ -18,7 +18,7 @@ import java.util.Optional;
  * }</pre>
  *
  * <p>A platform installs its own sources before the first detection:
- * {@code VersionDetector.install(new LoomVersionSource())}. The built-in sources
+ * {@code VersionDetector.install(new ModularityLoomVersionSource())}. The built-in sources
  * ({@code version.json} and reflection) are always present.
  */
 public final class VersionDetector {

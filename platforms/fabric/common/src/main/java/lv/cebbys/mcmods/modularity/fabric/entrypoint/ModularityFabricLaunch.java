@@ -2,7 +2,7 @@ package lv.cebbys.mcmods.modularity.fabric.entrypoint;
 
 import lv.cebbys.mcmods.modularity.fabric.guest.FabricGuestJson;
 import lv.cebbys.mcmods.modularity.fabric.guest.LoaderInjection;
-import lv.cebbys.mcmods.modularity.loom.entrypoint.LoomEntrypoints;
+import lv.cebbys.mcmods.modularity.loom.entrypoint.ModularityLoomLaunch;
 import lv.cebbys.mcmods.modularity.loom.guest.GuestCandidates;
 import lv.cebbys.mcmods.modularity.platform.guest.GuestDescriptor;
 import net.fabricmc.loader.api.FabricLoader;
@@ -27,7 +27,7 @@ public final class ModularityFabricLaunch implements PreLaunchEntrypoint {
 
     @Override
     public void onPreLaunch() {
-        LoomEntrypoints.launch("fabric");
+        ModularityLoomLaunch.init("fabric");
         Map<String, GuestDescriptor> byId = new LinkedHashMap<>();
         for (GuestDescriptor guest : GuestCandidates.find()) {
             if (FabricLoader.getInstance().isModLoaded(guest.id()) || byId.containsKey(guest.id())) {
@@ -46,7 +46,7 @@ public final class ModularityFabricLaunch implements PreLaunchEntrypoint {
                     guest.origin().getFileName());
         }
         byId.values().forEach(ModularityFabricLaunch::checkDependencies);
-        LoomEntrypoints.launchMods("fabric");
+        ModularityLoomLaunch.initMods("fabric");
     }
 
     /** Fabric resolved dependencies before guests existed; the same rules, checked here. */

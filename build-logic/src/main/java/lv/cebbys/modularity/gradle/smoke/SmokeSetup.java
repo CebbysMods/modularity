@@ -171,6 +171,8 @@ public final class SmokeSetup {
             t.getSide().set(SmokeCheck.Side.CLIENT);
             t.getPlatform().set(platform.loader().name());
             t.getGuests().set(guests);
+            // The client smoke writes the frame itself (`Screenshots.take(mc, "smoke.png")`); the check reads it.
+            t.getScreenshot().set(new File(userDir, "screenshots/smoke.png"));
             t.getSummary().set(project.getLayout().getBuildDirectory().file("smoke/client.txt"));
             t.getOutputs().upToDateWhen(x -> false);
         });

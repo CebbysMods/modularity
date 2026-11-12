@@ -1,7 +1,11 @@
 description = 'In-memory Modularity platform for unit testing mods without Minecraft'
 
+apply plugin: 'java-test-fixtures'
+
 dependencies {
     api project(':modularity-api')
+
+    testImplementation testFixtures(project(':modularity-api'))
 
     testImplementation platform("org.junit:junit-bom:${junit_version}")
     testImplementation 'org.junit.jupiter:junit-jupiter'

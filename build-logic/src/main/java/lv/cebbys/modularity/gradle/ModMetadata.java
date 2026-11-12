@@ -24,6 +24,9 @@ public final class ModMetadata {
     /** A class, record or enum declaration that reaches an {@code implements} clause; stops at the class body. */
     private static final String IMPLEMENTS = "\\b(?:class|record|enum)\\s+\\w+[^{;]*\\bimplements\\b[^{]*";
 
+    /** The manifest attribute that names the mixin configs of a mod file. Mixin reads it for every container. */
+    public static final String MANIFEST_MIXIN_CONFIGS = "MixinConfigs";
+
     private ModMetadata() {
     }
 
@@ -144,9 +147,11 @@ public final class ModMetadata {
     /**
      * {@code neoforge.mods.toml} / {@code mods.toml}: the same mod and dependencies as {@code fabric.mod.json}, with
      * Maven version ranges. Minecraft exact (one jar per version); the loader from its major line on (NeoForge
-     * {@code 21.1}, Forge {@code 52}).
+     * {@code 21.1}, Forge {@code 52}). With mixins, the file names the loader's mixin config in a {@code [[mixins]]}
+     * block, which is how both loaders find it.
      */
-    public static String modsToml(PlatformTable.Mod mod, PlatformTable.Platform platform, String version) {
+    public static String modsToml(PlatformTable.Mod mod, PlatformTable.Platform platform, String version,
+                                  boolean hasMixins) {
         boolean neo = platform.loader() == Loader.NEOFORGE;
         String[] parts = platform.loaderVersion().split("\\.");
         String loaderLine = neo ? parts[0] + "." + parts[1] : parts[0];
@@ -154,6 +159,11 @@ public final class ModMetadata {
         lines.add("modLoader=\"javafml\"");
         lines.add("loaderVersion=\"[" + (neo ? "1" : parts[0]) + ",)\"");
         lines.add("license=" + quote(mod.license()));
+        if (hasMixins) {
+            lines.add("");
+            lines.add("[[mixins]]");
+            lines.add("config=" + quote(mixinConfigName(mod, platform.loader())));
+        }
         lines.add("");
         lines.add("[[mods]]");
         lines.add("modId=" + quote(mod.id()));
@@ -214,6 +224,11 @@ public final class ModMetadata {
         json.put("required", true);
         json.put("minVersion", "0.8");
         json.put("package", mod.mixinPackage());
+        // Mixin logs "Mixing <mixin> from <config> into <target>" at INFO only for a config that sets this. Forge is
+        // the loader whose route is the jar manifest, so only a run from its shipped jar can show the config
+        // applying (docs/07 7.8); a development run never loads it. The other three declare the config in their
+        // metadata and stay quiet.
+        json.put("verbose", platform.loader() == Loader.FORGE);
         // JAVA_21 for every platform: the mixins use no newer language features, and every Mixin
         // version shipped with Fabric Loader 0.20 knows it.
         json.put("compatibilityLevel", "JAVA_21");

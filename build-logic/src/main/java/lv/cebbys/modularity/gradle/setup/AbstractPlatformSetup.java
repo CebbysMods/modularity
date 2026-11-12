@@ -42,6 +42,9 @@ abstract class AbstractPlatformSetup {
     /** The directory of the loader layer roots, shared with the version parents and the docs. */
     static final String LAYER_BASE = "platforms";
 
+    /** The nullness annotations every platform project compiles against, at compile time only (docs/07 7.3). */
+    static final String ANNOTATIONS = "org.jspecify:jspecify:1.0.0";
+
     /** The stages, in order. The only entry point; never overridden. */
     final void apply(Project project, PlatformTable table, PlatformTable.Platform platform) {
         loaderPlugins(new LoaderPluginsContext(project, table, platform));
@@ -78,6 +81,10 @@ abstract class AbstractPlatformSetup {
             t.setDescription("Compiles the Java sources of " + platform.id());
             t.dependsOn("compileJava");
         });
+
+        // Nullness: one annotation set for every platform project, compile time only (docs/07 7.3). The packages
+        // carry @NullMarked, so a method with no annotation is non-null and an IDE stops asking for one.
+        project.getDependencies().add("compileOnly", ANNOTATIONS);
     }
 
     /** S2: the layered sources and the generated mod metadata of the main source set. */

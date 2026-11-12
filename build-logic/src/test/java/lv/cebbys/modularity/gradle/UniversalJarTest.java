@@ -151,6 +151,25 @@ class UniversalJarTest {
         assertTrue(entries.keySet().stream().noneMatch(name -> name.startsWith(ROOT + "/universal/") && name.contains("/api/")));
     }
 
+    @Test
+    void serviceFilesNameTheRelocatedClass(@TempDir Path dir) throws IOException {
+        // Forge's locator service (docs/07 7.8): the file name is the loader interface and stays, the class moves.
+        String service = "META-INF/services/net.minecraftforge.forgespi.locating.IDependencyLocator";
+        Path jar = dir.resolve("forge.jar");
+        write(jar, Map.of(
+                ROOT + "/forge/locating/Locator.class", plainClass(ROOT + "/forge/locating/Locator"),
+                service, "lv.cebbys.mcmods.modularity.forge.locating.Locator\n".getBytes(StandardCharsets.UTF_8)));
+        Path out = dir.resolve("universal.jar");
+        UniversalJar.write(out, List.of(
+                new UniversalJar.Part(jar, Loader.FORGE, "modularity.forge.mixins.json")),
+                "lv.cebbys.mcmods.modularity.mixin");
+
+        Map<String, byte[]> entries = read(out);
+        String providers = new String(entries.get(service), StandardCharsets.UTF_8);
+        assertEquals("lv.cebbys.mcmods.modularity.universal.forge.forge.locating.Locator\n", providers);
+        assertTrue(entries.containsKey(ROOT + "/universal/forge/forge/locating/Locator.class"));
+    }
+
     /** A platform jar with one class of the mod, a class referring to it, both metadata files and a resource. */
     private static Path platformJar(Path file) throws IOException {
         Map<String, byte[]> entries = new LinkedHashMap<>();

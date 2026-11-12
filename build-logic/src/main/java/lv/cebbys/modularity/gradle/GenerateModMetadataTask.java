@@ -67,15 +67,34 @@ public abstract class GenerateModMetadataTask extends DefaultTask {
             }
             if (platform.metadataFormat() == PlatformTable.MetadataFormat.NEOFORGE
                     || platform.metadataFormat() == PlatformTable.MetadataFormat.FORGE) {
-                // The shared Minecraft layer carries the mixins; NeoForge and Forge get a mixin config with their
-                // runtime (not written yet), until then the classes are in the jar unused.
-                if (!mixins.isEmpty()) {
-                    getLogger().info("{}: {} mixins not wired (no {} runtime yet)", platform.id(), mixins.size(),
-                            platform.loader().id());
-                }
+                // The shared Minecraft layer carries the mixins. Both Forge-family loaders run in the official
+                // namespace, so their configs need no refmap and are written with the metadata. NeoForge reads the
+                // [[mixins]] block of neoforge.mods.toml. Forge has no such block: its jar names the same config in
+                // the MixinConfigs manifest attribute (ForgePlatformSetup), and the block stays in mods.toml so the
+                // name has one source.
+                boolean declared = !mixins.isEmpty();
                 Path toml = out.resolve(ModMetadata.metadataPath(platform));
                 Files.createDirectories(toml.getParent());
-                Files.writeString(toml, ModMetadata.modsToml(table.mod(), platform, getModVersion().get()));
+                Files.writeString(toml, ModMetadata.modsToml(table.mod(), platform, getModVersion().get(), declared));
+                if (declared) {
+                    Files.writeString(out.resolve(ModMetadata.mixinConfigName(table.mod(), platform.loader())),
+                            ModMetadata.mixinConfig(table.mod(), platform, mixins));
+                }
+                if (platform.metadataFormat() == PlatformTable.MetadataFormat.FORGE) {
+                    // Forge reads the config from the MixinConfigs manifest attribute of the mod file. A production
+                    // jar gets it from the jar task (ForgePlatformSetup). A development run scans the output directory
+                    // as a mod file and reads the manifest of that directory, so the attribute goes there too
+                    // (docs/07 7.8).
+                    Path manifest = out.resolve("META-INF/MANIFEST.MF");
+                    if (declared) {
+                        Files.createDirectories(manifest.getParent());
+                        Files.writeString(manifest, "Manifest-Version: 1.0\n"
+                                + ModMetadata.MANIFEST_MIXIN_CONFIGS + ": "
+                                + ModMetadata.mixinConfigName(table.mod(), platform.loader()) + "\n\n");
+                    } else {
+                        Files.deleteIfExists(manifest);
+                    }
+                }
                 return;
             }
             getLogger().info("{}: entrypoints {}", platform.id(),

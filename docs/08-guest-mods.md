@@ -75,8 +75,30 @@ after discovery). Checked against Fabric Loader 0.20.1. A loader version that ch
 new `LoaderInjection` only, and the smoke test of every platform shows it at once.
 
 **Quilt.** `ModularityQuiltLaunch` (`quilt/entrypoint`) is the native `pre_launch` entrypoint. It uses
-`GuestCandidates` to find the guests, then logs an error naming them and loads none: Quilt Loader does
-not have the Fabric Loader internals that `LoaderInjection` uses. The Quilt smoke runs without a guest.
+`GuestCandidates` to find the guests, then logs an error naming them and loads none. Checked against
+Quilt Loader 0.30.2 (sources jar of the version in `gradle/platforms.toml`):
+
+- The supported route is a Quilt loader plugin: `QuiltPluginContext.addModLoadOption` is public and runs
+  during discovery. A mod can offer one only through the `experimental_quilt_loader_plugin` field of its
+  `quilt.mod.json`, and `V1ModMetadataImpl` rejects that field unless the system property
+  `loader.experimental.allow_loading_plugins` is set. It also logs that mod-provided plugins are for
+  amusement only. A jar cannot set a loader system property before the loader parses metadata, so the
+  route is closed for a distributed mod.
+- The reflective route has the pieces Fabric uses: `QuiltLoaderImpl` keeps a mutable `mods` list and
+  `modMap`, and `EntrypointStorage.add` is public. It fails at the container: the only mod container
+  implementations need a `QuiltPluginContext` (`InternalModContainerBase`), and a plugin context exists
+  only inside a plugin. `LoaderInjection` reads Fabric's own metadata parser and builds a
+  `ModContainerImpl` from a candidate; Quilt has no equivalent public or reflective constructor.
+
+So Quilt Loader does not have the Fabric Loader internals that `LoaderInjection` uses, and its supported
+alternative is gated. The Quilt smoke runs without a guest and expects neither guest line. Bean
+`modularity-4bm8` holds the evidence; a loader version that exposes a mod-provided plugin would reopen it.
+
+**NeoForge and Forge.** Guest mods are not supported yet. Neither loader offers a public API to add a
+mod after discovery, and the candidate scan lives in the `loom` root, which only Fabric and Quilt use.
+Their smoke runs load no guest and expect neither guest line. The port programme records this as a
+limit and closes its guest row with epic `modularity-ecjq`, which starts after Stage 5 and owns the
+route on Quilt, NeoForge and Forge. Bean `modularity-4bm8` holds the loader evidence for Quilt.
 
 ## 8.4 Verification
 

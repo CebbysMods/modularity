@@ -3,6 +3,16 @@
 Decision: **Option 1**, but the dispatch point is the loader `RegisterEvent`, not an FML lifecycle event. No FML
 lifecycle event means "all mods are constructed".
 
+**Status (2026-11-11).** The decision is implemented in the tree, but no run has proven it. `ModularityAnvilLifecycle`
+dispatches the launch stage from the registry event on both loaders; `platforms/forge/common` now holds the four
+Forge seams (`forge/loader/ForgeLoaderInfo`, `ForgeRenderData`, `ForgeStorageBackend`, `ForgeLoaderHooks`), and
+`ModularityForge` runs the detection and the launch stage in its `@Mod` constructor, and `launchMods` and the
+common stage on the first `RegisterEvent` (the dispatch point that the first paragraph names, corrected on
+2026-11-12: `NewRegistryEvent` fires before `GameData.unfreezeData`, so an eagerly constructed block throws
+"Registry is already frozen"). Fact 20 and the file list
+below record the state before that work; read them as history, not as the current state. The open checks are the
+smoke lines in "Verification".
+
 ## The question
 
 The launch stage (`ModularityModLaunch`) runs on Fabric and Quilt from the `pre_launch` entry point. The Forge
@@ -127,8 +137,8 @@ loader; FML evidence is from compiled classes.
     `FMLLoader.versionInfo()` are public static methods (NF-FML `javap` for NeoForge; F-FMLLOADER `javap` for
     Forge). `isProduction()` reads a static field and loads no Minecraft class. The repository already calls
     these during mod construction, before common setup:
-    `platforms/neoforge/common/src/main/java/lv/cebbys/mcmods/modularity/neoforge/detect/NeoForgePlatformSource.java:35,38`,
-    `platforms/forge/common/src/main/java/lv/cebbys/mcmods/modularity/forge/detect/ForgePlatformSource.java:35,38`,
+    `platforms/anvil/common/src/main/java/lv/cebbys/mcmods/modularity/anvil/detect/ModularityAnvilPlatformSource.java`
+    (one source for both loaders, by reflection),
     and `NeoForgeLoaderInfo.java:21`. `LaunchContext.side()` therefore works in the launch stage on the Forge
     family.
 
@@ -146,7 +156,7 @@ loader; FML evidence is from compiled classes.
     Forge runs `LOAD_REGISTRIES` as an inline GATHER state (`ForgeStatesProvider.java:24`), driven by the sync
     executor that `ServerModLoader` passes (`net/minecraftforge/server/loading/ServerModLoader.java:30-33`). The
     launch stage would run on the main thread, as on Fabric and Quilt
-    (`platforms/loom/common/src/main/java/lv/cebbys/mcmods/modularity/loom/entrypoint/LoomEntrypoints.java:59`).
+    (`platforms/loom/common/src/main/java/lv/cebbys/mcmods/modularity/loom/entrypoint/ModularityLoomLaunch.java` (`initMods`, after the guests exist)).
 
 ### The NeoForge three-class layout and the Forge one-class layout
 
@@ -179,8 +189,9 @@ loader; FML evidence is from compiled classes.
 
 ### Cost and prerequisites
 
-20. **Forge cannot run any Modularity stage today.** `ModularityForge` installs the version and platform detectors
-    only (`ModularityForge.java:17-27`). `platforms/forge/common` contains only `ModularityForge` and `detect/`;
+20. **Forge could not run any Modularity stage when this document was written.** *(Superseded: the Forge seams and
+    the constructor lifecycle now exist in `platforms/forge/common`; see the status note at the top.)*
+    `ModularityForge` installed the version and platform detectors only (`ModularityForge.java:17-27`). `platforms/forge/common` contained only `ModularityForge` and `detect/`;
     there is no `loader/` package. `Loaders.install` requires four non-null objects
     (`platforms/common/common/src/main/java/lv/cebbys/mcmods/modularity/platform/loader/Loaders.java:18-23`), and
     `Loaders.info()` throws `IllegalStateException("Modularity loader seams are not installed")`
@@ -338,9 +349,8 @@ Negative checks a run must show, if a temporary test mod is used:
   Fabric and Quilt behave the same way, so this is consistent, but the requirement must state it.
 * The Forge seam is a prerequisite, and it is larger than the launch change itself. Shipping the Forge half in
   the same change couples two risks.
-* `FMLEnvironment.dist`, `FMLEnvironment.production` and `FMLLoader.isProduction()` are loader internals. The code
-  already depends on them in `NeoForgePlatformSource` and `ForgePlatformSource`, so this adds no new dependency,
-  but the risk remains.
+* `FMLEnvironment.dist` and `FMLLoader.isProduction()` are loader internals. The code already reflects on them in
+  `platforms/anvil/.../detect/ModularityAnvilLoaderApi.java`, so this adds no new dependency, but the risk remains.
 * Datagen runs the launch stage with no game. A stage that needs a running client or server breaks datagen.
 * The Forge-family stage runs after Minecraft classes load. A mod that expects Fabric `pre_launch` timing will
   behave differently, and the API text must say this plainly.

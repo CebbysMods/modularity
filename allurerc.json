@@ -1,0 +1,9 @@
+{
+    "plugins": {
+        "awesome": {
+            "options": {
+                "groupBy": ["epic", "feature", "story", "functionality"]
+            }
+        }
+    }
+}

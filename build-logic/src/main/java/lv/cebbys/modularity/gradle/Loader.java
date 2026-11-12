@@ -3,6 +3,7 @@ package lv.cebbys.modularity.gradle;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 /**
  * Mod loader of a platform. Each loader has a stack of layer roots under {@code platforms/}, lowest first: the
@@ -10,16 +11,17 @@ import java.util.Locale;
  * own code (docs/07, 7.3).
  */
 public enum Loader {
-    FABRIC(List.of("minecraft", "common", "loom", "fabric")),
+    FABRIC("minecraft", "common", "loom", "fabric"),
     /** Runs the Fabric-compatibility layers on Quilt Loader; Quilt-only differences go to {@code platforms/quilt}. */
-    QUILT(List.of("minecraft", "common", "loom", "quilt")),
-    NEOFORGE(List.of("minecraft", "common", "neoforge")),
-    FORGE(List.of("minecraft", "common", "forge"));
+    QUILT("minecraft", "common", "loom", "quilt"),
+    /** {@code anvil} is the code the two Forge-family loaders share; only types neither loader owns may live there. */
+    NEOFORGE("minecraft", "common", "anvil", "neoforge"),
+    FORGE("minecraft", "common", "anvil", "forge");
 
     private final List<String> layerRoots;
 
-    Loader(List<String> layerRoots) {
-        this.layerRoots = layerRoots;
+    Loader(String... layerRoots) {
+        this.layerRoots = Stream.of(layerRoots).toList();
     }
 
     /** {@code fabric}, {@code quilt}, {@code neoforge}, {@code forge}: table value, project and folder names. */
