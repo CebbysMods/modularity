@@ -148,6 +148,7 @@ public final class SmokeSetup {
             t.getPlatform().set(platform.loader().name());
             t.getGuests().set(guests);
             t.getSummary().set(project.getLayout().getBuildDirectory().file("smoke/server.txt"));
+            t.getResultsDir().set(project.getLayout().getBuildDirectory().dir("smoke/allure-results/server"));
             t.getOutputs().upToDateWhen(x -> false);  // checks the run that just happened
         });
 
@@ -174,6 +175,7 @@ public final class SmokeSetup {
             // The client smoke writes the frame itself (`Screenshots.take(mc, "smoke.png")`); the check reads it.
             t.getScreenshot().set(new File(userDir, "screenshots/smoke.png"));
             t.getSummary().set(project.getLayout().getBuildDirectory().file("smoke/client.txt"));
+            t.getResultsDir().set(project.getLayout().getBuildDirectory().dir("smoke/allure-results/client"));
             t.getOutputs().upToDateWhen(x -> false);
         });
 

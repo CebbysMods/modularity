@@ -30,24 +30,14 @@ public final class SmokeCheck {
     /** Id of the smoke guest mod ({@code modularity-smoke/src/main/resources/modularity.mod.json}). */
     public static final String GUEST = "smoke_guest";
 
-    public static Result check(String log, String minecraft, Side side) {
-        return check(log, minecraft, side, "FABRIC", true);
-    }
-
     /**
+     * The log lines this check requires, in order, for one run (docs/07 7.6). A smoke result shows one Allure step per
+     * expectation.
+     *
      * @param platform the loader the detection must report ({@code FABRIC}, {@code QUILT}, {@code NEOFORGE}, {@code FORGE})
-     * @param guests   whether the platform loads guest mods (the smoke guest must then load and initialize)
+     * @param guests   whether the platform loads guest mods
      */
-    public static Result check(String log, String minecraft, Side side, String platform, boolean guests) {
-        return check(log, minecraft, side, platform, guests, null);
-    }
-
-    /**
-     * @param screenshot the PNG the client smoke wrote, or {@code null} when the run has no screenshot (a dedicated
-     *                   server, or a task that does not pass the file)
-     */
-    public static Result check(String log, String minecraft, Side side, String platform, boolean guests,
-                               byte[] screenshot) {
+    public static List<String> expectations(String minecraft, Side side, String platform, boolean guests) {
         List<String> expectations = new ArrayList<>();
         String loader = platform.toLowerCase(Locale.ROOT);
         String family = "\\(" + Pattern.quote(loader) + "\\)";
@@ -119,6 +109,29 @@ public final class SmokeCheck {
             expectations.add("Screenshot: ");
             expectations.add("Client done");
         }
+
+        return List.copyOf(expectations);
+    }
+
+    public static Result check(String log, String minecraft, Side side) {
+        return check(log, minecraft, side, "FABRIC", true);
+    }
+
+    /**
+     * @param platform the loader the detection must report ({@code FABRIC}, {@code QUILT}, {@code NEOFORGE}, {@code FORGE})
+     * @param guests   whether the platform loads guest mods (the smoke guest must then load and initialize)
+     */
+    public static Result check(String log, String minecraft, Side side, String platform, boolean guests) {
+        return check(log, minecraft, side, platform, guests, null);
+    }
+
+    /**
+     * @param screenshot the PNG the client smoke wrote, or {@code null} when the run has no screenshot (a dedicated
+     *                   server, or a task that does not pass the file)
+     */
+    public static Result check(String log, String minecraft, Side side, String platform, boolean guests,
+                               byte[] screenshot) {
+        List<String> expectations = expectations(minecraft, side, platform, guests);
 
         List<String> logLines = log.lines().toList();
         List<String> found = new ArrayList<>();

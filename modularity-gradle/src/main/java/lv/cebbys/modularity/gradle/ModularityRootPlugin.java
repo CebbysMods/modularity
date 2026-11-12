@@ -2,6 +2,7 @@ package lv.cebbys.modularity.gradle;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.Sync;
 
 import java.io.File;
@@ -98,6 +99,19 @@ public class ModularityRootPlugin implements Plugin<Project> {
                 t.from(root.getLayout().getProjectDirectory().dir("modularity-gradle/build/allure-results"));
                 t.dependsOn(root.getGradle().includedBuild("modularity-gradle").task(":test"));
             }
+            // The L3 smoke results, written by SmokeCheckTask. They are copied only when they exist: this task must
+            // never depend on a smoke task, which launches the game. The paths are flattened; result and attachment
+            // names carry a UUID, so two runs cannot overwrite each other.
+            FileTree platforms = root.fileTree(root.getLayout().getProjectDirectory().dir("platforms"),
+                    tree -> tree.include("**/build/smoke/allure-results/**"));
+            t.from(platforms, spec -> spec.eachFile(details -> details.setPath(details.getName())));
+            Object external = root.findProperty("modularity.allure.smokeResults");
+            if (external != null) {
+                t.from(root.fileTree(external), spec -> spec.eachFile(details -> details.setPath(details.getName())));
+            }
+            // A run that collects results in the same call as a smoke waits for that smoke to write them.
+            root.getSubprojects().forEach(sub -> t.mustRunAfter(sub.getTasks()
+                    .matching(task -> Set.of("smoke", "smokeServer", "smokeClient").contains(task.getName()))));
         });
     }
 }

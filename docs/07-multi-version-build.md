@@ -398,6 +398,8 @@ from `gradle/platforms.toml`, so the matrix never drifts from the table. A platf
 `smoke-client = true` runs `smoke` under `xvfb` with software OpenGL. A platform without it runs only
 `smokeServer`, with no virtual display.
 
+Each check also writes one Allure result for the run (7.11).
+
 ## 7.7 Risks
 
 * One Loom version for the whole build: Loom 1.19 must build every version (it does: both plugins
@@ -972,13 +974,13 @@ attribute for four loader trees, so the universal jar still needs a loader-condi
 
 ## 7.11 Test pyramid report (Allure)
 
-One report shows every layer. Each stage of the plan adds one layer; S1 (L1) is wired now.
+One report shows every layer. S1 (L1), S2 (L2) and S3 (L3) are wired; S4 is stage `modularity-xbj0`.
 
 | Layer | Producer | Written as |
 |---|---|---|
 | L1 unit tests | `:modularity-api:test`, `:modularity-testkit:test`, `-p modularity-gradle test` | Allure results from the JUnit 5 engine, through the `allure-jupiter` adapter |
 | L2 build contract | the modularity-gradle tests (`LayersTest`, `TableAndMetadataTest`, …) | the same engine, inside the included build |
-| L3 in-game smoke | `smokeServer` / `smokeClient` per platform | one result file per run, with the log, the summary and the screenshot attached |
+| L3 in-game smoke | `smokeServer` / `smokeClient` per platform | `SmokeAllureWriter`: one result file per run, one step per `SmokeCheck` expectation, with the log, the summary and the screenshot attached |
 | L4 production jar | `modularity-xbj0` | not yet |
 
 Tasks:
@@ -986,7 +988,10 @@ Tasks:
 - `allureCollectResults` — `Sync` into `build/allure-results`. It copies the results of the two library
   modules and of the included build, and depends on their `test` tasks. `-Pmodularity.allure.tests=false` copies without running a
   test, which the CI jobs use after they have run the tests themselves. `executor.json` is left out: every
-  project writes one and the report does not read it.
+  project writes one and the report does not read it. It also copies every
+  `platforms/**/build/smoke/allure-results` tree and the directory named by
+  `-Pmodularity.allure.smokeResults`, flattened; it never depends on a smoke task, because that task starts
+  the game. It runs after the `smoke`, `smokeServer` and `smokeClient` tasks when both are in one call.
 - `allureAggregateReport` — writes `build/reports/allure-report/allureAggregateReport/`. The aggregate
   plugin links itself to every project of the build; the root build clears those links, because resolving
   them would set up the class path of every platform. The task reads `build/allure-results` instead.
@@ -1007,7 +1012,7 @@ Labels: the tree has four levels, and one test carries all four.
 | Level | Label | Value |
 |---|---|---|
 | 1 | `epic` | `Modularity` |
-| 2 | `feature` | the layer: `Unit Tests`, `Integration Tests`, `End to End Tests`, `Production Jar` |
+| 2 | `feature` | the layer: `Unit Tests`, `Integration Tests`, `Smoke Tests`, `Production Jar` |
 | 3 | `story` | the API concern: `Version Model API`, `Core API`, `Platform Detection`, `Entity API`, ... |
 | 4 | `functionality` | the behaviour: `Minecraft version parsing`, `Source ordering`, `Yaw rotation`, ... |
 
@@ -1018,7 +1023,7 @@ a method name.
 The report sorts each level by name: `allurerc.json` sets `defaultSortBy` to `name,asc`. Allure's other
 sort mode, `order`, follows the order in which the report reads the result files, so two runs can show
 two different orders. The feature values carry no layer number, so the tree is alphabetical:
-`End to End Tests`, `Integration Tests`, `Production Jar`, `Unit Tests`.
+`Integration Tests`, `Production Jar`, `Smoke Tests`, `Unit Tests`.
 
 A behaviour gets a `functionality` label only when two or more tests prove it. A behaviour that one test
 proves has no label, so that test sits directly under its story and no group in the tree holds one test.
@@ -1033,6 +1038,17 @@ class per label (`Epics`, `Features`, `Stories`, `Functionalities`, `Issues`, `T
 constant instead of a string. The included build cannot consume them, so `modularity-gradle` keeps its own copy,
 `BuildAllureLabels`, with the same values and the same rule. The two copies must agree, or the two layers
 split in the report.
+
+L3 is one test per smoke run. `SmokeCheck.expectations` is the ordered list of log lines a run must hold;
+`SmokeAllureWriter` writes one step per expectation, passes the step with its matched line as a parameter,
+and fails the step whose line is missing. The test is `passed` when the run is green, `broken` for a crash
+or a missing log, `failed` otherwise. Its `historyId` is `smoke.<platform>.<minecraft>.<side>`, its feature
+is `Smoke Tests`, its story is the platform, the Minecraft version and the side, and its parameters repeat
+those three values. The log, the summary and the client screenshot are copied next to the result file as
+attachments. `SmokeCheckTask` writes the result before it throws, so a red run keeps its evidence;
+`SmokeSetup` sets the results directory to `build/smoke/allure-results/{server,client}`. The smoke workflow
+uploads every platform's results as `smoke-allure-<id>` and the merge job publishes the report as
+`smoke-allure-report`, after a build that continues on error, so a red matrix still publishes.
 
 L2 uses the same four levels. `Integration Tests` is the feature. The stories are the concerns of the
 build: `Layer Assembly`, `Platform Table and Metadata`, `Universal Jar`, `Version Plugin Tasks` and
@@ -1057,8 +1073,8 @@ The included build is not a project of this build, so its results reach the repo
 `allureCollectResults`: the task copies `modularity-gradle/build/allure-results` as a plain path and depends on
 `gradle.includedBuild('modularity-gradle').task(':test')`. The aggregate plugin does not discover an included
 build, so a missing copy step leaves L2 out of the report without an error. `modularity-gradle` declares the
-adapter plugin itself, with the version in its own `gradle.properties`, and keeps the AspectJ weaver off,
-because no L2 test writes a `@Step` helper.
+adapter plugin itself, with the version in its own `gradle.properties`, and turns the AspectJ weaver on:
+`LayersTest` writes `@Step` helpers and its results carry steps.
 
 CI: `build.yml` has a `report` job that runs both test sets, writes the report and uploads
 `allure-report-build`; it fails last, so a red test still publishes the report. `smoke.yml` publishes
@@ -1084,4 +1100,14 @@ wrote one report of 96 tests: `Unit Tests` 65 (the 50 module tests and 15 modula
 precedence 3, 2 direct), `Platform Table and Metadata` (generated metadata 4, source scan 2, 3 direct),
 `Universal Jar` (relocation 3, loader trees in the jar 2), `Version Plugin Tasks` (task graph 3,
 1 direct) and `Quilt Jar Metadata` (nested jar wrapping 2); the L1 tree holds `Version Ranges` 8 and
-`Smoke Log Checks` 7 in the same report. No group holds one test. L3 is stage S3 of the bean epic.
+`Smoke Log Checks` 7 in the same report. No group holds one test.
+
+S3 is wired. `SmokeCheck.expectations`, `SmokeAllureWriter` with `SmokeAllureWriterTest`, the results
+directory of `SmokeCheckTask`, the `SmokeSetup` paths, the collector extension and the smoke workflow are
+in the tree. The whole `modularity-gradle` source set and its tests compile with `javac` against the
+Gradle 9.8.2 API, Loom 1.19.3, ForgeGradle 7.0.40, ModDevGradle 2.0.148, JUnit 6.1.0 and Allure 3.1.1.
+The two Gradle-free test classes were run with the JUnit 6.1.0 launcher: `SmokeAllureWriterTest` 9 tests
+and `SmokeCheckTest` 19 tests, all passing. The eight 21.1 smokes ran on 2026-11-12: every run passed, and
+the report of `allureAggregateReport` holds the eight `Smoke Tests`, one per loader and side, with the log
+and the summary attached and, for the client, the screenshot. A client result holds 30 to 32 steps, a
+server result 9 to 11. The CI job is configured and not yet run.

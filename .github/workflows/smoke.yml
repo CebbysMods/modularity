@@ -81,6 +81,15 @@ jobs:
           path: smoke-out/
           if-no-files-found: ignore
           retention-days: 7
+      # One Allure result per server and client run, written by SmokeCheckTask (docs/07, 7.11).
+      - name: Upload smoke Allure results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-allure-${{ matrix.id }}
+          path: ${{ matrix.dir }}/build/smoke/allure-results/
+          if-no-files-found: ignore
+          retention-days: 7
 
   # One artifact with every platform's logs and screenshots, and one run result. It fails when any platform failed,
   # but it still uploads what the platform jobs produced.
@@ -91,6 +100,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v7
+      - name: Set up JDK 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v6
       - name: Download platform results
         if: ${{ !cancelled() }}
         uses: actions/download-artifact@v8
@@ -104,6 +120,28 @@ jobs:
         with:
           name: smoke-platforms
           path: smoke-platforms/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Download smoke Allure results
+        if: ${{ !cancelled() }}
+        uses: actions/download-artifact@v8
+        with:
+          pattern: smoke-allure-*
+          path: smoke-allure-results
+          merge-multiple: true
+      # A red matrix must still publish the report, so this step continues on error and the fail step stays last.
+      - name: Build the Allure report
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: >-
+          ./gradlew -Pmodularity.platforms=none -Pmodularity.allure.tests=false
+          -Pmodularity.allure.smokeResults=smoke-allure-results allureAggregateReport
+      - name: Upload the Allure report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-allure-report
+          path: build/reports/allure-report/
           if-no-files-found: ignore
           retention-days: 7
       - name: Fail when a platform smoke test failed

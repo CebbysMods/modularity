@@ -431,3 +431,20 @@ The classes compile with `javac`, but no game run has read the new sources yet. 
 `modularity-0pwp`: the eight 21.1 smokes, server and client, must hold
 `(server|client) platform <loader>:<loaderVersion>, minecraft:1.21.1` for Fabric, Quilt, NeoForge and
 Forge. Run it on the owner's word (AGENTS.md hard rule 1).
+
+## S3 — L3 in-game smoke reporting (Allure)
+
+S3 is wired: `SmokeCheck.expectations`, `SmokeAllureWriter` with `SmokeAllureWriterTest`, the results
+directory and the screenshot property of `SmokeCheckTask`, the `SmokeSetup` result paths, the
+`allureCollectResults` smoke sources, the `smoke.yml` artifacts and the docs. The eight 21.1 smokes ran on
+2026-11-12 and the report holds them. Tick a box only when the matching check passes.
+
+- [x] `SmokeAllureWriterTest` (9) and `SmokeCheckTest` (19) pass with the JUnit 6.1.0 launcher. The
+      `-p modularity-gradle test` task itself was not run.
+- [x] `fabric-21.1`: `smoke` writes `build/smoke/allure-results/{server,client}` and the client result has
+      the screenshot attachment.
+- [x] `quilt-21.1`, `neoforge-21.1` and `forge-21.1` do the same.
+- [x] `allureAggregateReport` shows the eight `Smoke Tests` with the log, the summary and the screenshot.
+- [ ] A run with a broken smoke still writes a `failed` or `broken` result with the log attached. The
+      writer test covers it; a real red smoke was not run.
+- [ ] `smoke.yml` publishes `smoke-allure-<id>` per platform and one `smoke-allure-report`.

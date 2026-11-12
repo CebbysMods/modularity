@@ -2,10 +2,12 @@ package lv.cebbys.modularity.gradle.smoke;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
@@ -14,8 +16,11 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Locale;
 
-/** Checks the log of the smoke run that just finished and keeps a copy plus a summary next to it. */
+/** Checks the log of the smoke run that just finished, keeps a copy plus a summary, and writes one Allure result. */
 public abstract class SmokeCheckTask extends DefaultTask {
 
     /** {@code logs/latest.log} of the run dir (overwritten by the next run, hence the copy). */
@@ -44,39 +49,65 @@ public abstract class SmokeCheckTask extends DefaultTask {
     @Internal
     public abstract RegularFileProperty getScreenshot();
 
+    /** The Allure result and its attachments of this run (docs/07, 7.11). */
+    @OutputDirectory
+    public abstract DirectoryProperty getResultsDir();
 
     @TaskAction
     public void check() {
         Path log = getLog().get().getAsFile().toPath();
+        SmokeCheck.Side side = getSide().get();
+        String minecraft = getMinecraft().get();
+        String platform = getPlatform().get();
+        boolean guests = getGuests().get();
+        List<String> expectations = SmokeCheck.expectations(minecraft, side, platform, guests);
+        Path summary = getSummary().get().getAsFile().toPath();
+        Path screenshot = getScreenshot().isPresent() ? getScreenshot().get().getAsFile().toPath() : null;
+
         if (!Files.isRegularFile(log)) {
-            throw new GradleException("No smoke log at " + log);
+            // A missing log is still one failed test, so the report keeps the evidence that the run never started.
+            String failure = "No smoke log at " + log;
+            write(platform, minecraft, side, expectations, null, null, screenshot,
+                    new SmokeCheck.Result(List.of(), List.of(failure)), failure);
+            throw new GradleException(failure);
         }
         // A client run that forgets the property would silently skip the frame check, so it is an error instead.
-        if (getSide().get() == SmokeCheck.Side.CLIENT && !getScreenshot().isPresent()) {
+        if (side == SmokeCheck.Side.CLIENT && !getScreenshot().isPresent()) {
             throw new GradleException("The client check needs the screenshot property (SmokeSetup sets "
                     + "<run dir>/screenshots/smoke.png)");
         }
         try {
-            String text = new String(Files.readAllBytes(log), StandardCharsets.UTF_8);
-            Path summary = getSummary().get().getAsFile().toPath();
+            String text = Files.readString(log, StandardCharsets.UTF_8);
             Files.createDirectories(summary.getParent());
-            Files.copy(log, summary.resolveSibling(getSide().get().name().toLowerCase() + ".log"),
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(log, summary.resolveSibling(side.name().toLowerCase(Locale.ROOT) + ".log"),
+                    StandardCopyOption.REPLACE_EXISTING);
             // The client check also reads the frame: a `Screenshot:` line alone does not say anything was drawn.
-            byte[] screenshot = null;
+            byte[] png = null;
             if (getScreenshot().isPresent()) {
-                Path png = getScreenshot().get().getAsFile().toPath();
-                screenshot = Files.isRegularFile(png) ? Files.readAllBytes(png) : new byte[0];
+                Path file = getScreenshot().get().getAsFile().toPath();
+                png = Files.isRegularFile(file) ? Files.readAllBytes(file) : new byte[0];
             }
-            SmokeCheck.Result result = SmokeCheck.check(text, getMinecraft().get(), getSide().get(), getPlatform().get(),
-                    getGuests().get(), screenshot);
+            SmokeCheck.Result result = SmokeCheck.check(text, minecraft, side, platform, guests, png);
             Files.writeString(summary, String.join("\n", result.lines()) + "\n");
+            String failure = result.ok() ? null : "Smoke " + side + " " + minecraft + " failed (" + log + "):\n  "
+                    + String.join("\n  ", result.problems());
+            write(platform, minecraft, side, expectations, log, summary, screenshot, result, failure);
             if (!result.ok()) {
-                throw new GradleException("Smoke " + getSide().get() + " " + getMinecraft().get() + " failed ("
-                        + log + "):\n  " + String.join("\n  ", result.problems()));
+                throw new GradleException(failure);
             }
-            getLogger().lifecycle("smoke {} {}: ok\n  {}", getSide().get(), getMinecraft().get(),
-                    String.join("\n  ", result.lines()));
+            getLogger().lifecycle("smoke {} {}: ok\n  {}", side, minecraft, String.join("\n  ", result.lines()));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /** Writes the Allure result before any failure, so a red run keeps its evidence in the report. */
+    private void write(String platform, String minecraft, SmokeCheck.Side side, List<String> expectations, Path log,
+                       Path summary, Path screenshot, SmokeCheck.Result result, String failureText) {
+        SmokeAllureWriter.Run run = new SmokeAllureWriter.Run(platform, minecraft, side.name(), expectations, log,
+                summary, screenshot);
+        try {
+            SmokeAllureWriter.write(run, result, failureText, getResultsDir().get().getAsFile().toPath());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
