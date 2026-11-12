@@ -1,12 +1,12 @@
 package lv.cebbys.mcmods.modularity.quilt.entrypoint;
 
-import lv.cebbys.mcmods.modularity.loom.entrypoint.LoomEntrypoints;
+import lv.cebbys.mcmods.modularity.loom.entrypoint.ModularityLoomServer;
 import net.fabricmc.api.DedicatedServerModInitializer;
 
 /** Quilt dedicated server entrypoint: runs the server stage of every Modularity mod. */
 public final class ModularityQuiltServer implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
-        LoomEntrypoints.server("quilt");
+        ModularityLoomServer.init("quilt");
     }
 }
