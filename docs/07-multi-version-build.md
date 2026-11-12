@@ -37,7 +37,7 @@ Fabric Loader: 0.20.1 (latest stable) for every platform.
 
 ```
 gradle/platforms.toml                      version table: one entry per loader and Minecraft version
-modularity-gradle/                               included build: the lv.cebbys.modularity plugins
+modularity-gradle/                         included build: the lv.cebbys.modularity plugins
 platforms/
   minecraft/                               plain Minecraft code shared by every loader (see 7.3), package
                                            lv.cebbys.mcmods.modularity.platform: runtime, blocks, entities,
