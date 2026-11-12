@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.forge.entrypoint;
 
 import lv.cebbys.mcmods.modularity.anvil.entrypoint.*;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 
@@ -15,6 +16,6 @@ public final class ModularityForgeServer {
 
     public static void register(IEventBus modBus) {
         modBus.addListener((FMLDedicatedServerSetupEvent event) -> event.enqueueWork(() ->
-                ModularityAnvilServer.init("forge")));
+                ModularityAnvilServer.init(Loader.FORGE)));
     }
 }

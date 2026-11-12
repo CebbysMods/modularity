@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.api;
 
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 
 import java.util.Optional;
@@ -28,6 +29,6 @@ public interface LaunchContext {
      */
     Optional<Side> side();
 
-    /** A short name for the running loader, for log lines. */
-    String loader();
+    /** The loader the game runs on. */
+    Loader loader();
 }

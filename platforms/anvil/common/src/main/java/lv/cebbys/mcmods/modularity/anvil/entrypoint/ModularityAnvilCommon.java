@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.anvil.entrypoint;
 
 import lv.cebbys.mcmods.modularity.anvil.ModularityAnvilServices;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.ModularityCommon;
@@ -19,11 +20,11 @@ public final class ModularityAnvilCommon {
     }
 
     /** Installs the shared services and initializes every Modularity entrypoint. */
-    public static void init(String loaderName, ModularityAnvilServices services) {
-        EntryPoints.active(EntryPoint.COMMON, loaderName);
+    public static void init(Loader loader, ModularityAnvilServices services) {
+        EntryPoints.active(EntryPoint.COMMON, loader);
         services.install();
         SyncedData.init();
         DetectionLog.log();
-        ModularityCommon.init(loaderName);
+        ModularityCommon.init(loader);
     }
 }

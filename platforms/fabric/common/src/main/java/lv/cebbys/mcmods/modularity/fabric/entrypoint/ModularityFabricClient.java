@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.entrypoint;
 
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.loom.entrypoint.ModularityLoomClient;
 import net.fabricmc.api.ClientModInitializer;
 
@@ -7,6 +8,6 @@ import net.fabricmc.api.ClientModInitializer;
 public final class ModularityFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        ModularityLoomClient.init("fabric");
+        ModularityLoomClient.init(Loader.FABRIC);
     }
 }

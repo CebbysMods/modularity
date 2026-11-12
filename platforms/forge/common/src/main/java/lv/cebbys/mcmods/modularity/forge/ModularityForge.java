@@ -2,6 +2,7 @@ package lv.cebbys.mcmods.modularity.forge;
 
 import lv.cebbys.mcmods.modularity.anvil.entrypoint.*;
 import lv.cebbys.mcmods.modularity.anvil.ModularityAnvilServices;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.forge.entrypoint.ModularityForgeClient;
 import lv.cebbys.mcmods.modularity.forge.entrypoint.ModularityForgeServer;
 import lv.cebbys.mcmods.modularity.forge.loader.ForgeLoaderHooks;
@@ -34,22 +35,22 @@ public final class ModularityForge {
 
     public ModularityForge(FMLJavaModLoadingContext context) {
         IEventBus modBus = context.getModEventBus();
-        EntryPoints.active("mod-constructor", "forge");
+        EntryPoints.active("mod-constructor", Loader.FORGE);
         ForgeLoaderHooks hooks = new ForgeLoaderHooks(modBus);
         ModularityAnvilServices services = new ModularityAnvilServices(new ForgeLoaderInfo(), new ForgeRenderData(),
                 new ForgeStorageBackend(), hooks);
-        ModularityAnvilLaunch.init("forge", services);
+        ModularityAnvilLaunch.init(Loader.FORGE, services);
         modBus.addListener((RegisterEvent event) -> {
             if (commonRan) {
                 return;
             }
             commonRan = true;
-            ModularityAnvilLaunch.initMods("forge");
-            ModularityAnvilCommon.init("forge", services);
+            ModularityAnvilLaunch.initMods(Loader.FORGE);
+            ModularityAnvilCommon.init(Loader.FORGE, services);
             hooks.replay(event);
             // Forge posts its client registration events before its setup events, so the client stage runs here,
             // where the registries hold the values of the common stage (7.8).
-            ModularityAnvilClient.runPending("forge");
+            ModularityAnvilClient.runPending(Loader.FORGE);
         });
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ModularityForgeClient.register(modBus);

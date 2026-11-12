@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.platform;
 
 import lv.cebbys.mcmods.modularity.api.LaunchContext;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.api.ModularityModCommon;
 import lv.cebbys.mcmods.modularity.api.ModularityModLaunch;
 import lv.cebbys.mcmods.modularity.api.core.Side;
@@ -20,18 +21,18 @@ public final class ModularityLaunch {
     private ModularityLaunch() {
     }
 
-    public static void init(String loaderName) {
+    public static void init(Loader loader) {
         for (LoaderInfo.ModEntry entry : Loaders.info().modularMods()) {
             ModularityCommon.run(entry.modId(), "to launch", () -> {
                 ModularityModCommon mod = entry.mod().get();
                 if (mod instanceof ModularityModLaunch stage) {
-                    stage.initialize(new Context(entry.modId(), loaderName));
+                    stage.initialize(new Context(entry.modId(), loader));
                 }
             });
         }
     }
 
-    private record Context(String modId, String loaderName) implements LaunchContext {
+    private record Context(String modId, Loader loader) implements LaunchContext {
         @Override
         public System.Logger logger() {
             return System.getLogger(modId);
@@ -40,11 +41,6 @@ public final class ModularityLaunch {
         @Override
         public Optional<Side> side() {
             return PlatformDetector.tryDetect().flatMap(DetectedPlatform::side);
-        }
-
-        @Override
-        public String loader() {
-            return loaderName;
         }
     }
 }

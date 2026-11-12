@@ -3,6 +3,7 @@ package lv.cebbys.mcmods.modularity.platform;
 import lv.cebbys.mcmods.modularity.api.ModularityModCommon;
 import lv.cebbys.mcmods.modularity.api.ModularModRegistry;
 import lv.cebbys.mcmods.modularity.api.Modularity;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.platform.loader.LoaderInfo;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
 import org.slf4j.Logger;
@@ -35,12 +36,12 @@ public final class ModularityCommon {
     }
 
     /** Installs the runtime and runs the common stage of every mod with a Modularity entrypoint. */
-    public static void init(String loaderName) {
+    public static void init(Loader loader) {
         ModularModRegistry.freeze();
         Modularity.install(MinecraftRuntime.INSTANCE);
         List<LoaderInfo.ModEntry> entries = Loaders.info().modularMods();
         LOGGER.info("Modularity {} on {}, Minecraft {}: initializing {} mod(s)",
-                MinecraftRuntime.INSTANCE.modVersion("modularity").orElse("?"), loaderName,
+                MinecraftRuntime.INSTANCE.modVersion("modularity").orElse("?"), loader.id(),
                 MinecraftRuntime.INSTANCE.minecraftVersion(), entries.size());
         for (LoaderInfo.ModEntry entry : entries) {
             run(entry.modId(), "to initialize", () -> {

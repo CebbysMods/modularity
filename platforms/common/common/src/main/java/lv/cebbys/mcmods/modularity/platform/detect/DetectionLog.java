@@ -25,8 +25,7 @@ public final class DetectionLog {
         MinecraftVersion version = VersionDetector.detect();
         String side = platform.side().map(Object::toString).orElse("UNKNOWN")
                 .toLowerCase(Locale.ROOT);
-        String loader = platform.loader().name().toLowerCase(Locale.ROOT);
-        LOGGER.info("({}) platform {}:{}, minecraft:{}", side, loader, platform.loaderVersion(),
+        LOGGER.info("({}) platform {}:{}, minecraft:{}", side, platform.loader(), platform.loaderVersion(),
                 version);
     }
 }

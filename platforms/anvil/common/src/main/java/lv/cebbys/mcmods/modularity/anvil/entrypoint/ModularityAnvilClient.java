@@ -1,10 +1,12 @@
 package lv.cebbys.mcmods.modularity.anvil.entrypoint;
 
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.client.ModularityClient;
 import lv.cebbys.mcmods.modularity.platform.loader.ClientHooks;
 import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The client stage of the Modularity lifecycle on the Forge family.
@@ -17,7 +19,7 @@ import lv.cebbys.mcmods.modularity.platform.loader.Loaders;
  */
 public final class ModularityAnvilClient {
     /** The client service the client entrypoint prepared, or {@code null} on a dedicated server. */
-    private static ClientHooks pending;
+    private static @Nullable ClientHooks pending;
 
     private ModularityAnvilClient() {
     }
@@ -28,17 +30,17 @@ public final class ModularityAnvilClient {
     }
 
     /** Runs the prepared client stage, if this distribution has one, and forgets it. */
-    public static void runPending(String loaderName) {
+    public static void runPending(Loader loader) {
         ClientHooks hooks = pending;
         pending = null;
         if (hooks != null) {
-            init(loaderName, hooks);
+            init(loader, hooks);
         }
     }
 
     /** Installs the client service and runs the client init. */
-    public static void init(String loaderName, ClientHooks hooks) {
-        EntryPoints.active(EntryPoint.CLIENT, loaderName);
+    public static void init(Loader loader, ClientHooks hooks) {
+        EntryPoints.active(EntryPoint.CLIENT, loader);
         Loaders.installClient(hooks);
         ModularityClient.init();
     }

@@ -2,6 +2,7 @@ package lv.cebbys.mcmods.modularity.neoforge.entrypoint;
 
 import lv.cebbys.mcmods.modularity.anvil.entrypoint.*;
 import lv.cebbys.mcmods.modularity.anvil.ModularityAnvilServices;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeLoaderHooks;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeLoaderInfo;
 import lv.cebbys.mcmods.modularity.neoforge.loader.NeoForgeRenderData;
@@ -28,22 +29,22 @@ public final class ModularityNeoForgeCommon {
     private boolean commonRan;
 
     public ModularityNeoForgeCommon(IEventBus modBus) {
-                EntryPoints.active("mod-constructor", "neoforge");
+        EntryPoints.active("mod-constructor", Loader.NEOFORGE);
         NeoForgeLoaderHooks hooks = new NeoForgeLoaderHooks(modBus);
         ModularityAnvilServices services = new ModularityAnvilServices(new NeoForgeLoaderInfo(), new NeoForgeRenderData(),
                 new NeoForgeStorageBackend(modBus), hooks);
-        ModularityAnvilLaunch.init("neoforge", services);
+        ModularityAnvilLaunch.init(Loader.NEOFORGE, services);
         modBus.addListener((RegisterEvent event) -> {
             if (commonRan) {
                 return;
             }
             commonRan = true;
-            ModularityAnvilLaunch.initMods("neoforge");
-            ModularityAnvilCommon.init("neoforge", services);
+            ModularityAnvilLaunch.initMods(Loader.NEOFORGE);
+            ModularityAnvilCommon.init(Loader.NEOFORGE, services);
             hooks.replay(event);
             // NeoForge posts its client registration events before its setup events, so the client stage runs here,
             // where the registries hold the values of the common stage (7.8).
-            ModularityAnvilClient.runPending("neoforge");
+            ModularityAnvilClient.runPending(Loader.NEOFORGE);
         });
         LOGGER.info("NeoForge platform loaded");
     }

@@ -1,6 +1,7 @@
 package lv.cebbys.mcmods.modularity.anvil.entrypoint;
 
 import lv.cebbys.mcmods.modularity.anvil.ModularityAnvilServices;
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.platform.EntryPoint;
 import lv.cebbys.mcmods.modularity.platform.EntryPoints;
 import lv.cebbys.mcmods.modularity.platform.ModularityLaunch;
@@ -15,13 +16,13 @@ public final class ModularityAnvilLaunch {
     }
 
     /** The launch stage of every Modularity entrypoint, and the shared services. */
-    public static void init(String loaderName, ModularityAnvilServices services) {
-        EntryPoints.active(EntryPoint.LAUNCH, loaderName);
+    public static void init(Loader loader, ModularityAnvilServices services) {
+        EntryPoints.active(EntryPoint.LAUNCH, loader);
         services.install();
     }
 
     /** Runs the launch stage of every mod. Both loaders call it on the first {@code RegisterEvent}. */
-    public static void initMods(String loaderName) {
-        ModularityLaunch.init(loaderName);
+    public static void initMods(Loader loader) {
+        ModularityLaunch.init(loader);
     }
 }

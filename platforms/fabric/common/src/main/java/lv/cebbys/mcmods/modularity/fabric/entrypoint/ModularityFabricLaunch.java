@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.entrypoint;
 
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.fabric.guest.FabricGuestJson;
 import lv.cebbys.mcmods.modularity.fabric.guest.LoaderInjection;
 import lv.cebbys.mcmods.modularity.loom.entrypoint.ModularityLoomLaunch;
@@ -27,7 +28,7 @@ public final class ModularityFabricLaunch implements PreLaunchEntrypoint {
 
     @Override
     public void onPreLaunch() {
-        ModularityLoomLaunch.init("fabric");
+        ModularityLoomLaunch.init(Loader.FABRIC);
         Map<String, GuestDescriptor> byId = new LinkedHashMap<>();
         for (GuestDescriptor guest : GuestCandidates.find()) {
             if (FabricLoader.getInstance().isModLoaded(guest.id()) || byId.containsKey(guest.id())) {
@@ -46,7 +47,7 @@ public final class ModularityFabricLaunch implements PreLaunchEntrypoint {
                     guest.origin().getFileName());
         }
         byId.values().forEach(ModularityFabricLaunch::checkDependencies);
-        ModularityLoomLaunch.initMods("fabric");
+        ModularityLoomLaunch.initMods(Loader.FABRIC);
     }
 
     /** Fabric resolved dependencies before guests existed; the same rules, checked here. */

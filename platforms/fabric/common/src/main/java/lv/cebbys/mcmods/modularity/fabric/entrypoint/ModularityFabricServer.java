@@ -1,5 +1,6 @@
 package lv.cebbys.mcmods.modularity.fabric.entrypoint;
 
+import lv.cebbys.mcmods.modularity.api.core.Loader;
 import lv.cebbys.mcmods.modularity.loom.entrypoint.ModularityLoomServer;
 import net.fabricmc.api.DedicatedServerModInitializer;
 
@@ -7,6 +8,6 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 public final class ModularityFabricServer implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
-        ModularityLoomServer.init("fabric");
+        ModularityLoomServer.init(Loader.FABRIC);
     }
 }
