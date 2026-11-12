@@ -1,6 +1,6 @@
 package lv.cebbys.mcmods.modularity.quilt.entrypoint;
 
-import lv.cebbys.mcmods.modularity.loom.entrypoint.LoomEntrypoints;
+import lv.cebbys.mcmods.modularity.loom.entrypoint.ModularityLoomLaunch;
 import lv.cebbys.mcmods.modularity.loom.guest.GuestCandidates;
 import lv.cebbys.mcmods.modularity.platform.guest.GuestDescriptor;
 import org.quiltmc.loader.api.ModContainer;
@@ -19,13 +19,13 @@ public final class ModularityQuiltLaunch implements PreLaunchEntrypoint {
 
     @Override
     public void onPreLaunch(ModContainer mod) {
-        LoomEntrypoints.launch("quilt");
+        ModularityLoomLaunch.init("quilt");
         List<GuestDescriptor> guests = GuestCandidates.find();
         if (!guests.isEmpty()) {
             // LoaderInjection uses Fabric Loader internals, which Quilt Loader does not have (docs/08).
             LOGGER.error("Guest mods are not supported on Quilt yet; not loaded: {}",
                     guests.stream().map(GuestDescriptor::id).toList());
         }
-        LoomEntrypoints.launchMods("quilt");
+        ModularityLoomLaunch.initMods("quilt");
     }
 }
