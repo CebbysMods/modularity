@@ -8,15 +8,15 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 
 /** A tank as one Transfer API slot (droplets); changes roll back with the transaction and notify on commit. */
-final class LoomTankStorage extends SnapshotParticipant<McFluidTank.State> implements SingleSlotStorage<FluidVariant> {
+final class ModularityLoomTankStorage extends SnapshotParticipant<McFluidTank.State> implements SingleSlotStorage<FluidVariant> {
     private final McFluidTank tank;
 
-    private LoomTankStorage(McFluidTank tank) {
+    private ModularityLoomTankStorage(McFluidTank tank) {
         this.tank = tank;
     }
 
-    static LoomTankStorage of(McFluidTank tank) {
-        return tank.view(LoomTankStorage::new);
+    static ModularityLoomTankStorage of(McFluidTank tank) {
+        return tank.view(ModularityLoomTankStorage::new);
     }
 
     @Override
@@ -27,8 +27,7 @@ final class LoomTankStorage extends SnapshotParticipant<McFluidTank.State> imple
         }
         long inserted = tank.insertable(resource.getFluid(), maxAmount);
         if (inserted > 0) {
-            updateSnapshots(transaction);
-            tank.set(resource.getFluid(), tank.units() + inserted);
+            apply(transaction, () -> tank.set(resource.getFluid(), tank.units() + inserted));
         }
         return inserted;
     }
@@ -41,8 +40,7 @@ final class LoomTankStorage extends SnapshotParticipant<McFluidTank.State> imple
         }
         long extracted = Math.min(maxAmount, tank.units());
         if (extracted > 0) {
-            updateSnapshots(transaction);
-            tank.set(tank.nativeFluid(), tank.units() - extracted);
+            apply(transaction, () -> tank.set(tank.nativeFluid(), tank.units() - extracted));
         }
         return extracted;
     }
@@ -75,6 +73,20 @@ final class LoomTankStorage extends SnapshotParticipant<McFluidTank.State> imple
     @Override
     protected void readSnapshot(McFluidTank.State snapshot) {
         tank.restore(snapshot);
+    }
+
+    /**
+     * Applies {@code change} under {@code transaction}, or at once when the caller passes no context: the Transfer API
+     * documents a null context as "no transaction", and {@code updateSnapshots(null)} throws.
+     */
+    private void apply(TransactionContext transaction, Runnable change) {
+        if (transaction == null) {
+            change.run();
+            tank.changed();
+            return;
+        }
+        updateSnapshots(transaction);
+        change.run();
     }
 
     @Override

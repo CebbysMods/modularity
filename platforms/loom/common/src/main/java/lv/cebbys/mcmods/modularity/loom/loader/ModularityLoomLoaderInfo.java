@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 /** {@link LoaderInfo} from Fabric Loader (also Quilt Loader, which provides the same API). */
-public final class LoomLoaderInfo implements LoaderInfo {
+public final class ModularityLoomLoaderInfo implements LoaderInfo {
     public static final String ENTRYPOINT = "modularity";
 
     @Override

@@ -10,7 +10,7 @@ import java.util.Optional;
  * Version of the built-in {@code minecraft} mod of Fabric Loader or Quilt Loader. Only applies when
  * Fabric Loader's API is present.
  */
-public final class LoomVersionSource implements VersionSource {
+public final class ModularityLoomVersionSource implements VersionSource {
     @Override
     public int priority() {
         return 1000;
@@ -23,7 +23,7 @@ public final class LoomVersionSource implements VersionSource {
 
     @Override
     public Optional<MinecraftVersion> detect() {
-        if (!LoomClasses.exists(LoomClasses.FABRIC_LOADER)) {
+        if (!ModularityLoomClasses.exists(ModularityLoomClasses.FABRIC_LOADER)) {
             return Optional.empty();
         }
         return FabricLoader.getInstance().getModContainer("minecraft")

@@ -22,7 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import java.util.function.BiConsumer;
 
 /** {@link LoaderHooks} with Fabric API: registries are open during init, events for tabs and networking. */
-public final class LoomLoaderHooks implements LoaderHooks {
+public final class ModularityLoomLoaderHooks implements LoaderHooks {
 
     @Override
     public <T> T register(Registry<? super T> registry, Id id, T value) {

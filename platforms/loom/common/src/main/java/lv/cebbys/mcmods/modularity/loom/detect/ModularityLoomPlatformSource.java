@@ -14,7 +14,7 @@ import java.util.Optional;
  * Asks Fabric Loader (or Quilt Loader, which provides the same API) for its version, the side and
  * the development flag. Reports {@link Loader#QUILT} when Quilt Loader is present.
  */
-public final class LoomPlatformSource implements PlatformSource {
+public final class ModularityLoomPlatformSource implements PlatformSource {
     @Override
     public int priority() {
         return 1000;
@@ -27,11 +27,11 @@ public final class LoomPlatformSource implements PlatformSource {
 
     @Override
     public Optional<DetectedPlatform> detect() {
-        if (!LoomClasses.exists(LoomClasses.FABRIC_LOADER)) {
+        if (!ModularityLoomClasses.exists(ModularityLoomClasses.FABRIC_LOADER)) {
             return Optional.empty();
         }
         FabricLoader loader = FabricLoader.getInstance();
-        boolean quilt = LoomClasses.exists(LoomClasses.QUILT_LOADER);
+        boolean quilt = ModularityLoomClasses.exists(ModularityLoomClasses.QUILT_LOADER);
         PlatformVersion version = loader.getModContainer(quilt ? "quilt_loader" : "fabricloader")
                 .map(container -> PlatformVersion.parse(container.getMetadata().getVersion().getFriendlyString()))
                 .orElse(PlatformVersion.unknown());
