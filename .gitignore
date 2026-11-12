@@ -7,3 +7,6 @@ run/
 .vscode/
 bin/
 tools/*/run/
+
+# The issue tracker data; beans stay local, only .beans.yml is tracked.
+.beans/

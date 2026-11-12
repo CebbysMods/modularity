@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "lv.cebbys.mcmods",
+    "id": "modularity_smoke",
+    "version": "1.0.0",
+    "metadata": {
+      "name": "Modularity platform smoke test",
+      "description": "Platform smoke test (docs/07, 7.6).",
+      "contributors": {
+        "CebbyS": "Author"
+      },
+      "license": "MIT"
+    },
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "entrypoints": {
+      "main": ["lv.cebbys.mcmods.modularity.smoke.SmokeMod"],
+      "client": ["lv.cebbys.mcmods.modularity.smoke.SmokeClient"],
+      "modularity": ["lv.cebbys.mcmods.modularity.smoke.SmokeFeatures"]
+    },
+    "depends": [
+      {
+        "id": "quilt_loader",
+        "versions": ">=0.30.2"
+      },
+      {
+        "id": "minecraft",
+        "versions": "*"
+      },
+      {
+        "id": "fabric-api",
+        "versions": "*"
+      },
+      {
+        "id": "modularity",
+        "versions": "*"
+      }
+    ]
+  },
+  "minecraft": {
+    "environment": "*"
+  }
+}

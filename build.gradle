@@ -1,12 +1,15 @@
 plugins {
-    // Configures the platforms of gradle/platforms.toml. It also brings Loom 1.19.3 (build-logic/build.gradle)
-    // onto the root classpath, so every project (platforms, utilities) shares one Loom: subprojects apply
+    // Configures the platforms of gradle/platforms.toml. It also brings Loom 1.19.3 (modularity-gradle/build.gradle)
+    // onto the root classpath, so every project (platforms) shares one Loom: subprojects apply
     // net.fabricmc.fabric-loom-remap / net.fabricmc.fabric-loom without a version.
     id 'lv.cebbys.modularity.root'
+    // Test pyramid report (docs/07, 7.11). The adapter is applied to the test modules only; the aggregate report
+    // reads the copies that allureCollectResults stages into build/allure-results.
+    id 'io.qameta.allure-adapter' version '4.3.0' apply false
+    id 'io.qameta.allure-aggregate-report' version '4.3.0'
 }
 
-// utilities/ (mvd, mpd) configure themselves, so they can later move to their own repositories.
-configure(subprojects.findAll { !it.path.startsWith(':utilities') }) {
+subprojects {
     group = rootProject.group
     version = rootProject.version
 
@@ -15,14 +18,12 @@ configure(subprojects.findAll { !it.path.startsWith(':utilities') }) {
     }
 }
 
-configure([project(':modularity-api'), project(':modularity-testkit')]) {
+// The API, the testkit and the smoke guest: Java 17, no loader and no Minecraft on the compile path.
+configure([project(':modularity-api'), project(':modularity-testkit'), project(':modularity-smoke')]) {
     apply plugin: 'java-library'
-    apply plugin: 'maven-publish'
 
     java {
         toolchain { languageVersion = JavaLanguageVersion.of(Integer.parseInt(rootProject.java_toolchain)) }
-        withSourcesJar()
-        withJavadocJar()
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -35,6 +36,16 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
     tasks.withType(Javadoc).configureEach {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
+}
+
+// Only the two libraries are published; the smoke module is a test fixture.
+configure([project(':modularity-api'), project(':modularity-testkit')]) {
+    apply plugin: 'maven-publish'
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
 
     publishing {
         publications {
@@ -45,11 +56,52 @@ configure([project(':modularity-api'), project(':modularity-testkit')]) {
     }
 }
 
-// collectJars (lv.cebbys.modularity.root) copies every platform jar plus these to build/libs-all/.
-if (findProject(':utilities:mvd:mvd-fabric') != null) {
-    modularity.extraJars.addAll(':utilities:mvd:mvd-fabric:remapJar', ':utilities:mpd:mpd-fabric:remapJar',
-            ':utilities:mvd:mvd-neoforge:jar', ':utilities:mpd:mpd-neoforge:jar',
-            ':utilities:mvd:mvd-forge:jar', ':utilities:mpd:mpd-forge:jar')
+// The API and the testkit run the L1 unit tests, so they write Allure results. The smoke module has no tests, and a
+// platform project's test task would pull in its whole Loom class path, so neither gets the adapter.
+configure([project(':modularity-api'), project(':modularity-testkit')]) {
+    apply plugin: 'io.qameta.allure-adapter'
+
+    allure {
+        adapter {
+            // 3.x adapter line: allure-jupiter over allure-junit-platform (allure-junit5 is 2.x only).
+            allureJavaVersion = rootProject.allure_java_version
+            // The tests write their steps with @Step, and only the AspectJ weaver turns that annotation into
+            // steps. The adapter adds -javaagent:aspectjweaver to the test JVM.
+            aspectjWeaver = true
+        }
+    }
+
+    // The adapter adds to its results directory and never removes old files, so a second run would leave two
+    // results per test. The directory is cleared at the start of every run.
+    tasks.named('test') {
+        doFirst { delete layout.buildDirectory.dir('allure-results') }
+    }
 }
+
+// The aggregate plugin links itself to every project of the build. That would resolve the class path of every
+// platform, which needs Minecraft and the network. The staged directory replaces those links (see the root plugin).
+configurations.configureEach { configuration ->
+    if (configuration.name in ['allureReport', 'allureGenerateCategories']) {
+        configuration.withDependencies { dependencies -> dependencies.clear() }
+    }
+}
+
+tasks.named('allureAggregateReport') {
+    description = 'Writes one Allure HTML report from the collected L1, L2 and L3 results'
+    // Raw results from every layer, staged by allureCollectResults. Without it the plugin would read the project
+    // dependencies cleared above, which is nothing.
+    resultsDirs.setFrom(layout.buildDirectory.dir('allure-results'))
+    dependsOn 'allureCollectResults'
+    // The plugin writes a config with no grouping, and the report then groups the tests by Java package
+    // (lv > cebbys > mcmods > ...). allurerc.json groups them by epic, feature, story and functionality.
+    configFile.set(layout.projectDirectory.file('allurerc.json'))
+    // The Allure 3 CLI writes nothing when the output directory exists and still exits with 0. The task must
+    // remove the old report, or every run after the first leaves the first report in place.
+    clean.set(true)
+    // The plugin reads the results directory in the task body and does not declare it as an input, so Gradle keeps
+    // an old report when the results change. The report is cheap to write, so it always runs.
+    outputs.upToDateWhen { false }
+}
+
 // buildAll also runs the plugin unit tests (layer ordering, override and duplicate checks, table, metadata).
-tasks.named('buildAll') { dependsOn gradle.includedBuild('build-logic').task(':test') }
+tasks.named('buildAll') { dependsOn gradle.includedBuild('modularity-gradle').task(':test') }

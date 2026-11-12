@@ -11,7 +11,7 @@ code without leaving the project.**
 ```
 ┌──────────────────────────────── your mod ─────────────────────────────────┐
 │  common module (plain Java, depends only on modularity-api)               │
-│    MyMod implements ModularMod  ── blocks, behaviours, interceptors, ...  │
+│    MyMod implements ModularityModCommon  ── blocks, behaviours, interceptors, ...  │
 │  tests (modularity-testkit: in-memory game, no Minecraft)                 │
 │  per-target packaging: fabric.mod.json / neoforge.mods.toml + resources   │
 └───────────────────────────────────────────────────────────────────────────┘
@@ -49,29 +49,30 @@ code without leaving the project.**
    (block entity + render data on Fabric/NeoForge today; chunk attachments possible later).
 7. **Contexts over long parameter lists.** Callbacks get a context object (`PlacementContext`,
    `BreakContext`, `DropContext`) so adding information later is not a breaking change.
-8. **Version is data.** `McVersion`, `VersionRange`, `Versioned<T>` replace the annotation scanning of
-   the old refabslab plugin loader with an explicit, testable selector.
+8. **Version is data.** `MinecraftVersion`, `PlatformVersion`, `VersionRange`, `Versioned<T>` replace the
+   annotation scanning of the old refabslab plugin loader with an explicit, testable selector.
 
 ## 3.4 The API, step by step
 
 ### Step 1 – entrypoint
 
 ```java
-public final class MyMod implements ModularMod {
-    @Override public void initCommon(ModContext mod) { /* content */ }
-    @Override public void initClient(ClientContext client) { /* rendering */ }
-    @Override public void initServer(ServerContext server) { /* dedicated server only */ }
+public final class MyMod implements ModularityModCommon, ModularityModClient, ModularityModServer {
+    @Override public void initialize(CommonContext common) { /* content */ }
+    @Override public void initialize(ClientContext client) { /* rendering */ }
+    @Override public void initialize(ServerContext server) { /* dedicated server only */ }
 }
 ```
 
-Fabric: `"entrypoints": { "modularity": ["com.example.MyMod"] }`. The same instance receives
-`initClient`/`initServer`, so fields set in `initCommon` are available there.
+Fabric: `"entrypoints": { "modularity": ["com.example.MyMod"] }`. A mod implements only the stages it
+has: every method is default, so `MyMod` may leave out an interface and the stage. The same instance
+receives all of its stages, so fields set in the common stage are available there.
 
-| Method | Runs on | Typical use |
+| Interface / method | Runs on | Typical use |
 |---|---|---|
-| `initCommon` | always, first | blocks, items, data, interceptors |
-| `initClient` | physical client (also singleplayer) | models, particles, renderers, key bindings |
-| `initServer` | dedicated server only | server config, console-only features |
+| `ModularityModCommon.initialize` | always, first | blocks, items, data, interceptors |
+| `ModularityModClient.initialize` | physical client (also singleplayer) | models, particles, renderers, key bindings |
+| `ModularityModServer.initialize` | dedicated server only | server config, console-only features |
 
 ### Step 2 – a block
 
@@ -138,9 +139,10 @@ common module stays Minecraft-free.
 
 | Package | Contents |
 |---|---|
-| `api` | `ModularMod`, `ModContext`, `Platform`, `Modularity` (static runtime access) |
+| `api` | `ModularityModCommon`, `ModularityModClient`, `ModularityModServer`, `CommonContext`, `Platform`, `Modularity` (static runtime access) |
 | `api.server` | `ServerContext` |
-| `api.core` | `Id`, `McVersion`, `VersionRange`, `Versioned`, `Handle`, `Loader`, `Side` |
+| `api.core` | `Version`, `MinecraftVersion`, `PlatformVersion`, `Id`, `VersionRange`, `Versioned`, `Handle`, `Loader`, `Side` |
+| `api.detect` | `VersionDetector`, `PlatformDetector`, `VersionSource`, `PlatformSource`, `DetectedPlatform`, built-in sources, detection exceptions |
 | `api.block` | `BlockDefinition` (+Builder), `BlockHandle`, `BlockRef`, `BlockStateRef`, `BlockBehaviour`, contexts, `BlockInterceptor`, `BlockSelector`, `PlacementResult`, `BlockTag`, `BlockType`, `PushReaction`, `BlockSound` |
 | `api.block.property` | `Property` (`IntegerProperty`, `BooleanProperty`, `EnumProperty`), `VanillaProperties`, `SlabType`, `PropertyValue` |
 | `api.data` | `BlockData`, `DataCodec`, `DataInput`, `DataOutput`, `MapData` |
@@ -152,7 +154,7 @@ common module stays Minecraft-free.
 
 | API | Native implementation |
 |---|---|
-| `ModularMod` discovery | Fabric entrypoint key `modularity`, run from Modularity's own `main`/`client`/`server` entrypoints |
+| `ModularityModCommon` discovery | Fabric entrypoint key `modularity`, run from Modularity's own `main`/`client`/`server` entrypoints |
 | `mod.block` | `ModularBlock` (or `ModularEntityBlock` when data is declared) registered in `BuiltInRegistries.BLOCK`; properties added through a construction-time `ThreadLocal` |
 | `Property` | cached mapping to vanilla `IntegerProperty`/`BooleanProperty`, vanilla properties by key, portable enums as a `Property<String>` of serialized names |
 | `BlockData` | `ModularBlockEntity`: NBT under `modularity`, update packet sync, client re-mesh on receive, Fabric `RenderDataBlockEntity` snapshot |

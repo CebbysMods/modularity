@@ -38,7 +38,7 @@ public final class Contexts {
     }
 
     public static BlockContext block(BlockGetter getter, BlockPos pos, BlockState state) {
-        return new Block0(new NativeBlockView(getter), Wrap.pos(pos), Wrap.state(state));
+        return new BlockBase(new NativeBlockView(getter), Wrap.pos(pos), Wrap.state(state));
     }
 
     public static BreakContext breaking(net.minecraft.world.level.Level level, BlockPos pos, BlockState state,
@@ -84,12 +84,12 @@ public final class Contexts {
         }
     }
 
-    private static class Block0 implements BlockContext {
+    private static class BlockBase implements BlockContext {
         private final BlockView view;
         private final Pos pos;
         private final BlockStateRef state;
 
-        Block0(BlockView view, Pos pos, BlockStateRef state) {
+        BlockBase(BlockView view, Pos pos, BlockStateRef state) {
             this.view = view;
             this.pos = pos;
             this.state = state;
@@ -116,7 +116,7 @@ public final class Contexts {
         }
     }
 
-    private static final class Break extends Block0 implements BreakContext {
+    private static final class Break extends BlockBase implements BreakContext {
         private final Level level;
         private final net.minecraft.world.entity.player.Player player;
 
@@ -148,7 +148,7 @@ public final class Contexts {
         }
     }
 
-    private static final class Drops extends Block0 implements DropContext {
+    private static final class Drops extends BlockBase implements DropContext {
         private final Level level;
         private final ModularBlockEntity entity;
         private final net.minecraft.world.entity.player.Player player;

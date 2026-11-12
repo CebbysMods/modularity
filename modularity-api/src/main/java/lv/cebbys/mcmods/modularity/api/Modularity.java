@@ -30,6 +30,14 @@ public final class Modularity {
         return runtime().emptyStack();
     }
 
+    /**
+     * Registers a mod built on Modularity. A generated loader adapter calls it from its constructor, before
+     * common initialization.
+     */
+    public static void registerMod(String modId, ModularityModCommon mod) {
+        ModularModRegistry.register(modId, mod);
+    }
+
     /** Internal: called by the platform implementation. */
     public static void install(Runtime installed) {
         runtime = Objects.requireNonNull(installed, "runtime");

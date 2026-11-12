@@ -1,0 +1,53 @@
+name: discover platforms
+
+# Called by build.yml and smoke.yml: reads the enabled platforms from gradle/platforms.toml and returns the job
+# matrix. The table stays the only source of platforms.
+on:
+  workflow_call:
+    outputs:
+      matrix:
+        description: The GitHub Actions matrix of every enabled platform.
+        value: ${{ jobs.discover.outputs.matrix }}
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    name: Discover platforms
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.platforms.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read enabled platforms
+        id: platforms
+        shell: bash
+        run: |
+          matrix="$(python3 - <<'PY'
+          import json
+          import tomllib
+
+          with open("gradle/platforms.toml", "rb") as file:
+              table = tomllib.load(file)
+
+          entries = []
+          for platform in table.get("platform", []):
+              if not platform.get("enabled", True):
+                  continue
+              name = platform["name"]
+              loader = platform.get("loader", "fabric")
+              entries.append({
+                  "id": f"{loader}-{name}",
+                  "name": name,
+                  "loader": loader,
+                  "project": f":platforms:{name}:{name}-{loader}",
+                  "dir": f"platforms/{loader}/versions/{name}",
+                  "client": bool(platform.get("smoke-client", False)),
+              })
+
+          print(json.dumps({"include": entries}, separators=(",", ":")))
+          PY
+          )"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"

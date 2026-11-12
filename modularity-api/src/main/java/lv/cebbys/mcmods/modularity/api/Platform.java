@@ -1,7 +1,7 @@
 package lv.cebbys.mcmods.modularity.api;
 
 import lv.cebbys.mcmods.modularity.api.core.Loader;
-import lv.cebbys.mcmods.modularity.api.core.McVersion;
+import lv.cebbys.mcmods.modularity.api.core.MinecraftVersion;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 
 import java.util.Optional;
@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface Platform {
     Loader loader();
 
-    McVersion minecraftVersion();
+    MinecraftVersion minecraftVersion();
 
     Side side();
 

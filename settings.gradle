@@ -1,6 +1,6 @@
 pluginManagement {
     // Our own plugins (docs/07-multi-version-build.md).
-    includeBuild 'build-logic'
+    includeBuild 'modularity-gradle'
     repositories {
         maven {
             name = 'Fabric'
@@ -21,22 +21,11 @@ plugins {
 
 rootProject.name = 'modularity'
 
-// Loader independent modules, buildable with nothing but Maven Central.
+// Loader independent modules, buildable with nothing but Maven Central. The smoke module holds the guest mod
+// (compiled here) and the layered smoke roots, which each platform assembles (docs/07, 7.6).
 include 'modularity-api'
 include 'modularity-testkit'
+include 'modularity-smoke'
 
-// Utility mods (see docs/06-utility-mods.md). Self-contained: they never reference the root project.
-include 'utilities:mvd:mvd-core'
-include 'utilities:mpd:mpd-core'
-
-// Fabric platforms come from gradle/platforms.toml (settings plugin above); the utility wrappers need the
-// same mavens. Skip all of them with -Pmodularity.platforms=none (e.g. in offline environments).
-def platforms = providers.gradleProperty('modularity.platforms').getOrElse('all')
-if (platforms != 'none') {
-    include 'utilities:mvd:mvd-fabric'
-    include 'utilities:mpd:mpd-fabric'
-    include 'utilities:mvd:mvd-neoforge'
-    include 'utilities:mpd:mpd-neoforge'
-    include 'utilities:mvd:mvd-forge'
-    include 'utilities:mpd:mpd-forge'
-}
+// The platform projects come from gradle/platforms.toml (settings plugin above). Skip all of them with
+// -Pmodularity.platforms=none (e.g. in offline environments).

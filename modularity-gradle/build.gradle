@@ -1,0 +1,69 @@
+plugins {
+    id 'java-gradle-plugin'
+    // The L2 build-contract tests write Allure results (docs/07, 7.11). An included build does not see the
+    // plugin management of the root build, so this build names the version itself.
+    id 'io.qameta.allure-adapter' version '4.3.0'
+}
+
+group = 'lv.cebbys.modularity'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(25) }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 25  // Loom 1.19 is Java 25 bytecode; Gradle runs on Java 25
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:all', '-Xlint:-serial', '-Xlint:-processing']
+}
+
+dependencies {
+    // The one Loom of the whole build: both plugin ids (fabric-loom-remap, fabric-loom) are in this artifact,
+    // so applying lv.cebbys.modularity in the root project puts it on the shared plugin classpath.
+    implementation 'net.fabricmc:fabric-loom:1.19.3'
+    // NeoForge (ModDevGradle) and Forge (ForgeGradle 7): the plugins and versions of NeoForge's and Forge's own
+    // 1.21.1 MDKs, on the same shared classpath, so platforms and utilities apply them without a version.
+    implementation 'net.neoforged:moddev-gradle:2.0.148'
+    implementation 'net.minecraftforge:forgegradle:7.0.40'
+    // Relocating the loader class sets into the universal jar (UniversalJarTask).
+    implementation 'org.ow2.asm:asm:9.7.1'
+    implementation 'org.ow2.asm:asm-commons:9.7.1'
+
+    testImplementation platform('org.junit:junit-bom:5.10.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+allure {
+    adapter {
+        // 3.x adapter line, the same as the L1 modules: one report holds both layers.
+        allureJavaVersion = providers.gradleProperty('allure_java_version').get()
+        // The L2 tests write their steps with @Step, and only the AspectJ weaver turns that annotation into
+        // steps in the report (docs/07 7.11).
+        aspectjWeaver = true
+    }
+}
+
+test {
+    useJUnitPlatform()
+    // The adapter adds to its results directory and never removes old files, so a second run would leave two
+    // results per test. The directory is cleared at the start of every run.
+    doFirst { delete layout.buildDirectory.dir('allure-results') }
+}
+
+gradlePlugin {
+    plugins {
+        settings {
+            id = 'lv.cebbys.modularity.settings'
+            implementationClass = 'lv.cebbys.modularity.gradle.ModularitySettingsPlugin'
+        }
+        platform {
+            id = 'lv.cebbys.modularity'
+            implementationClass = 'lv.cebbys.modularity.gradle.ModularityPlatformPlugin'
+        }
+        root {
+            id = 'lv.cebbys.modularity.root'
+            implementationClass = 'lv.cebbys.modularity.gradle.ModularityRootPlugin'
+        }
+    }
+}

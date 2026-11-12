@@ -2,7 +2,7 @@ package lv.cebbys.mcmods.modularity.testkit;
 
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.core.Loader;
-import lv.cebbys.mcmods.modularity.api.core.McVersion;
+import lv.cebbys.mcmods.modularity.api.core.MinecraftVersion;
 import lv.cebbys.mcmods.modularity.api.core.Side;
 
 import java.util.HashMap;
@@ -12,11 +12,11 @@ import java.util.Optional;
 /** Configurable {@link Platform} for tests. */
 public final class TestPlatform implements Platform {
     private final Map<String, String> mods = new HashMap<>();
-    private McVersion version = McVersion.parse("1.21.1");
+    private MinecraftVersion version = MinecraftVersion.parse("1.21.1");
     private Side side = Side.CLIENT;
 
     public TestPlatform minecraftVersion(String version) {
-        this.version = McVersion.parse(version);
+        this.version = MinecraftVersion.parse(version);
         return this;
     }
 
@@ -36,7 +36,7 @@ public final class TestPlatform implements Platform {
     }
 
     @Override
-    public McVersion minecraftVersion() {
+    public MinecraftVersion minecraftVersion() {
         return version;
     }
 

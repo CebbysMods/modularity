@@ -57,14 +57,12 @@ public final class SmokeServer implements ModInitializer {
         });
     }
 
-    /** Modularity, mvd and mpd must each be a loaded, top-level mod (not nested in another jar). */
+    /** Modularity must be a loaded, top-level mod (not nested in another jar). */
     private static void logMods() {
-        for (String id : new String[]{"modularity", "mvd", "mpd"}) {
-            var container = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer(id);
-            LOGGER.info("[smoke] mod {}: loaded={} version={} nested={}", id, container.isPresent(),
-                    container.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("-"),
-                    container.flatMap(c -> c.getContainingMod()).map(c -> c.getMetadata().getId()).orElse("no"));
-        }
+        var container = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("modularity");
+        LOGGER.info("[smoke] mod modularity: loaded={} version={} nested={}", container.isPresent(),
+                container.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("-"),
+                container.flatMap(c -> c.getContainingMod()).map(c -> c.getMetadata().getId()).orElse("no"));
     }
 
     private static void setUp(MinecraftServer server) {

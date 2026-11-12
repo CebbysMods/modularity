@@ -1,26 +1,126 @@
 name: build
-on: [push, pull_request, workflow_dispatch]
+
+on:
+  push:
+    branches: [release/1.0.0]
+  pull_request:
+  workflow_dispatch:
+
+# No step needs to write to the repository.
+permissions:
+  contents: read
+
+# A newer run of the same branch or pull request replaces the older one.
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  discover:
+    name: Discover platforms
+    uses: ./.github/workflows/discover-platforms.yml
+
+  # One job per enabled platform. Each job builds only its own platform.
   build:
+    name: ${{ matrix.id }}
+    needs: discover
     runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # 21: toolchain of the 1.21.x platforms; 25 (last = default): Gradle/Loom 1.19 and the 26.x platforms.
       - name: Set up JDK 21 and 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
             21
             25
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-      - name: Build and test
-        run: ./gradlew buildAll collectJars --stacktrace
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Build and test ${{ matrix.id }}
+        run: ./gradlew -Pmodularity.platforms=${{ matrix.id }} buildAll --stacktrace
+      # Kept when a build fails: the reports name the failing test.
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports-${{ matrix.id }}
+          path: |
+            **/build/reports/tests/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # One report for the whole pyramid. The matrix jobs already ran these tests, but each job builds only one platform
+  # and the report needs every layer in one place; the tests are cheap next to a platform build.
+  report:
+    name: Test pyramid report
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up JDK 21 and 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            25
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Unit tests of the library modules
+        id: tests-root
+        continue-on-error: true
+        run: ./gradlew -Pmodularity.platforms=none :modularity-api:test :modularity-testkit:test --continue
+      - name: Plugin and build-contract tests
+        id: tests-logic
+        continue-on-error: true
+        run: ./gradlew -p modularity-gradle test --continue
+      # Runs even when a test task failed: the report is what names the failure.
+      - name: Write the report
+        if: always()
+        run: ./gradlew -Pmodularity.platforms=none -Pmodularity.allure.tests=false allureAggregateReport
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: allure-report-build
+          path: build/reports/allure-report/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Fail when a test task failed
+        if: ${{ !cancelled() && (steps.tests-root.outcome == 'failure' || steps.tests-logic.outcome == 'failure') }}
+        run: exit 1
+
+  # The universal jar of a version merges the jars of every loader of that version, so one per-platform job cannot
+  # produce it. This job builds with every enabled platform, which also keeps the merge free of artifact shuffling.
+  collect:
+    name: Universal jars
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Fail when a platform build failed
+        if: ${{ !cancelled() && needs.build.result != 'success' }}
+        run: exit 1
+      - uses: actions/checkout@v7
+      - name: Set up JDK 21 and 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            25
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Collect universal jars
+        run: ./gradlew -Pmodularity.platforms=all collectJars --stacktrace
       - name: Upload jars
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: modularity
           path: build/libs-all/
+          retention-days: 7

@@ -1,8 +1,10 @@
 package lv.cebbys.mcmods.modularity.testkit;
 
-import lv.cebbys.mcmods.modularity.api.ModContext;
+import lv.cebbys.mcmods.modularity.api.CommonContext;
 import lv.cebbys.mcmods.modularity.api.Modularity;
-import lv.cebbys.mcmods.modularity.api.ModularMod;
+import lv.cebbys.mcmods.modularity.api.ModularityModClient;
+import lv.cebbys.mcmods.modularity.api.ModularityModCommon;
+import lv.cebbys.mcmods.modularity.api.ModularityModServer;
 import lv.cebbys.mcmods.modularity.api.Platform;
 import lv.cebbys.mcmods.modularity.api.block.BlockBehaviour;
 import lv.cebbys.mcmods.modularity.api.block.BlockContext;
@@ -142,15 +144,18 @@ public final class TestGame implements Modularity.Runtime {
     }
 
     /**
-     * Runs the mod's common init, then its client init (side {@code CLIENT}) or its server init
-     * (side {@code SERVER}, i.e. a dedicated server).
+     * Runs the mod's common stage, then its client stage (side {@code CLIENT}) or its server stage
+     * (side {@code SERVER}, i.e. a dedicated server). A mod takes part in a stage only when it
+     * implements that stage's interface.
      */
-    public TestGame load(String modId, ModularMod mod) {
-        mod.initCommon(new TestModContext(modId));
+    public TestGame load(String modId, ModularityModCommon mod) {
+        mod.initialize(new TestModContext(modId));
         if (platform.side() == Side.CLIENT) {
-            mod.initClient(new TestClientContext(modId));
-        } else {
-            mod.initServer(new TestServerContext(modId));
+            if (mod instanceof ModularityModClient client) {
+                client.initialize(new TestClientContext(modId));
+            }
+        } else if (mod instanceof ModularityModServer server) {
+            server.initialize(new TestServerContext(modId));
         }
         return this;
     }
@@ -614,7 +619,7 @@ public final class TestGame implements Modularity.Runtime {
 
     // ---------------------------------------------------------------- contexts
 
-    private final class TestModContext implements ModContext {
+    private final class TestModContext implements CommonContext {
         private final String modId;
 
         private TestModContext(String modId) {

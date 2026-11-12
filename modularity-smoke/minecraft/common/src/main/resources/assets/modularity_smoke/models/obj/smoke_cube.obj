@@ -1,0 +1,25 @@
+# Smoke OBJ model: a unit cube in one group. The client smoke parses it and draws it with the entity renderer,
+# so the run shows an object on the screen (docs/07 7.6). Every face carries UVs, so the stone texture covers it.
+o smoke_cube
+# Back face (z = 0).
+v 0 0 0
+v 1 0 0
+v 1 1 0
+v 0 1 0
+# Front face (z = 1).
+v 0 0 1
+v 1 0 1
+v 1 1 1
+v 0 1 1
+# One UV per corner of a face, so the texture maps onto each side.
+vt 0 0
+vt 1 0
+vt 1 1
+vt 0 1
+g body
+f 1/1 2/2 3/3 4/4
+f 5/1 8/4 7/3 6/2
+f 1/1 5/2 6/3 2/4
+f 2/1 6/2 7/3 3/4
+f 3/1 7/2 8/3 4/4
+f 4/1 8/2 5/3 1/4

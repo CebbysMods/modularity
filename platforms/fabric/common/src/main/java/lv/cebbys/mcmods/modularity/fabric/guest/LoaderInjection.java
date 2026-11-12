@@ -29,11 +29,11 @@ import java.util.Map;
  * <p>Fabric Loader has no public API for this; this class is the only place that touches loader internals
  * (checked against Fabric Loader 0.20.1). If a loader version changes them, only this class changes.
  */
-final class LoaderInjection {
+public final class LoaderInjection {
     private LoaderInjection() {
     }
 
-    static void addMod(Path origin, String fabricModJson) throws Exception {
+    public static void addMod(Path origin, String fabricModJson) throws Exception {
         FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
         LoaderModMetadata metadata = ModMetadataParser.parseMetadata(
                 new ByteArrayInputStream(fabricModJson.getBytes(StandardCharsets.UTF_8)), origin.toString(),

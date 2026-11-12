@@ -1,4 +1,4 @@
-# Platforms built by the lv.cebbys.modularity plugins (build-logic/, docs/07-multi-version-build.md).
+# Platforms built by the lv.cebbys.modularity plugins (modularity-gradle/, docs/07-multi-version-build.md).
 # Values from meta.fabricmc.net and maven.fabricmc.net (newest Fabric API build per exact version) and
 # Mojang's version manifest (Java), checked 2026-11-06. Never guess them: re-check when adding a version.
 # smoke-client = true: smokeAll also runs the client smoke test (docs/07, 7.6).
@@ -10,13 +10,21 @@
 [defaults]
 fabric-loader = "0.20.1"
 # fabricloader dependency of the Fabric jars: the API they use is old and stable; Quilt Loader 0.30.2 reports
-# Fabric Loader 0.19.5. Same floor as mvd and mpd.
+# Fabric Loader 0.19.5.
 fabric-loader-min = "0.16.0"
 # Quilt Loader: newest stable from meta.quiltmc.org, checked 2026-11-06.
 quilt-loader = "0.30.2"
 
+# Parchment (https://parchmentmc.org), from maven.parchmentmc.org, checked 2026-11-08: parameter names and javadoc
+# layered over the official Mojang mappings. Compile time only: names, the remapped jar and the runtime do not change.
+# Minecraft version -> Parchment version; a version without a release here builds with the official mappings alone
+# (there is none for 1.21.2, 1.21.3's covers that line, and none for 26.x). Applies to every loader of the version.
+[parchment]
+"1.21.1" = "2024.11.17"
+
 [mod]
 id = "modularity"
+group = "lv.cebbys.mcmods"
 archive-prefix = "modularity"
 name = "Modularity"
 description = "Multi version, multi loader modding API."
@@ -26,19 +34,8 @@ icon = "images/modularity.png"
 mixin-package = "lv.cebbys.mcmods.modularity.platform.mixin"
 # Nested in the jar and exposed as api.
 nested = [":modularity-api"]
-# Separate mods next to Modularity (not nested), see docs/06-utility-mods.md.
-mods = [":utilities:mvd:mvd-fabric", ":utilities:mpd:mpd-fabric"]
-
-[mod.entrypoints]
-main = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabric"]
-client = ["lv.cebbys.mcmods.modularity.fabric.client.ModularityFabricClient"]
-server = ["lv.cebbys.mcmods.modularity.fabric.ModularityFabricServer"]
-# Guest mods (modularity.mod.json only) become Fabric mods before the game starts.
-preLaunch = ["lv.cebbys.mcmods.modularity.fabric.guest.GuestMods"]
-
-[mod.depends]
-mvd = ">=4.0.0"
-mpd = ">=1.0.0"
+# No entrypoints here: the build finds them in the assembled sources by the Fabric entrypoint interface each
+# class implements (common, client, server, launch; docs/07, 7.4).
 
 [[platform]]
 name = "21.1"

@@ -1,5 +1,9 @@
 # Icon editing: rebuilding a generated icon from layers
 
+> **Historical.** This page describes the icons of the `mvd` and `mpd` mods. Both mods are merged into
+> Modularity (docs/06) and their icons are deleted. The page stays as the record of the layer method
+> in `tools/icons/layers.py`; it applies to any generated icon.
+
 The mvd and mpd icons were generated with Gemini. The first mpd image had a spelling mistake
 ("PLATFDRM DETETOR"). This page explains how that image was repaired by splitting it into layers,
 why that worked when quick fixes did not, and why the shipped icon is a later Gemini image instead.
