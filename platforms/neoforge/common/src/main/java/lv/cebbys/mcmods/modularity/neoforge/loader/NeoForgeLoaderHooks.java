@@ -1,62 +1,106 @@
 package lv.cebbys.mcmods.modularity.neoforge.loader;
 
 import lv.cebbys.mcmods.modularity.api.core.Id;
+import lv.cebbys.mcmods.modularity.neoforge.network.NeoForgePayloads;
 import lv.cebbys.mcmods.modularity.platform.block.ModularBlockEntity;
 import lv.cebbys.mcmods.modularity.platform.block.ModularEntityBlock;
+import lv.cebbys.mcmods.modularity.platform.compat.Ids;
 import lv.cebbys.mcmods.modularity.platform.loader.LoaderHooks;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
- * The NeoForge content seam. NeoForge registers content through {@code DeferredRegister} and {@code RegisterEvent},
- * which fire before common setup; this seam does not replay those registrations yet, so every method fails loudly
- * instead of registering nothing.
+ * The NeoForge content seam. NeoForge freezes its registries at the end of mod construction and unfreezes them for
+ * the {@link RegisterEvent} pass, so a registration is queued here and replayed inside that event, which fires once
+ * per registry. A creative tab entry is queued the same way and added inside {@link BuildCreativeModeTabContentsEvent}.
+ * The caller must run the common stage before those events fire; the NeoForge entrypoint runs it on the first
+ * {@code RegisterEvent} and then calls {@link #replay(RegisterEvent)} for the registry that event covers, because the
+ * listener of this class has already run for it.
  */
 public final class NeoForgeLoaderHooks implements LoaderHooks {
+    private final List<Pending> pending = new ArrayList<>();
+    private final List<TabEntry> tabs = new ArrayList<>();
+
+    public NeoForgeLoaderHooks(IEventBus modBus) {
+        NeoForgePayloads.install(modBus);
+        modBus.addListener((RegisterEvent event) -> replay(event));
+        modBus.addListener((BuildCreativeModeTabContentsEvent event) -> {
+            for (TabEntry entry : tabs) {
+                if (entry.tab().equals(event.getTabKey())) {
+                    event.accept(new ItemStack(entry.item()));
+                }
+            }
+        });
+    }
 
     @Override
     public <T> T register(Registry<? super T> registry, Id id, T value) {
-        throw notImplemented("register");
+        pending.add(new Pending(registry.key(), Ids.rl(id), value));
+        return value;
     }
 
     @Override
     public BlockEntityType<ModularBlockEntity> blockEntityType(ModularEntityBlock block) {
-        throw notImplemented("blockEntityType");
+        return BlockEntityType.Builder
+                .of((pos, state) -> (ModularBlockEntity) block.newBlockEntity(pos, state), block)
+                .build(null);
     }
 
     @Override
     public void addToCreativeTab(ResourceKey<CreativeModeTab> tab, Item item) {
-        throw notImplemented("addToCreativeTab");
+        tabs.add(new TabEntry(tab, item));
     }
 
     @Override
     public <P extends CustomPacketPayload> void registerPayload(CustomPacketPayload.Type<P> type,
                                                                 StreamCodec<FriendlyByteBuf, P> codec) {
-        throw notImplemented("registerPayload");
+        NeoForgePayloads.register(type, codec);
     }
 
     @Override
     public void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
-        throw notImplemented("sendToPlayer");
+        player.connection.send(payload);
     }
 
     @Override
     public <P extends CustomPacketPayload> void onServerPayload(CustomPacketPayload.Type<P> type,
                                                                 BiConsumer<ServerPlayer, P> handler) {
-        throw notImplemented("onServerPayload");
+        NeoForgePayloads.onServer(type, handler);
     }
 
-    private static UnsupportedOperationException notImplemented(String method) {
-        return new UnsupportedOperationException(
-                "Modularity content registration is not implemented on NeoForge yet (" + method + ")");
+    /** Registers every queued value whose registry this event belongs to. */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void replay(RegisterEvent event) {
+        ResourceKey<? extends Registry<?>> key = event.getRegistryKey();
+        for (Iterator<Pending> it = pending.iterator(); it.hasNext(); ) {
+            Pending entry = it.next();
+            if (entry.key().equals(key)) {
+                event.register((ResourceKey) key, entry.id(), entry::value);
+                it.remove();
+            }
+        }
+    }
+
+    private record Pending(ResourceKey<? extends Registry<?>> key, ResourceLocation id, Object value) {
+    }
+
+    private record TabEntry(ResourceKey<CreativeModeTab> tab, Item item) {
     }
 }

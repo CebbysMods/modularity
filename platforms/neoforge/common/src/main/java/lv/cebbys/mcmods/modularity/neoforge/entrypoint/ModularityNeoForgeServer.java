@@ -1,8 +1,6 @@
 package lv.cebbys.mcmods.modularity.neoforge.entrypoint;
 
-import lv.cebbys.mcmods.modularity.platform.EntryPoint;
-import lv.cebbys.mcmods.modularity.platform.EntryPoints;
-import lv.cebbys.mcmods.modularity.platform.ModularityServer;
+import lv.cebbys.mcmods.modularity.anvil.entrypoint.*;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -16,9 +14,7 @@ import net.neoforged.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 public final class ModularityNeoForgeServer {
 
     public ModularityNeoForgeServer(IEventBus modBus) {
-        modBus.addListener((FMLDedicatedServerSetupEvent event) -> event.enqueueWork(() -> {
-            EntryPoints.active(EntryPoint.SERVER, "neoforge");
-            ModularityServer.init();
-        }));
+        modBus.addListener((FMLDedicatedServerSetupEvent event) -> event.enqueueWork(() ->
+                ModularityAnvilServer.init("neoforge")));
     }
 }
